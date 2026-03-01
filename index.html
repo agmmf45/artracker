@@ -2893,24 +2893,31 @@ async function init(){
     document.getElementById('auth-screen').style.display='flex';
   };
 
-  const timeout = setTimeout(()=>{ if(!appStarted) showAuth(); }, 6000);
-
+  // Listen for future auth changes (login/logout)
   sb.auth.onAuthStateChange(async(event, session)=>{
     if(event==='SIGNED_OUT'){
-      clearTimeout(timeout);
       appStarted = false;
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
       showAuth();
-      return;
-    }
-    if((event==='INITIAL_SESSION'||event==='SIGNED_IN') && session?.user){
-      clearTimeout(timeout);
-      if(appStarted && currentUser?.id===session.user.id) return; // already running
+    } else if(event==='SIGNED_IN' && session?.user && !appStarted){
       appStarted = true;
       await startApp(session.user);
     }
   });
+
+  // Check existing session immediately
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(session?.user){
+      appStarted = true;
+      await startApp(session.user);
+    } else {
+      showAuth();
+    }
+  } catch(e){
+    showAuth();
+  }
 }
 init();
 </script>
