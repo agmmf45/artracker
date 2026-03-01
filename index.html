@@ -2799,30 +2799,36 @@ async function confirmReset(){
 
 // ── INIT ──────────────────────────────────────
 async function init(){
+  // Timeout fallback — if nothing happens in 6s, show auth screen
   const timeout = setTimeout(()=>{
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
-  }, 4000);
-  try{
-    const {data:{session}} = await sb.auth.getSession();
-    clearTimeout(timeout);
-    document.getElementById('loading-screen').style.display='none';
-    if(session?.user){ await startApp(session.user); }
-    else { document.getElementById('auth-screen').style.display='flex'; }
-  }catch(err){
-    clearTimeout(timeout);
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
-  }
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session?.user){
-      document.getElementById('auth-screen').style.display='none';
-      if(!currentUser||currentUser.id!==session.user.id) await startApp(session.user);
-    } else if(event==='SIGNED_OUT'){
-      if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
-      currentUser=null;
-      document.getElementById('app').style.display='none';
+    if(!currentUser){
+      document.getElementById('loading-screen').style.display='none';
       document.getElementById('auth-screen').style.display='flex';
+    }
+  }, 6000);
+
+  // onAuthStateChange fires INITIAL_SESSION on page load with the stored session
+  sb.auth.onAuthStateChange(async(event, session)=>{
+    if(event==='INITIAL_SESSION' || event==='SIGNED_IN'){
+      clearTimeout(timeout);
+      if(session?.user){
+        if(!currentUser || currentUser.id !== session.user.id){
+          await startApp(session.user);
+        }
+      } else {
+        // No session
+        document.getElementById('loading-screen').style.display='none';
+        document.getElementById('auth-screen').style.display='flex';
+      }
+    } else if(event==='SIGNED_OUT'){
+      clearTimeout(timeout);
+      if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
+      currentUser = null;
+      document.getElementById('app').style.display='none';
+      document.getElementById('loading-screen').style.display='none';
+      document.getElementById('auth-screen').style.display='flex';
+    } else if(event==='TOKEN_REFRESHED'){
+      // session refreshed silently — no action needed
     }
   });
 }
