@@ -548,12 +548,16 @@ async function loadMyData(){
   if(!myData.display_name) myData.display_name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
 }
 async function saveMyData(){
-  await sb.from('users').upsert({
+  const payload = {
     id: currentUser.id,
-    name: myData.display_name,
+    name: myData.display_name || currentUser.email,
     data: myData,
     updated_at: new Date().toISOString()
-  });
+  };
+  const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
+  if(error){
+    showToast('❌ ' + error.message);
+  }
 }
 async function loadAllUsers(){
   const {data} = await sb.from('users').select('name, data, updated_at');
