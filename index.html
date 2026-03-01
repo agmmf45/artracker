@@ -2893,7 +2893,6 @@ async function init(){
     document.getElementById('auth-screen').style.display='flex';
   };
 
-  // Listen for future auth changes (login/logout)
   sb.auth.onAuthStateChange(async(event, session)=>{
     if(event==='SIGNED_OUT'){
       appStarted = false;
@@ -2906,17 +2905,21 @@ async function init(){
     }
   });
 
-  // Check existing session immediately
   try{
-    const {data:{session}} = await sb.auth.getSession();
-    if(session?.user){
+    // Hard 3s timeout on getSession
+    const sessionResult = await Promise.race([
+      sb.auth.getSession(),
+      new Promise((_,rej) => setTimeout(()=>rej('timeout'), 3000))
+    ]);
+    const session = sessionResult?.data?.session;
+    if(session?.user && !appStarted){
       appStarted = true;
       await startApp(session.user);
-    } else {
+    } else if(!appStarted){
       showAuth();
     }
   } catch(e){
-    showAuth();
+    if(!appStarted) showAuth();
   }
 }
 init();
