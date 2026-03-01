@@ -1621,10 +1621,13 @@ async function doLogout(){
 // ── DATA ───────────────────────────────────────
 async function loadMyData(){
   try{
-    const {data, error} = await sb.from('users').select('data').eq('id', currentUser.id).single();
+    const dbCall = sb.from('users').select('data').eq('id', currentUser.id).single();
+    const {data} = await Promise.race([
+      dbCall,
+      new Promise((_,rej)=>setTimeout(()=>rej('db timeout'),3000))
+    ]);
     if(data?.data) myData = data.data;
-    // ignore "no rows" error — new user
-  } catch(e){ /* new user or network issue — use defaults */ }
+  } catch(e){ console.warn('DB load:', e); }
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
@@ -1662,24 +1665,41 @@ async function startApp(user){
   currentUser = user;
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading-screen').style.display='flex';
-  try{ await loadMyData(); }catch(e){ console.warn('loadMyData failed, using defaults', e); }
-  try{ checkAndUnlockTrophies(); }catch(e){}
+
+  // Load data with 4s timeout — never hang
+  try{
+    await Promise.race([
+      loadMyData(),
+      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),4000))
+    ]);
+  }catch(e){ console.warn('loadMyData:', e); }
+
+  // Apply theme
   if(myData.theme && myData.theme !== 'default'){
     document.body.className = `theme-${myData.theme}`;
   }
+
+  // Show app
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  document.getElementById('sidebar-name').textContent = myData.display_name;
+
+  // Render everything
+  try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
   try{ updateTopBar(); }catch(e){}
-  updateDateDisplays();
-  try{ renderHabits(); renderStreaks(); renderWallets(); renderBudget(); }catch(e){}
+  try{ updateDateDisplays(); }catch(e){}
+  try{ renderHabits(); }catch(e){}
+  try{ renderStreaks(); }catch(e){}
+  try{ renderWallets(); }catch(e){}
+  try{ checkAndUnlockTrophies(); }catch(e){}
   try{ renderProfilePage(); }catch(e){}
-  try{ await saveMyData(); }catch(e){}
-  try{ await refreshAll(); }catch(e){}
+
+  // Save + refresh in background — don't block UI
+  saveMyData().catch(()=>{});
+  refreshAll().catch(()=>{});
   refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 20000);
 }
 async function refreshAll(){
-  await loadAllUsers();
+  try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
   const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
   document.getElementById('online-count').textContent = Math.max(1, recent.length);
   renderFriends();
