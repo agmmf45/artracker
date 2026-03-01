@@ -236,11 +236,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
   <main class="main">
     <div class="top-tabs">
-      <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)">✅ العادات</div>
-      <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">👥 الأصدقاء</div>
-      <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)">💸 المصاريف</div>
-      <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">📊 إحصائيات</div>
-      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">🪪 ملفي</div>
+      <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)">العادات</div>
+      <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">الأصدقاء</div>
+      <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)">المصاريف</div>
+      <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">إحصائيات</div>
+      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">ملفي</div>
     </div>
 
     <!-- HABITS -->
@@ -358,6 +358,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           <div class="sec-title" style="margin-top:16px">اختر اللون</div>
           <div class="avatar-colors" id="avatar-colors"></div>
           <button class="btn btn-p btn-full" style="margin-top:16px" onclick="saveProfile()">💾 حفظ الملف الشخصي</button>
+          <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+            <div class="sec-title">💬 نوت للأصدقاء</div>
+            <div class="fg">
+              <input type="text" class="fi" id="status-note-input" placeholder="مثال: اليوم أحاول أكمل كل العادات 💪" maxlength="60">
+            </div>
+            <button class="btn btn-s btn-sm" style="width:100%" onclick="saveStatusNote()">حفظ النوت</button>
+          </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:18px">
@@ -790,6 +797,7 @@ function renderFriends(){
           <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
         </div>
       </div>
+      ${u.status_note ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>` : ''}
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
         ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
@@ -825,14 +833,14 @@ function renderFriendsList(){
   if(!friends.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>أصدقاؤك لم يسجلوا بعد</p></div>`;return;}
   el.innerHTML=friends.map(u=>`
     <div class="friend-list-item">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px">${u.avatar_emoji||'😊'}</div>
-        <div>
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <div style="width:36px;height:36px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>
+        <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${u.friend_code}</div>
+          ${u.status_note ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 ${u.status_note}</div>` : `<div style="font-size:11px;color:var(--muted)">${u.friend_code}</div>`}
         </div>
       </div>
-      <button class="btn-danger" onclick="removeFriend('${u.friend_code}')">إزالة</button>
+      <button class="btn-danger" style="flex-shrink:0" onclick="removeFriend('${u.friend_code}')">إزالة</button>
     </div>`).join('');
 }
 async function removeFriend(code){
@@ -847,6 +855,7 @@ function renderProfilePage(){
   document.getElementById('profile-name-display').textContent=name;
   document.getElementById('profile-email-display').textContent=currentUser.email;
   document.getElementById('my-friend-code').textContent=myData.friend_code||'------';
+  document.getElementById('status-note-input').value = myData.status_note || '';
   // Avatar preview
   document.getElementById('profile-avatar-preview').textContent=myData.avatar_emoji||'😊';
   document.getElementById('profile-avatar-preview').style.background=myData.avatar_color||AVATAR_COLORS[0];
@@ -870,6 +879,13 @@ function pickAvatarColor(c){
   document.getElementById('profile-avatar-preview').style.background=c;
   document.querySelectorAll('.av-color').forEach(el=>el.classList.remove('sel'));
   event.target.classList.add('sel');
+}
+async function saveStatusNote(){
+  const note = document.getElementById('status-note-input').value.trim();
+  myData.status_note = note;
+  await saveMyData();
+  showToast('✅ تم حفظ النوت');
+  renderFriends();
 }
 async function saveProfile(){
   await saveMyData();
