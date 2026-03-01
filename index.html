@@ -1651,11 +1651,21 @@ async function loadMyData(){
   if(!myData.display_name) myData.display_name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
 }
 async function saveMyData(){
-  if(!currentUser) return;
+  if(!currentUser){ console.warn('no currentUser'); return; }
+
+  // If data not confirmed loaded, try loading once more before saving
   if(!dataLoadedFromDB){
-    console.warn('saveMyData skipped — data not confirmed loaded');
-    return;
+    showToast('⏳ جاري التزامن...');
+    try{
+      const {data} = await sb.from('users').select('data').eq('id',currentUser.id).single();
+      if(data?.data){ myData = {...data.data, ...myData}; } // merge: keep local changes on top
+      dataLoadedFromDB = true;
+    } catch(e){ 
+      // new user — no row yet, safe to save
+      dataLoadedFromDB = true;
+    }
   }
+
   const payload = {
     id: currentUser.id,
     name: myData.display_name || currentUser.email,
@@ -1664,7 +1674,7 @@ async function saveMyData(){
   };
   const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
   if(error){
-    console.error('saveMyData error:', error);
+    console.error('saveMyData error:', error.message, error.code);
     showToast('❌ خطأ في الحفظ: ' + error.message);
   } else {
     showToast('✅ تم الحفظ');
