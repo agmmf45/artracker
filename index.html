@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Artrk</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* THEMES */
 body.theme-rose {
@@ -1671,43 +1671,18 @@ async function loadMyData(){
 
 async function saveMyData(){
   if(!currentUser) return;
-  applyDefaults();
-  saveToCache(currentUser.id); // always save locally first
-
-  const doSave = async () => {
-    const payload = {
-      id: currentUser.id,
-      name: myData.display_name || currentUser.email,
-      data: myData,
-      updated_at: new Date().toISOString()
-    };
-    const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
-    return error;
+  saveToCache(currentUser.id);
+  const payload = {
+    id: currentUser.id,
+    name: myData.display_name || currentUser.email,
+    data: myData,
+    updated_at: new Date().toISOString()
   };
-
-  try{
-    let error = await doSave();
-
-    // Retry once if AbortError (lock conflict)
-    if(error?.message?.includes('AbortError') || error?.message?.includes('abort')){
-      await new Promise(r=>setTimeout(r,800));
-      error = await doSave();
-    }
-
-    if(error){
-      console.error('❌ saveMyData:', error.message);
-      // Don't show error for lock issues — data is in cache
-      if(!error.message?.includes('AbortError')){
-        showToast('❌ خطأ في الحفظ: ' + error.message);
-      }
-    } else {
-      showToast('✅ تم الحفظ');
-    }
-  } catch(e){
-    // Network/lock error — data already saved to localStorage cache
-    console.warn('saveMyData catch:', e);
-  }
+  const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
+  if(error){ showToast('❌ ' + error.message); }
+  else { showToast('✅ تم الحفظ'); }
 }
+
 async function loadAllUsers(){
   const {data} = await sb.from('users').select('name, data, updated_at');
   allUsers = (data||[]).map(r=>({name:r.name,...r.data, updated_at:r.updated_at}));
@@ -1715,36 +1690,32 @@ async function loadAllUsers(){
 
 // ── START APP ──────────────────────────────────
 async function startApp(user){
-  currentUser = user;
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('loading-screen').style.display='flex';
-
-  await loadMyData();
-
-  // Apply theme
-  if(myData.theme && myData.theme !== 'default'){
-    document.body.className = `theme-${myData.theme}`;
+  try{
+    currentUser = user;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('loading-screen').style.display='flex';
+    await loadMyData();
+    checkAndUnlockTrophies();
+    if(myData.theme && myData.theme !== 'default'){
+      document.body.className = `theme-${myData.theme}`;
+    }
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('sidebar-name').textContent = myData.display_name;
+    updateTopBar();
+    updateDateDisplays();
+    renderHabits(); renderStreaks(); renderWallets(); renderBudget();
+    renderProfilePage();
+    await refreshAll();
+    refreshTimer = setInterval(refreshAll, 30000);
+  } catch(err){
+    console.error('startApp error:', err);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+    showToast('❌ حدث خطأ، حاول مجدداً');
   }
-
-  // Show app immediately
-  document.getElementById('loading-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-
-  // Render
-  try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
-  try{ updateTopBar(); }catch(e){}
-  try{ updateDateDisplays(); }catch(e){}
-  try{ renderHabits(); }catch(e){}
-  try{ renderStreaks(); }catch(e){}
-  try{ renderWallets(); }catch(e){}
-  try{ checkAndUnlockTrophies(); }catch(e){}
-  try{ renderProfilePage(); }catch(e){}
-
-  // Refresh friends in background
-  refreshAll().catch(()=>{});
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 30000);
 }
+
 async function refreshAll(){
   try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
   const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
@@ -2878,34 +2849,33 @@ async function confirmReset(){
 }
 
 // ── INIT ──────────────────────────────────────
-function init(){
-  const showAuth = () => {
+async function init(){
+  const timeout = setTimeout(()=>{
     document.getElementById('loading-screen').style.display='none';
-    document.getElementById('app').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
-  };
-
-  // Handle future auth events (login/logout)
-  sb.auth.onAuthStateChange(async(event, session)=>{
-    if(event==='SIGNED_IN' && session?.user){
-      if(!currentUser || currentUser.id !== session.user.id){
-        await startApp(session.user);
-      }
+  }, 4000);
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    if(session?.user){ await startApp(session.user); }
+    else { document.getElementById('auth-screen').style.display='flex'; }
+  }catch(err){
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+  }
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user){
+      document.getElementById('auth-screen').style.display='none';
+      if(!currentUser||currentUser.id!==session.user.id) await startApp(session.user);
     } else if(event==='SIGNED_OUT'){
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
-      currentUser = null;
-      showAuth();
+      currentUser=null;
+      document.getElementById('app').style.display='none';
+      document.getElementById('auth-screen').style.display='flex';
     }
   });
-
-  // Check session on load — don't wait for onAuthStateChange
-  sb.auth.getSession().then(({data:{session}})=>{
-    if(session?.user){
-      startApp(session.user);
-    } else {
-      showAuth();
-    }
-  }).catch(()=> showAuth());
 }
 init();
 </script>
