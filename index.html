@@ -1340,8 +1340,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     autoRefreshToken: true,
     detectSessionInUrl: false,
     storage: window.localStorage,
-    storageKey: 'artrk_auth',
-    lock: (name, acquireTimeout, fn) => fn()  // disable lock to prevent AbortError
+    storageKey: 'artrk_auth'
   }
 });
 
