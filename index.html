@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Artrk</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* THEMES */
 body.theme-rose {
@@ -292,20 +292,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-/* Privacy blur */
-.priv-blur{filter:blur(5px);user-select:none;pointer-events:none;opacity:0.6;}
-.priv-locked-row{margin:6px 0;padding:4px 0;}
-.priv-habits-blur{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px;filter:blur(6px);opacity:0.4;pointer-events:none;}
-/* Privacy toggles */
-.priv-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:12px;}
-.priv-label{font-size:13px;font-weight:700;color:var(--text);}
-.priv-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
-.toggle-switch input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:99px;transition:.3s;}
-.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
-.toggle-switch input:checked+.toggle-slider{background:var(--accent);}
-.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
 /* Shared Todos */
 .std-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
 .std-item:last-child{border-bottom:none;}
@@ -318,6 +304,24 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .std-del:hover{color:var(--red);background:var(--surface2);}
 .shared-todo-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;margin-top:10px;color:var(--text);}
 .shared-todo-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Privacy blur */
+.priv-blur{filter:blur(5px);user-select:none;pointer-events:none;opacity:0.6;}
+.priv-locked-row{margin:6px 0;padding:4px 0;}
+.priv-bar-blur .bar-wrap{filter:blur(3px);opacity:0.4;}
+.priv-bar-blur{margin:10px 0;}
+.priv-habits-blur{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px;filter:blur(6px);opacity:0.4;pointer-events:none;}
+
+
+/* Privacy toggles */
+.priv-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:12px;}
+.priv-label{font-size:13px;font-weight:700;color:var(--text);}
+.priv-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:99px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent);}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
 
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
@@ -1368,7 +1372,13 @@ setInterval(()=>{
 <script>
 const SUPABASE_URL = 'https://vbubelofnmbizoatyajr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZidWJlbG9mbm1iaXpvYXR5YWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMzU0MDQsImV4cCI6MjA4NzkxMTQwNH0.mm79U80ZJ4mBdad0lqXB_cX6KbkiLup-tLH-7w01yuw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+});
 
 const EMOJIS = ['🏋️','😴','📚','💧','🧘','🏃','🥗','✍️','🎨','🎸','🌿','💊','🧹','📖','🙏','☕','🛁','🚴','🧠','💻','🎯','🧗','🌅','🎻'];
 const AVATAR_EMOJIS = ['😊','🦁','🐯','🦊','🐻','🦄','🐼','🦋','🦅','⚡','🔥','🌊','🌟','💎','🎯'];
@@ -1694,6 +1704,8 @@ async function loadMyData(){
       myData = data.data;
       applyDefaults();
       saveToCache(currentUser.id); // update cache
+      // Re-render now that real data is loaded
+      try{ renderHabits(); renderStreaks(); renderWallets(); renderProfilePage(); updateTopBar(); }catch(e){}
     } else {
       applyDefaults();
     }
@@ -1705,43 +1717,18 @@ async function loadMyData(){
 
 async function saveMyData(){
   if(!currentUser) return;
-  applyDefaults();
-  saveToCache(currentUser.id); // always save locally first
-
-  const doSave = async () => {
-    const payload = {
-      id: currentUser.id,
-      name: myData.display_name || currentUser.email,
-      data: myData,
-      updated_at: new Date().toISOString()
-    };
-    const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
-    return error;
+  saveToCache(currentUser.id);
+  const payload = {
+    id: currentUser.id,
+    name: myData.display_name || currentUser.email,
+    data: myData,
+    updated_at: new Date().toISOString()
   };
-
-  try{
-    let error = await doSave();
-
-    // Retry once if AbortError (lock conflict)
-    if(error?.message?.includes('AbortError') || error?.message?.includes('abort')){
-      await new Promise(r=>setTimeout(r,800));
-      error = await doSave();
-    }
-
-    if(error){
-      console.error('❌ saveMyData:', error.message);
-      // Don't show error for lock issues — data is in cache
-      if(!error.message?.includes('AbortError')){
-        showToast('❌ خطأ في الحفظ: ' + error.message);
-      }
-    } else {
-      showToast('✅ تم الحفظ');
-    }
-  } catch(e){
-    // Network/lock error — data already saved to localStorage cache
-    console.warn('saveMyData catch:', e);
-  }
+  const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
+  if(error){ showToast('❌ ' + error.message); }
+  else { showToast('✅ تم الحفظ'); }
 }
+
 async function loadAllUsers(){
   const {data} = await sb.from('users').select('name, data, updated_at');
   allUsers = (data||[]).map(r=>({name:r.name,...r.data, updated_at:r.updated_at}));
@@ -1749,37 +1736,32 @@ async function loadAllUsers(){
 
 // ── START APP ──────────────────────────────────
 async function startApp(user){
-  if(currentUser?.id === user.id) return; // already running
-  currentUser = user;
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('loading-screen').style.display='flex';
-
-  await loadMyData();
-
-  // Apply theme
-  if(myData.theme && myData.theme !== 'default'){
-    document.body.className = `theme-${myData.theme}`;
+  try{
+    currentUser = user;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('loading-screen').style.display='flex';
+    await loadMyData();
+    checkAndUnlockTrophies();
+    if(myData.theme && myData.theme !== 'default'){
+      document.body.className = `theme-${myData.theme}`;
+    }
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('sidebar-name').textContent = myData.display_name;
+    updateTopBar();
+    updateDateDisplays();
+    renderHabits(); renderStreaks(); renderWallets(); renderBudget();
+    renderProfilePage();
+    await refreshAll();
+    refreshTimer = setInterval(refreshAll, 30000);
+  } catch(err){
+    console.error('startApp error:', err);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+    showToast('❌ حدث خطأ، حاول مجدداً');
   }
-
-  // Show app immediately
-  document.getElementById('loading-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-
-  // Render
-  try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
-  try{ updateTopBar(); }catch(e){}
-  try{ updateDateDisplays(); }catch(e){}
-  try{ renderHabits(); }catch(e){}
-  try{ renderStreaks(); }catch(e){}
-  try{ renderWallets(); }catch(e){}
-  try{ checkAndUnlockTrophies(); }catch(e){}
-  try{ renderProfilePage(); }catch(e){}
-
-  // Refresh friends in background
-  refreshAll().catch(()=>{});
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 30000);
 }
+
 async function refreshAll(){
   try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
   const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
@@ -1818,6 +1800,7 @@ function renderHabits(){
       <div class="h-icon">${h.icon}</div>
       <div class="h-name">${h.name}</div>
       <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
+      ${!isMe ? `<div onclick="openSharedTodo('${u.friend_code}','${u.display_name||u.name}')" class="shared-todo-btn">📋 قائمة مشتركة</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -1840,75 +1823,129 @@ const PRIVACY_OPTIONS = [
   {key:'show_expenses', label:'المصاريف',   sub:'إجمالي الإنفاق الشهري'},
   {key:'show_note',     label:'النوت',       sub:'رسالتك للأصدقاء'},
 ];
-function getPrivacy(key){ return (myData.privacy||{})[key] !== false; }
+
+function getPrivacy(key){
+  return (myData.privacy || {})[key] !== false; // default: visible
+}
+
 function renderPrivacyToggles(){
-  const el=document.getElementById('privacy-toggles'); if(!el) return;
-  el.innerHTML=PRIVACY_OPTIONS.map(o=>`
+  const el = document.getElementById('privacy-toggles');
+  if(!el) return;
+  el.innerHTML = PRIVACY_OPTIONS.map(o=>`
     <div class="priv-row">
-      <div><div class="priv-label">${o.label}</div><div class="priv-sub">${o.sub}</div></div>
+      <div>
+        <div class="priv-label">${o.label}</div>
+        <div class="priv-sub">${o.sub}</div>
+      </div>
       <label class="toggle-switch">
         <input type="checkbox" id="priv-${o.key}" ${getPrivacy(o.key)?'checked':''}>
         <span class="toggle-slider"></span>
       </label>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
+
 function savePrivacy(){
-  if(!myData.privacy) myData.privacy={};
-  PRIVACY_OPTIONS.forEach(o=>{ const el=document.getElementById('priv-'+o.key); if(el) myData.privacy[o.key]=el.checked; });
+  if(!myData.privacy) myData.privacy = {};
+  PRIVACY_OPTIONS.forEach(o=>{
+    const el = document.getElementById('priv-'+o.key);
+    if(el) myData.privacy[o.key] = el.checked;
+  });
   saveMyData();
 }
 
+
 // ── SHARED TODOS ──────────────────────────────
-let stdListId=null, stdFriendName='', stdPollTimer=null;
-function getListId(a,b){ return [a,b].sort().join('_'); }
+let stdListId = null;
+let stdFriendName = '';
+let stdPollTimer = null;
+
+function getListId(codeA, codeB){
+  return [codeA, codeB].sort().join('_');
+}
+
 function openSharedTodo(friendCode, friendName){
-  stdListId=getListId(myData.friend_code, friendCode);
-  stdFriendName=friendName;
-  document.getElementById('std-title').textContent='قائمة مشتركة';
-  document.getElementById('std-subtitle').textContent=`أنت و ${friendName}`;
-  document.getElementById('std-input').value='';
-  document.getElementById('shared-todo-modal').style.display='flex';
+  stdListId = getListId(myData.friend_code, friendCode);
+  stdFriendName = friendName;
+  document.getElementById('std-title').textContent = 'قائمة مشتركة';
+  document.getElementById('std-subtitle').textContent = `أنت و ${friendName}`;
+  document.getElementById('std-input').value = '';
+  document.getElementById('shared-todo-modal').style.display = 'flex';
   loadSharedTodos();
+  // Poll every 5s for real-time feel
   if(stdPollTimer) clearInterval(stdPollTimer);
-  stdPollTimer=setInterval(loadSharedTodos,5000);
-  setTimeout(()=>document.getElementById('std-input').focus(),100);
+  stdPollTimer = setInterval(loadSharedTodos, 5000);
+  setTimeout(()=>document.getElementById('std-input').focus(), 100);
 }
+
 function closeSharedTodo(){
-  document.getElementById('shared-todo-modal').style.display='none';
-  if(stdPollTimer){clearInterval(stdPollTimer);stdPollTimer=null;}
+  document.getElementById('shared-todo-modal').style.display = 'none';
+  if(stdPollTimer){ clearInterval(stdPollTimer); stdPollTimer = null; }
 }
+
 async function loadSharedTodos(){
   if(!stdListId) return;
   try{
-    const {data}=await sb.from('shared_todos').select('*').eq('list_id',stdListId).order('created_at',{ascending:true});
-    renderSharedTodos(data||[]);
-  }catch(e){}
+    const {data} = await sb.from('shared_todos')
+      .select('*')
+      .eq('list_id', stdListId)
+      .order('created_at', {ascending: true});
+    renderSharedTodos(data || []);
+  } catch(e){ console.warn('loadSharedTodos:', e); }
 }
+
 function renderSharedTodos(todos){
-  const el=document.getElementById('std-list');
-  if(!todos.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">لا توجد مهام — أضف أول مهمة! 🎯</div>';return;}
-  el.innerHTML=todos.map(t=>`
+  const el = document.getElementById('std-list');
+  if(!todos.length){
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">لا توجد مهام بعد — أضف أول مهمة! 🎯</div>';
+    return;
+  }
+  el.innerHTML = todos.map(t => `
     <div class="std-item">
       <div class="std-check ${t.done?'done':''}" onclick="toggleSharedTodo(${t.id},${t.done})">${t.done?'✓':''}</div>
       <div style="flex:1;min-width:0">
         <div class="std-text ${t.done?'done':''}">${t.text}</div>
-        <div class="std-meta">${t.created_by}${t.done&&t.done_by?` · ✅ أنجزها ${t.done_by}`:''}</div>
+        <div class="std-meta">
+          ${t.created_by}
+          ${t.done && t.done_by ? ` · ✅ أنجزها ${t.done_by}` : ''}
+        </div>
       </div>
       <div class="std-del" onclick="deleteSharedTodo(${t.id})">🗑</div>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
+
 async function addSharedTodo(){
-  const input=document.getElementById('std-input');
-  const text=input.value.trim(); if(!text) return;
-  input.value='';
-  try{ await sb.from('shared_todos').insert({list_id:stdListId,text,created_by:myData.display_name||'أنا',done:false}); loadSharedTodos(); }
-  catch(e){showToast('❌ تعذّرت الإضافة');}
+  const input = document.getElementById('std-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  try{
+    await sb.from('shared_todos').insert({
+      list_id: stdListId,
+      text,
+      created_by: myData.display_name || 'أنا',
+      done: false
+    });
+    loadSharedTodos();
+  } catch(e){ showToast('❌ تعذّرت الإضافة'); }
 }
-async function toggleSharedTodo(id,currentDone){
-  try{ await sb.from('shared_todos').update({done:!currentDone,done_by:!currentDone?(myData.display_name||'أنا'):''}).eq('id',id); loadSharedTodos(); }catch(e){}
+
+async function toggleSharedTodo(id, currentDone){
+  try{
+    await sb.from('shared_todos').update({
+      done: !currentDone,
+      done_by: !currentDone ? (myData.display_name || 'أنا') : ''
+    }).eq('id', id);
+    loadSharedTodos();
+  } catch(e){}
 }
+
 async function deleteSharedTodo(id){
-  try{ await sb.from('shared_todos').delete().eq('id',id); loadSharedTodos(); }catch(e){}
+  try{
+    await sb.from('shared_todos').delete().eq('id', id);
+    loadSharedTodos();
+  } catch(e){}
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -1940,33 +1977,69 @@ function renderFriends(){
         <div class="h-icon" style="font-size:22px;margin-bottom:5px">${h.icon}</div>
         <div class="h-name" style="font-size:11px">${h.name}</div>
       </div>`).join('');
-    const priv=u.privacy||{};
-    const showHabits  =isMe||priv.show_habits  !==false;
-    const showStats   =isMe||priv.show_stats   !==false;
-    const showExpenses=isMe||priv.show_expenses!==false;
-    const showNote    =isMe||priv.show_note    !==false;
-    const expTotal=(()=>{const now=new Date();const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);return spent>0?`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`:''})();
+    // Apply privacy settings (for non-me users)
+    const priv = u.privacy || {};
+    const showHabits   = isMe || priv.show_habits   !== false;
+    const showStats    = isMe || priv.show_stats    !== false;
+    const showExpenses = isMe || priv.show_expenses !== false;
+    const showNote     = isMe || priv.show_note     !== false;
+
+    // Expenses total
+    const expTotal = showExpenses ? (()=>{
+      const now=new Date(); const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);
+      return spent>0?`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`:'';
+    })() : '';
+
+    // expenses total for me
+    const expTotal = (()=>{
+      const now=new Date(); const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);
+      return spent>0?`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`:'';
+    })();
 
     return`<div class="friend-card">
       <div class="friend-header">
         ${avatarHTML}
         <div style="flex:1;min-width:0">
           <div class="f-name">${u.display_name||u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
-          ${showStats?`<div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>`
-            :!isMe?`<div class="f-tag"><span class="priv-blur">0/0 عادة</span> 🔒</div>`:''}
+          ${showStats
+            ? `<div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>`
+            : !isMe ? `<div class="f-tag"><span class="priv-blur">0/0 عادة منجزة اليوم</span> 🔒</div>` : ''}
         </div>
       </div>
-      ${showNote&&u.status_note
-        ?`<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>`
-        :!showNote&&!isMe?`<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:10px;border-right:3px solid ${color}"><span class="priv-blur">نوت مخفي 🔒</span></div>`:''}
+
+      ${showNote && u.status_note
+        ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>`
+        : !showNote && !isMe
+          ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:10px;border-right:3px solid ${color}">
+               <span class="priv-blur">مثال: أحاول أكمل العادات اليوم 💪</span> 🔒
+             </div>`
+          : ''}
+
       ${showStats
-        ?`<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`
-        :!isMe?`<div style="position:relative;margin:10px 0"><div class="bar-wrap" style="filter:blur(2px);opacity:0.4"><div class="bar-fill" style="width:55%;background:${color}"></div></div><span style="position:absolute;top:-2px;right:46%;font-size:12px">🔒</span></div>`:''}
-      ${isMe?expTotal:showExpenses?(()=>{const now=new Date();const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);return`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`;})():`<div style="font-size:12px;color:var(--muted);margin-top:6px"><span class="priv-blur">💸 مصاريف الشهر: 9999 ر</span> 🔒</div>`}
+        ? `<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`
+        : !isMe ? `<div style="position:relative;margin:10px 0">
+              <div class="bar-wrap" style="filter:blur(2px);opacity:0.4"><div class="bar-fill" style="width:60%;background:${color}"></div></div>
+              <span style="position:absolute;top:50%;right:50%;transform:translate(50%,-50%);font-size:11px">🔒</span>
+            </div>` : ''}
+
+      ${isMe ? expTotal : showExpenses ? (()=>{
+          const now=new Date(); const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+          const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);
+          return `<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`;
+        })()
+        : `<div style="font-size:12px;color:var(--muted);margin-top:6px"><span class="priv-blur">💸 مصاريف الشهر: 9999 ر</span> 🔒</div>`}
+
       ${showHabits
-        ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}</div>`
-        :!isMe?`<div class="priv-habits-blur">${(habits.length?habits:[{},{}]).map(()=>`<div class="habit-card" style="padding:12px 10px"><div class="h-icon">🔒</div></div>`).join('')}</div>`:''}
-      ${!isMe?`<div onclick="openSharedTodo('${u.friend_code}','${u.display_name||u.name}')" class="shared-todo-btn">📋 قائمة مشتركة</div>`:''}
+        ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
+            ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
+           </div>`
+        : !isMe ? `<div class="priv-habits-blur">
+            ${(habits.length?habits:[{},{}]).map(()=>`<div class="habit-card" style="padding:12px 10px"><div class="h-icon">🔒</div></div>`).join('')}
+           </div>` : ''}
+
+      ${!isMe ? `<div onclick="openSharedTodo('${u.friend_code}','${u.display_name||u.name}')" class="shared-todo-btn">📋 قائمة مشتركة</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -2218,7 +2291,7 @@ function updateAvatarDisplay() {
 
 // ── PROFILE ───────────────────────────────────
 function renderProfilePage(){
-  try{renderPrivacyToggles();}catch(e){}
+  try{ renderPrivacyToggles(); }catch(e){}
   const name=myData.display_name||'';
   document.getElementById('profile-name-display').textContent=name;
   document.getElementById('profile-email-display').textContent=currentUser.email;
@@ -2466,6 +2539,7 @@ function addTransaction(){
   checkAndUnlockTrophies();
   document.getElementById('txn-desc').value='';
   document.getElementById('txn-amount').value='';
+  document.getElementById('txn-form-card').style.display='none';
   renderWallets();
   renderTxnList();
   showToast('✅ تمت الإضافة');
@@ -2580,7 +2654,12 @@ function openModal(id){
   }
   document.getElementById(id).classList.add('open');
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('open');
+  el.style.display='none';
+}
 function pickEmoji(el,e){document.querySelectorAll('.emo').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');document.getElementById('new-habit-icon').value=e;}
 function saveNewHabit(){
   const name=document.getElementById('new-habit-name').value.trim();
@@ -3007,36 +3086,33 @@ async function confirmReset(){
 }
 
 // ── INIT ──────────────────────────────────────
-function init(){
-  const showAuth = () => {
+async function init(){
+  const timeout = setTimeout(()=>{
     document.getElementById('loading-screen').style.display='none';
-    document.getElementById('app').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
-  };
-
-  // Handle future auth events (login/logout)
-  sb.auth.onAuthStateChange(async(event, session)=>{
-    if(event==='SIGNED_IN' && session?.user){
-      if(!currentUser || currentUser.id !== session.user.id){
-        await startApp(session.user);
-      }
+  }, 4000);
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    if(session?.user){ await startApp(session.user); }
+    else { document.getElementById('auth-screen').style.display='flex'; }
+  }catch(err){
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+  }
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user){
+      document.getElementById('auth-screen').style.display='none';
+      if(!currentUser||currentUser.id!==session.user.id) await startApp(session.user);
     } else if(event==='SIGNED_OUT'){
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
-      currentUser = null;
-      showAuth();
+      currentUser=null;
+      document.getElementById('app').style.display='none';
+      document.getElementById('auth-screen').style.display='flex';
     }
   });
-
-  // Check session on load — don't wait for onAuthStateChange
-  const sessionTimeout = setTimeout(showAuth, 4000);
-  sb.auth.getSession().then(({data:{session}})=>{
-    clearTimeout(sessionTimeout);
-    if(session?.user){
-      startApp(session.user);
-    } else {
-      showAuth();
-    }
-  }).catch(()=>{ clearTimeout(sessionTimeout); showAuth(); });
 }
 init();
 </script>
@@ -3049,11 +3125,16 @@ init();
       <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeSharedTodo()">✕</span>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center" id="std-subtitle"></div>
+
+    <!-- Add input -->
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <input type="text" class="fi" id="std-input" placeholder="أضف مهمة..." maxlength="80"
-        onkeydown="if(event.key==='Enter')addSharedTodo()" style="flex:1;font-size:14px">
+        onkeydown="if(event.key==='Enter')addSharedTodo()"
+        style="flex:1;font-size:14px">
       <button class="btn btn-p btn-sm" onclick="addSharedTodo()">+</button>
     </div>
+
+    <!-- List -->
     <div id="std-list" style="overflow-y:auto;flex:1;min-height:100px"></div>
   </div>
 </div>
