@@ -138,7 +138,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .nav-item.active::before{content:'';position:absolute;right:0;top:5px;bottom:5px;width:3px;background:var(--accent);border-radius:3px 0 0 3px;}
 .sidebar-footer{margin-top:auto;padding:14px 20px;}
 
-.main{flex:1;margin-right:230px;padding:24px 28px 90px;}
+.main{flex:1;margin-right:230px;padding:24px 28px 100px;}
 
 /* ── BOTTOM NAV ─────────────────── */
 .top-tabs{
@@ -150,6 +150,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   padding:0;
   margin:0;
   box-shadow:0 -4px 20px rgba(0,0,0,0.08);
+  padding-bottom:env(safe-area-inset-bottom,0);
 }
 .top-tab{
   flex:1;padding:10px 2px 12px;
@@ -335,7 +336,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .friend-list-item:last-child{border-bottom:none;}
 
 @media(max-width:680px){
-  .main{margin-right:0;padding:16px 16px 90px;}
+  .main{margin-right:0;padding:16px 16px 100px;}
   .top-tabs{left:0;right:0;}
 
   .sidebar{display:none;}
@@ -926,31 +927,67 @@ setInterval(()=>{
       </div>
 
       <!-- Add Todo -->
-      <div class="card mb-20">
-        <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-          <div style="flex:1;min-width:180px">
-            <input type="text" class="fi" id="todo-input" placeholder="أضف مهمة جديدة..." maxlength="100"
-              onkeydown="if(event.key==='Enter')addTodo()" style="margin-bottom:8px">
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <select class="fs" id="todo-priority" style="flex:1;font-size:13px;padding:7px 10px">
-                <option value="normal">عادية</option>
-                <option value="high">مهمة 🔴</option>
-                <option value="low">منخفضة 🔵</option>
-              </select>
-              <select class="fs" id="todo-cat" style="flex:1;font-size:13px;padding:7px 10px">
-                <option value="عام">📌 عام</option>
-                <option value="شغل">💼 شغل</option>
-                <option value="دراسة">📚 دراسة</option>
-                <option value="تسوق">🛒 تسوق</option>
-                <option value="صحة">💊 صحة</option>
-                <option value="شخصي">⭐ شخصي</option>
-              </select>
-              <input type="date" class="fi" id="todo-due" style="flex:1;font-size:13px;padding:7px 10px">
-            </div>
-          </div>
-          <button class="btn btn-p" onclick="addTodo()" style="padding:12px 18px;align-self:flex-start">➕ إضافة</button>
+      <div class="card mb-20" style="padding:16px">
+
+        <!-- Quick input bar -->
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+          <input type="text" class="fi" id="todo-input" placeholder="اكتب مهمة جديدة..." maxlength="100"
+            onkeydown="if(event.key==='Enter')addTodo()"
+            style="flex:1;font-size:15px;padding:12px 16px;">
+          <button class="btn btn-p" onclick="addTodo()" style="padding:12px 16px;white-space:nowrap;flex-shrink:0">+ إضافة</button>
         </div>
+
+        <!-- Quick tags row -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:700;color:var(--muted)">الأولوية:</span>
+          <div class="todo-quick-btn active" id="pq-normal" onclick="setTodoPriority('normal',this)">عادية</div>
+          <div class="todo-quick-btn" id="pq-high" onclick="setTodoPriority('high',this)" style="--qc:#EF4444">مهمة !</div>
+          <div class="todo-quick-btn" id="pq-low" onclick="setTodoPriority('low',this)" style="--qc:#3B82F6">منخفضة</div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:700;color:var(--muted)">الفئة:</span>
+          <div class="todo-quick-btn active" id="cq-عام" onclick="setTodoCat('عام',this)">عام</div>
+          <div class="todo-quick-btn" id="cq-شغل" onclick="setTodoCat('شغل',this)">شغل</div>
+          <div class="todo-quick-btn" id="cq-دراسة" onclick="setTodoCat('دراسة',this)">دراسة</div>
+          <div class="todo-quick-btn" id="cq-تسوق" onclick="setTodoCat('تسوق',this)">تسوق</div>
+          <div class="todo-quick-btn" id="cq-صحة" onclick="setTodoCat('صحة',this)">صحة</div>
+          <div class="todo-quick-btn" id="cq-شخصي" onclick="setTodoCat('شخصي',this)">شخصي</div>
+        </div>
+
+        <!-- Date (collapsed by default) -->
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;font-weight:700;color:var(--muted)">التاريخ:</span>
+          <input type="date" class="fi" id="todo-due" style="flex:1;font-size:13px;padding:7px 12px;max-width:180px">
+          <span style="font-size:11px;color:var(--muted);cursor:pointer" onclick="document.getElementById('todo-due').value=''">مسح</span>
+        </div>
+
+        <!-- Hidden selects for compatibility -->
+        <select id="todo-priority" style="display:none">
+          <option value="normal" selected>normal</option>
+          <option value="high">high</option>
+          <option value="low">low</option>
+        </select>
+        <select id="todo-cat" style="display:none">
+          <option value="عام" selected>عام</option>
+          <option value="شغل">شغل</option>
+          <option value="دراسة">دراسة</option>
+          <option value="تسوق">تسوق</option>
+          <option value="صحة">صحة</option>
+          <option value="شخصي">شخصي</option>
+        </select>
       </div>
+
+      <style>
+      .todo-quick-btn{
+        padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;
+        cursor:pointer;border:1.5px solid var(--border);color:var(--muted);
+        background:var(--surface2);transition:all 0.15s;white-space:nowrap;
+        --qc:var(--accent);
+      }
+      .todo-quick-btn:hover{border-color:var(--qc);color:var(--qc);}
+      .todo-quick-btn.active{background:var(--qc,var(--accent));border-color:var(--qc,var(--accent));color:white;}
+      </style>
 
       <!-- Stats bar -->
       <div class="card mb-20" id="todo-stats-bar" style="padding:14px 20px">
@@ -1100,64 +1137,9 @@ setInterval(()=>{
 
 <div class="toast" id="toast"></div>
 
-<!-- FLOATING THEME BUTTON -->
-<div class="theme-fab" id="theme-fab" onclick="toggleThemePicker()">🎨</div>
-<div class="theme-popup" id="theme-popup">
-  <div class="theme-popup-title">الثيم</div>
-  <div class="theme-popup-grid" id="theme-popup-grid"></div>
-</div>
 
 <style>
-.theme-fab{
-  position:fixed;bottom:28px;left:24px;
-  width:46px;height:46px;border-radius:50%;
-  background:var(--surface);border:2px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;cursor:pointer;z-index:9990;
-  box-shadow:var(--shadow-lg);
-  transition:transform 0.2s,box-shadow 0.2s;
-  user-select:none;
-}
-.theme-fab:hover{transform:scale(1.1);box-shadow:0 8px 24px rgba(0,0,0,0.18);}
-.theme-fab.open{transform:rotate(20deg) scale(1.1);}
 
-.theme-popup{
-  position:fixed;bottom:82px;left:24px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:18px;padding:16px;width:220px;
-  box-shadow:var(--shadow-lg);z-index:9989;
-  display:none;
-  animation:pop-up 0.22s cubic-bezier(0.34,1.56,0.64,1);
-  transform-origin:bottom left;
-}
-.theme-popup.show{display:block;}
-@keyframes pop-up{
-  from{opacity:0;transform:scale(0.85) translateY(10px);}
-  to{opacity:1;transform:scale(1) translateY(0);}
-}
-.theme-popup-title{
-  font-size:12px;font-weight:800;color:var(--muted);
-  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;
-}
-.theme-popup-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-}
-.theme-pop-item{
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  cursor:pointer;padding:6px 4px;border-radius:10px;transition:background 0.15s;
-  border:2px solid transparent;
-}
-.theme-pop-item:hover{background:var(--surface2);}
-.theme-pop-item.active{border-color:var(--accent);background:var(--accent-light);}
-.theme-pop-swatch{
-  width:36px;height:36px;border-radius:50%;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
-  border:2px solid rgba(255,255,255,0.4);
-  transition:transform 0.15s;
-}
-.theme-pop-item:hover .theme-pop-swatch,.theme-pop-item.active .theme-pop-swatch{transform:scale(1.12);}
-.theme-pop-label{font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;}
-.theme-pop-item.active .theme-pop-label{color:var(--accent);}
 </style>
 
 <script>
@@ -1759,60 +1741,11 @@ function applyTheme(id) {
   document.body.className = id === 'default' ? '' : `theme-${id}`;
   myData.theme = id;
   renderThemeGrid();
-  renderThemePopup();
   saveMyData();
   checkAndUnlockTrophies();
-  // Close popup after pick
-  setTimeout(closeThemePicker, 300);
 }
 
-function toggleThemePicker(){
-  const popup = document.getElementById('theme-popup');
-  const fab = document.getElementById('theme-fab');
-  const isOpen = popup.classList.contains('show');
-  if(isOpen){ closeThemePicker(); }
-  else {
-    renderThemePopup();
-    popup.classList.add('show');
-    fab.classList.add('open');
-  }
-}
-function closeThemePicker(){
-  document.getElementById('theme-popup').classList.remove('show');
-  document.getElementById('theme-fab').classList.remove('open');
-}
-// Close on outside click
-document.addEventListener('click', e=>{
-  const fab=document.getElementById('theme-fab');
-  const popup=document.getElementById('theme-popup');
-  if(fab&&popup&&!fab.contains(e.target)&&!popup.contains(e.target)){
-    closeThemePicker();
-  }
-});
 
-// Swatch colors per theme
-const THEME_SWATCHES = {
-  default:  ['#B45309','#F5F3EE','#FEF3C7'],
-  rose:     ['#E11D48','#FFF1F2','#FECDD3'],
-  ocean:    ['#1D4ED8','#EFF6FF','#DBEAFE'],
-  lavender: ['#7C3AED','#F5F3FF','#EDE9FE'],
-  mint:     ['#16A34A','#F0FDF4','#DCFCE7'],
-  dark:     ['#F59E0B','#1A1A1A','#333'],
-};
-
-function renderThemePopup(){
-  const current = myData.theme || 'default';
-  const el = document.getElementById('theme-popup-grid');
-  if(!el) return;
-  el.innerHTML = THEMES.map(t=>{
-    const sw = THEME_SWATCHES[t.id] || ['#888','#eee','#ccc'];
-    const gradient = `linear-gradient(135deg, ${sw[0]} 40%, ${sw[1]} 100%)`;
-    return `<div class="theme-pop-item ${current===t.id?'active':''}" onclick="applyTheme('${t.id}')">
-      <div class="theme-pop-swatch" style="background:${gradient}"></div>
-      <div class="theme-pop-label">${t.name}</div>
-    </div>`;
-  }).join('');
-}
 
 function renderThemeGrid() {
   const current = myData.theme || 'default';
@@ -2041,6 +1974,17 @@ function showPage(name,tabEl,dir){
 
 
 // ── TODO LIST ─────────────────────────────────
+
+function setTodoPriority(val, el){
+  document.getElementById('todo-priority').value = val;
+  document.querySelectorAll('[id^="pq-"]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function setTodoCat(val, el){
+  document.getElementById('todo-cat').value = val;
+  document.querySelectorAll('[id^="cq-"]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
 function addTodo(){
   const text = document.getElementById('todo-input').value.trim();
   if(!text){ document.getElementById('todo-input').focus(); return; }
@@ -2056,6 +2000,8 @@ function addTodo(){
   });
   document.getElementById('todo-input').value='';
   document.getElementById('todo-due').value='';
+  setTodoPriority('normal',document.getElementById('pq-normal'));
+  setTodoCat('عام',document.getElementById('cq-عام'));
   saveMyData(); renderTodos();
   showToast('✅ تمت إضافة المهمة');
 }
@@ -2310,7 +2256,7 @@ const _origApplyTheme=applyTheme;
     const dy=Math.abs(e.changedTouches[0].clientY-sy);
     if(Math.abs(dx)<55||dy>100)return;
     // ignore if touch started on a modal or fab
-    if(e.target.closest('.modal-ov,.theme-popup,.theme-fab'))return;
+    if(e.target.closest('.modal-ov'))return;
     const cur=document.querySelector('.page.active');
     if(!cur)return;
     const idx=PAGE_ORDER.indexOf(cur.id.replace('page-',''));
