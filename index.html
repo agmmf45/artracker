@@ -292,6 +292,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.req-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--surface);display:none;}
+
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
@@ -830,6 +832,11 @@ setInterval(()=>{
         <div class="ph2">👥 أهداف الأصدقاء</div>
         <div class="psub2">شوف إنجازات الجميع اليوم</div>
       </div>
+      <!-- Incoming requests shown here -->
+      <div id="friends-req-card" style="display:none;background:var(--surface);border:1.5px solid var(--red);border-radius:var(--r);padding:16px;margin-bottom:18px;box-shadow:var(--shadow)">
+        <div style="font-size:13px;font-weight:900;margin-bottom:12px;color:var(--red)">🔔 طلبات صداقة جديدة</div>
+        <div id="friends-req-list"></div>
+      </div>
       <div class="friends-grid" id="friends-grid"></div>
     </div>
 
@@ -1179,7 +1186,7 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span class="tab-label">العادات</span>
     </div>
-    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">
+    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)" style="position:relative"><span class="req-dot" id="req-dot"></span>
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
       <span class="tab-label">الأصدقاء</span>
     </div>
@@ -1872,7 +1879,14 @@ async function sendFriendRequest(){
       const theirFullData = {...theirUser};
       delete theirFullData.name; delete theirFullData.updated_at;
       theirFullData.incoming_requests = theirData.incoming_requests;
-      await sb.from('users').update({data: theirFullData}).eq('id', await getUserIdByCode(code));
+      const uid = await getUserIdByCode(code);
+      if(uid){
+        const {error} = await sb.from('users').update({data: theirFullData}).eq('id', uid);
+        if(error) console.error('❌ failed to update their requests:', error);
+        else console.log('✅ sent request to:', code);
+      } else {
+        console.error('❌ getUserIdByCode returned null for code:', code);
+      }
     }
   }
 
@@ -1884,7 +1898,7 @@ async function sendFriendRequest(){
 }
 
 async function getUserIdByCode(code){
-  const {data} = await sb.from('users').select('id, data').eq('data->>friend_code', code).single();
+  const {data} = await sb.from('users').select('id').filter('data->>friend_code', 'eq', code).single();
   return data?.id;
 }
 
@@ -1937,32 +1951,57 @@ function showMsg(el, msg, type){
 
 function renderIncomingRequests(){
   const incoming = (myData.incoming_requests||[]);
+
+  // Red dot on tab
+  const dot = document.getElementById('req-dot');
+  if(dot) dot.style.display = incoming.length ? 'block' : 'none';
+
+  // Profile page card
   const card = document.getElementById('requests-card');
   const list = document.getElementById('incoming-requests-list');
   const badge = document.getElementById('req-badge');
-  if(!incoming.length){ card.style.display='none'; return; }
-  card.style.display='block';
-  badge.textContent = incoming.length;
+
+  // Friends page card
+  const fCard = document.getElementById('friends-req-card');
+  const fList = document.getElementById('friends-req-list');
+
+  if(!incoming.length){
+    if(card) card.style.display='none';
+    if(fCard) fCard.style.display='none';
+    return;
+  }
+
+  if(badge) badge.textContent = incoming.length;
+  if(card) card.style.display='block';
+
   const senders = allUsers.filter(u=>incoming.includes(u.friend_code));
-  if(!senders.length){ list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">لا يوجد طلبات</p>'; return; }
-  list.innerHTML = senders.map(u=>{
+  if(!senders.length){
+    if(list) list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">جاري التحميل...</p>';
+    if(fCard) fCard.style.display='none';
+    return;
+  }
+
+  const html = senders.map(u=>{
     const av = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
-    return `<div class="friend-list-item">
-      <div style="display:flex;align-items:center;gap:10px;flex:1">
+      ? `<img src="${u.avatar_photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:44px;height:44px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
+    return `<div class="friend-list-item" style="padding:10px 0">
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
         ${av}
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
-          <div style="font-size:11px;color:var(--muted)">يريد إضافتك صديقاً</div>
+          <div style="font-size:15px;font-weight:800">${u.display_name||u.name}</div>
+          <div style="font-size:12px;color:var(--muted)">يريد إضافتك صديقاً 🤝</div>
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="btn btn-p btn-sm" style="padding:6px 12px;font-size:12px" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
-        <button class="btn btn-s btn-sm" style="padding:6px 12px;font-size:12px" onclick="rejectRequest('${u.friend_code}')">❌ رفض</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;margin-top:8px">
+        <button class="btn btn-p btn-sm" style="flex:1;padding:8px;font-size:13px;font-weight:800" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
+        <button class="btn btn-s btn-sm" style="padding:8px 12px;font-size:13px" onclick="rejectRequest('${u.friend_code}')">❌</button>
       </div>
     </div>`;
   }).join('');
+
+  if(list) list.innerHTML = html;
+  if(fCard){ fCard.style.display='block'; if(fList) fList.innerHTML=html; }
 }
 
 function renderFriendsList(){
