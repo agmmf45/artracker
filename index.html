@@ -228,7 +228,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="nav-item" data-p="friends" onclick="showPage('friends',document.getElementById('tab-friends'))"><span>👥</span> الأصدقاء</div>
     <div class="nav-item" data-p="expenses" onclick="showPage('expenses',document.getElementById('tab-expenses'))"><span>💸</span> المصاريف</div>
     <div class="nav-item" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>📊</span> إحصائيات</div>
-    <div class="nav-item" data-p="profile" onclick="showPage('profile',document.getElementById('tab-profile'))"><span>👤</span> ملفي الشخصي</div>
+    <div class="nav-item" data-p="profile" onclick="showPage('profile',document.getElementById('tab-profile'))"><span>🪪</span> ملفي الشخصي</div>
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
     </div>
@@ -240,7 +240,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">👥 الأصدقاء</div>
       <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)">💸 المصاريف</div>
       <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">📊 إحصائيات</div>
-      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">👤 ملفي</div>
+      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">🪪 ملفي</div>
     </div>
 
     <!-- HABITS -->
@@ -345,7 +345,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- PROFILE -->
     <div class="page" id="page-profile">
-      <div class="page-header"><div class="ph2">👤 ملفي الشخصي</div></div>
+      <div class="page-header"><div class="ph2">🪪 ملفي الشخصي</div></div>
       <div class="grid-2">
         <div class="card">
           <div id="profile-avatar-preview" class="profile-avatar-big">😊</div>
@@ -412,13 +412,46 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 <!-- MODAL: Date Picker -->
 <div class="modal-ov" id="date-modal" onclick="if(event.target===this)closeModal('date-modal')">
-  <div class="modal-box">
+  <div class="modal-box" style="width:460px;max-width:96vw;">
     <h3>📅 اختر التاريخ</h3>
+
+    <!-- Date Input -->
     <div class="fg">
-      <input type="date" class="fi" id="date-picker-input">
+      <input type="date" class="fi" id="date-picker-input" onchange="onDatePickerChange()">
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px">
-      <button class="btn btn-p" style="flex:1" onclick="confirmDate()">تأكيد</button>
+
+    <!-- Bilingual Date Display -->
+    <div id="dp-display" style="background:var(--accent-light);border:1.5px solid var(--accent);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:none;">
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">ميلادي</div>
+          <div id="dp-gregorian" style="font-size:15px;font-weight:800;color:var(--text);"></div>
+        </div>
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">هجري</div>
+          <div id="dp-hijri" style="font-size:15px;font-weight:800;color:var(--text);"></div>
+        </div>
+      </div>
+      <!-- Event badge -->
+      <div id="dp-event" style="display:none;margin-top:10px;background:white;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--text);border-right:3px solid var(--accent);">
+        <span id="dp-event-text"></span>
+      </div>
+    </div>
+
+    <!-- Quick Select -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">اختيار سريع</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="chip active" onclick="quickSelectDate(0,this)">اليوم</div>
+        <div class="chip" onclick="quickSelectDate(-1,this)">أمس</div>
+        <div class="chip" onclick="quickSelectDate(-2,this)">قبل يومين</div>
+        <div class="chip" onclick="quickSelectDate(-3,this)">قبل 3 أيام</div>
+        <div class="chip" onclick="quickSelectDate(-7,this)">أسبوع</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-p" style="flex:1" onclick="confirmDate()">✅ تأكيد</button>
       <button class="btn btn-s" style="flex:1" onclick="closeModal('date-modal')">إلغاء</button>
     </div>
   </div>
@@ -471,6 +504,97 @@ function updateDateDisplays() {
   document.getElementById('exp-date-en').textContent = ed.en;
 }
 
+// ── HIJRI CALENDAR ────────────────────────────
+function toHijri(date) {
+  // Algorithmic conversion (approximate)
+  const JD = Math.floor((date.getTime() / 86400000) + 2440587.5);
+  let l = JD - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719)
+    + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+    - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+  const month = Math.floor((24 * l) / 709);
+  const day = l - Math.floor((709 * month) / 24);
+  const year = 30 * n + j - 30;
+  return { day, month, year };
+}
+
+const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const WEEKDAYS_AR = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+// أهم الأحداث — هجري (شهر-يوم) وميلادي (شهر-يوم)
+const HIJRI_EVENTS = {
+  '1-1':  'رأس السنة الهجرية 🌙',
+  '1-10': 'يوم عاشوراء',
+  '3-12': 'المولد النبوي الشريف ﷺ',
+  '7-27': 'ليلة المعراج 🌟',
+  '8-15': 'منتصف شعبان',
+  '9-1':  'بداية شهر رمضان المبارك 🌙',
+  '9-27': 'ليلة القدر المحتملة ✨',
+  '10-1': 'عيد الفطر المبارك 🎉',
+  '12-9': 'يوم عرفة',
+  '12-10':'عيد الأضحى المبارك 🐑',
+};
+const GREGORIAN_EVENTS = {
+  '1-1':  'رأس السنة الميلادية 🎊',
+  '2-14': 'عيد الحب 💝',
+  '3-22': 'اليوم العالمي للمياه 💧',
+  '4-7':  'اليوم العالمي للصحة 🏥',
+  '4-22': 'يوم الأرض 🌍',
+  '5-1':  'يوم العمال 👷',
+  '6-5':  'يوم البيئة العالمي 🌿',
+  '9-23': 'اليوم الوطني السعودي 🇸🇦',
+  '10-10':'اليوم العالمي للصحة النفسية 🧠',
+  '11-19':'اليوم العالمي للرجل',
+  '12-25':'عيد الميلاد 🎄',
+  '12-31':'ليلة رأس السنة 🎆',
+};
+
+function getDateInfo(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const hijri = toHijri(d);
+  const hijriStr = `${hijri.day} ${HIJRI_MONTHS[hijri.month-1]} ${hijri.year} هـ`;
+  const gregorianStr = d.toLocaleDateString('ar-SA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  const gregorianEn = d.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  
+  // Check events
+  const gKey = `${d.getMonth()+1}-${d.getDate()}`;
+  const hKey = `${hijri.month}-${hijri.day}`;
+  const event = HIJRI_EVENTS[hKey] || GREGORIAN_EVENTS[gKey] || null;
+  
+  return { hijriStr, gregorianStr, gregorianEn, event };
+}
+
+function onDatePickerChange() {
+  const val = document.getElementById('date-picker-input').value;
+  if (!val) return;
+  const info = getDateInfo(val);
+  document.getElementById('dp-gregorian').textContent = info.gregorianStr;
+  document.getElementById('dp-hijri').textContent = info.hijriStr;
+  document.getElementById('dp-display').style.display = 'block';
+  const eventEl = document.getElementById('dp-event');
+  if (info.event) {
+    document.getElementById('dp-event-text').textContent = '🎯 ' + info.event;
+    eventEl.style.display = 'block';
+  } else {
+    eventEl.style.display = 'none';
+  }
+  // Update quick select chips
+  document.querySelectorAll('#date-modal .chip').forEach(c => c.classList.remove('active'));
+}
+
+function quickSelectDate(daysOffset, el) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  const key = d.toISOString().slice(0,10);
+  document.getElementById('date-picker-input').value = key;
+  document.querySelectorAll('#date-modal .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  onDatePickerChange();
+}
+
 // ── DATE PICKER ────────────────────────────────
 function openDatePicker(target) {
   datePickerTarget = target;
@@ -478,6 +602,7 @@ function openDatePicker(target) {
   document.getElementById('date-picker-input').value = val;
   document.getElementById('date-picker-input').max = todayKey();
   openModal('date-modal');
+  onDatePickerChange();
 }
 function confirmDate() {
   const val = document.getElementById('date-picker-input').value;
