@@ -292,6 +292,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+/* Privacy toggles */
+.priv-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:12px;}
+.priv-label{font-size:13px;font-weight:700;color:var(--text);}
+.priv-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:99px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent);}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
+
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
@@ -1027,6 +1038,13 @@ setInterval(()=>{
           <div class="card">
             <div class="sec-title">👥 أصدقائي</div>
             <div id="my-friends-list"><div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div></div>
+          </div>
+
+          <!-- Privacy -->
+          <div class="card">
+            <div class="sec-title">🔒 ما يشوفه أصدقائي</div>
+            <div id="privacy-toggles" style="display:flex;flex-direction:column;gap:10px;margin-top:4px"></div>
+            <button class="btn btn-p btn-sm" style="width:100%;margin-top:14px" onclick="savePrivacy()">💾 حفظ الخصوصية</button>
           </div>
 
           <!-- Logout -->
@@ -1776,6 +1794,45 @@ function renderStreaks(){
   }).join('');
 }
 
+
+// ── PRIVACY ───────────────────────────────────
+const PRIVACY_OPTIONS = [
+  {key:'show_habits',   label:'العادات',     sub:'عادات اليوم وإنجازاتك'},
+  {key:'show_stats',    label:'الإحصائيات', sub:'نسبة الإنجاز والإحصاء'},
+  {key:'show_expenses', label:'المصاريف',   sub:'إجمالي الإنفاق الشهري'},
+  {key:'show_note',     label:'النوت',       sub:'رسالتك للأصدقاء'},
+];
+
+function getPrivacy(key){
+  return (myData.privacy || {})[key] !== false; // default: visible
+}
+
+function renderPrivacyToggles(){
+  const el = document.getElementById('privacy-toggles');
+  if(!el) return;
+  el.innerHTML = PRIVACY_OPTIONS.map(o=>`
+    <div class="priv-row">
+      <div>
+        <div class="priv-label">${o.label}</div>
+        <div class="priv-sub">${o.sub}</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="priv-${o.key}" ${getPrivacy(o.key)?'checked':''}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  `).join('');
+}
+
+function savePrivacy(){
+  if(!myData.privacy) myData.privacy = {};
+  PRIVACY_OPTIONS.forEach(o=>{
+    const el = document.getElementById('priv-'+o.key);
+    if(el) myData.privacy[o.key] = el.checked;
+  });
+  saveMyData();
+}
+
 // ── FRIENDS VIEW ──────────────────────────────
 function renderFriends(){
   const el=document.getElementById('friends-grid');
@@ -1805,19 +1862,34 @@ function renderFriends(){
         <div class="h-icon" style="font-size:22px;margin-bottom:5px">${h.icon}</div>
         <div class="h-name" style="font-size:11px">${h.name}</div>
       </div>`).join('');
+    // Apply privacy settings (for non-me users)
+    const priv = u.privacy || {};
+    const showHabits   = isMe || priv.show_habits   !== false;
+    const showStats    = isMe || priv.show_stats    !== false;
+    const showExpenses = isMe || priv.show_expenses !== false;
+    const showNote     = isMe || priv.show_note     !== false;
+
+    // Expenses total
+    const expTotal = showExpenses ? (()=>{
+      const now=new Date(); const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const spent=(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);
+      return spent>0?`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 مصاريف الشهر: <strong>${spent.toLocaleString('ar')} ر</strong></div>`:'';
+    })() : '';
+
     return`<div class="friend-card">
       <div class="friend-header">
         ${avatarHTML}
         <div>
           <div class="f-name">${u.display_name||u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
-          <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
+          ${showStats?`<div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>`:''}
         </div>
       </div>
-      ${u.status_note ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>` : ''}
-      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
+      ${showNote && u.status_note ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>` : ''}
+      ${showStats?`<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`:''}
+      ${expTotal}
+      ${showHabits?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
         ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
-      </div>
+      </div>`:'<div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">🔒 خاص</div>'}
     </div>`;
   }).join('');
 }
@@ -2069,6 +2141,7 @@ function updateAvatarDisplay() {
 
 // ── PROFILE ───────────────────────────────────
 function renderProfilePage(){
+  try{ renderPrivacyToggles(); }catch(e){}
   const name=myData.display_name||'';
   document.getElementById('profile-name-display').textContent=name;
   document.getElementById('profile-email-display').textContent=currentUser.email;
