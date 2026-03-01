@@ -1695,16 +1695,16 @@ async function loadMyData(){
 
   // 2. Load from DB (may be slower)
   try{
-    const {data} = await sb.from('users')
-      .select('data')
-      .eq('id', currentUser.id)
-      .single();
+    const dbCall = sb.from('users').select('data').eq('id', currentUser.id).single();
+    const {data} = await Promise.race([
+      dbCall,
+      new Promise((_,rej) => setTimeout(()=>rej('timeout'), 5000))
+    ]);
 
     if(data?.data){
       myData = data.data;
       applyDefaults();
-      saveToCache(currentUser.id); // update cache
-      // Re-render now that real data is loaded
+      saveToCache(currentUser.id);
       try{ renderHabits(); renderStreaks(); renderWallets(); renderProfilePage(); updateTopBar(); }catch(e){}
     } else {
       applyDefaults();
