@@ -292,6 +292,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.s-dot.has-note{position:relative;}
+.s-dot.has-note::after{content:'';position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
+.h-note-btn{font-size:10px;color:var(--muted);margin-top:4px;cursor:pointer;transition:color 0.15s;}
+.h-note-btn:hover{color:var(--accent);}
+
 .req-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--surface);display:none;}
 
 /* wallet stats */
@@ -1763,12 +1768,14 @@ function renderHabits(){
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
   el.innerHTML=list.map(h=>{
     const done=isDone(h.id);
+    const note=getHabitNote(h.id, selectedHabitsDate);
     return`<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
       <div class="done-badge">✓</div>
       <button class="del-btn" onclick="deleteHabit('${h.id}',event)">✕</button>
       <div class="h-icon">${h.icon}</div>
       <div class="h-name">${h.name}</div>
       <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
+      ${done?`<div class="h-note-btn" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,20)+(note.length>20?'...':''):'+ ملاحظة'}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -1778,9 +1785,79 @@ function renderStreaks(){
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
   el.innerHTML=list.map(h=>{
-    const dots=days.map(day=>{const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();return`<div class="s-dot ${done?(isT?'today-d':'filled'):''}"></div>`;}).join('');
+    const dots=days.map(day=>{
+      const done=doneMap[day]&&doneMap[day][h.id];
+      const isT=day===todayKey();
+      const hasNote=getHabitNote(h.id,day);
+      const cls=done?(isT?'today-d':'filled'):'';
+      return done
+        ? `<div class="s-dot ${cls}${hasNote?' has-note':''}" title="${day}" onclick="viewHabitDay('${h.id}','${day}',event)" style="cursor:pointer"></div>`
+        : `<div class="s-dot"></div>`;
+    }).join('');
     return`<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)">${h.icon} ${h.name}</div><div class="streak-row">${dots}</div></div>`;
   }).join('');
+}
+
+
+// ── HABIT NOTES ───────────────────────────────
+let hnHabitId=null, hnDate=null;
+
+function getHabitNote(habitId, date){
+  return (myData.habit_notes||{})[date+':'+habitId] || '';
+}
+
+function openHabitNote(habitId, e){
+  e.stopPropagation();
+  hnHabitId=habitId; hnDate=selectedHabitsDate;
+  const h=getHabits().find(h=>h.id===habitId);
+  document.getElementById('hn-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hn-date').textContent=formatDate(hnDate);
+  document.getElementById('hn-text').value=getHabitNote(habitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
+}
+
+function closeHabitNote(){
+  document.getElementById('habit-note-modal').style.display='none';
+}
+
+function saveHabitNote(){
+  const text=document.getElementById('hn-text').value.trim();
+  if(!myData.habit_notes) myData.habit_notes={};
+  if(text) myData.habit_notes[hnDate+':'+hnHabitId]=text;
+  else delete myData.habit_notes[hnDate+':'+hnHabitId];
+  saveMyData();
+  closeHabitNote();
+  renderHabits();
+  renderStreaks();
+}
+
+function viewHabitDay(habitId, date, e){
+  e.stopPropagation();
+  const h=getHabits().find(h=>h.id===habitId);
+  const note=getHabitNote(habitId,date);
+  document.getElementById('hd-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hd-date').textContent=formatDate(date);
+  document.getElementById('hd-note').textContent=note||'لا توجد ملاحظة لهذا اليوم';
+  // store for edit button
+  hnHabitId=habitId; hnDate=date;
+  document.getElementById('habit-day-modal').style.display='flex';
+}
+
+function editHabitNote(){
+  closeModal('habit-day-modal');
+  // reuse note modal
+  const h=getHabits().find(h=>h.id===hnHabitId);
+  document.getElementById('hn-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hn-date').textContent=formatDate(hnDate);
+  document.getElementById('hn-text').value=getHabitNote(hnHabitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
+}
+
+function formatDate(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -1843,58 +1920,31 @@ async function sendFriendRequest(){
   if(code.length!==6){ showMsg(msgEl,'الكود يجب أن يكون 6 أحرف','err'); return; }
   if(code===myData.friend_code){ showMsg(msgEl,'هذا كودك أنت! 😄','warn'); return; }
   if((myData.friends||[]).includes(code)){ showMsg(msgEl,'أنتم أصدقاء مسبقاً ✅','warn'); return; }
-  if((myData.sent_requests||[]).includes(code)){ showMsg(msgEl,'أرسلت طلباً مسبقاً ⏳','warn'); return; }
 
   const found = allUsers.find(u=>u.friend_code===code);
   if(!found){ showMsg(msgEl,'لم يُعثر على هذا الكود ❌','err'); return; }
 
-  // Check if they already sent me a request → auto accept = become friends!
-  const theyRequested = (found.sent_requests||[]).includes(myData.friend_code);
-  if(theyRequested){
-    // Mutual! Add as friends on both sides
-    if(!myData.friends) myData.friends=[];
-    if(!myData.incoming_requests) myData.incoming_requests=[];
-    myData.friends.push(code);
-    myData.incoming_requests = myData.incoming_requests.filter(c=>c!==code);
-    await saveMyData();
-    document.getElementById('friend-code-input').value='';
-    showMsg(msgEl,`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`,'ok');
-    showToast(`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`);
-    renderFriendsList(); renderFriends(); renderIncomingRequests();
-    return;
-  }
-
-  // Send request — add my code to their incoming_requests
-  if(!myData.sent_requests) myData.sent_requests=[];
-  myData.sent_requests.push(code);
-
-  // Push to their data too
-  const theirData = {...found};
-  if(!theirData.incoming_requests) theirData.incoming_requests=[];
-  if(!theirData.incoming_requests.includes(myData.friend_code)){
-    theirData.incoming_requests.push(myData.friend_code);
-    // Save to their record
-    const theirUser = allUsers.find(u=>u.friend_code===code);
-    if(theirUser){
-      const theirFullData = {...theirUser};
-      delete theirFullData.name; delete theirFullData.updated_at;
-      theirFullData.incoming_requests = theirData.incoming_requests;
-      const uid = await getUserIdByCode(code);
-      if(uid){
-        const {error} = await sb.from('users').update({data: theirFullData}).eq('id', uid);
-        if(error) console.error('❌ failed to update their requests:', error);
-        else console.log('✅ sent request to:', code);
-      } else {
-        console.error('❌ getUserIdByCode returned null for code:', code);
-      }
-    }
-  }
-
+  // Add to my friends
+  if(!myData.friends) myData.friends=[];
+  myData.friends.push(code);
   await saveMyData();
+
+  // Add me to their friends too
+  const uid = await getUserIdByCode(code);
+  if(uid){
+    const theirFullData = {...found};
+    delete theirFullData.name; delete theirFullData.updated_at;
+    if(!theirFullData.friends) theirFullData.friends=[];
+    if(!theirFullData.friends.includes(myData.friend_code)){
+      theirFullData.friends.push(myData.friend_code);
+    }
+    await sb.from('users').update({data: theirFullData}).eq('id', uid);
+  }
+
   document.getElementById('friend-code-input').value='';
-  showMsg(msgEl,`📨 تم إرسال الطلب إلى ${found.display_name||found.name}!`,'ok');
-  showToast(`📨 أُرسل الطلب!`);
-  renderFriendsList();
+  showMsg(msgEl,`🎉 تمت إضافة ${found.display_name||found.name} كصديق!`,'ok');
+  showToast(`🎉 ${found.display_name||found.name} صديق جديد!`);
+  renderFriendsList(); renderFriends();
 }
 
 async function getUserIdByCode(code){
@@ -2903,34 +2953,77 @@ async function confirmReset(){
 
 // ── INIT ──────────────────────────────────────
 async function init(){
-  const timeout = setTimeout(()=>{
+  const showAuth = () => {
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
-  }, 4000);
-  try{
-    const {data:{session}} = await sb.auth.getSession();
-    clearTimeout(timeout);
-    document.getElementById('loading-screen').style.display='none';
-    if(session?.user){ await startApp(session.user); }
-    else { document.getElementById('auth-screen').style.display='flex'; }
-  }catch(err){
-    clearTimeout(timeout);
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
+  };
+
+  // Try to get cached Supabase session from localStorage instantly (no network)
+  const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+  const cached = sbKey ? (() => { try{ return JSON.parse(localStorage.getItem(sbKey)); }catch(e){ return null; } })() : null;
+  const cachedUser = cached?.user || cached?.session?.user;
+
+  if(cachedUser){
+    // Start app immediately with cached user — no waiting
+    await startApp(cachedUser);
   }
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session?.user){
-      document.getElementById('auth-screen').style.display='none';
-      if(!currentUser||currentUser.id!==session.user.id) await startApp(session.user);
+
+  // Then verify with server in background
+  sb.auth.getSession().then(({data:{session}})=>{
+    if(session?.user){
+      if(!currentUser) startApp(session.user); // wasn't cached
+    } else {
+      if(!currentUser) showAuth(); // no session at all
+    }
+  }).catch(()=>{ if(!currentUser) showAuth(); });
+
+  // Handle future auth events
+  sb.auth.onAuthStateChange(async(event, session)=>{
+    if(event==='SIGNED_IN' && session?.user){
+      if(!currentUser || currentUser.id !== session.user.id) await startApp(session.user);
     } else if(event==='SIGNED_OUT'){
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser=null;
       document.getElementById('app').style.display='none';
-      document.getElementById('auth-screen').style.display='flex';
+      showAuth();
     }
   });
+
+  // Fallback — if nothing worked in 5s
+  setTimeout(()=>{ if(!currentUser) showAuth(); }, 5000);
 }
 init();
 </script>
+
+<!-- MODAL: Habit Note -->
+<div class="modal-ov" id="habit-note-modal" onclick="if(event.target===this)closeHabitNote()">
+  <div class="modal-box" style="max-width:380px">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:18px;font-weight:900" id="hn-title">📝 ملاحظة اليوم</div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeHabitNote()">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="hn-date"></div>
+    <textarea class="fi" id="hn-text" placeholder="اكتب ملاحظتك عن هذه العادة اليوم..." 
+      rows="4" style="resize:none;width:100%;font-size:14px;line-height:1.6"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p" style="flex:1" onclick="saveHabitNote()">💾 حفظ</button>
+      <button class="btn btn-s" style="flex:1" onclick="closeHabitNote()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: View Habit Day -->
+<div class="modal-ov" id="habit-day-modal" onclick="if(event.target===this)closeModal('habit-day-modal')">
+  <div class="modal-box" style="max-width:380px">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:18px;font-weight:900" id="hd-title"></div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('habit-day-modal')">✕</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px" id="hd-date"></div>
+    <div id="hd-note" style="background:var(--surface2);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px;color:var(--text)"></div>
+    <button class="btn btn-s btn-sm" style="width:100%;margin-top:12px" onclick="editHabitNote()">✏️ تعديل الملاحظة</button>
+  </div>
+</div>
+
 </body>
 </html>
