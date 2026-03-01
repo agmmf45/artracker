@@ -704,6 +704,9 @@ setInterval(()=>{
       </div>
       <div class="auth-err" id="reg-err"></div>
       <div class="auth-ok"  id="reg-ok"></div>
+      <div id="reg-login-wrap" style="display:none;margin-top:12px">
+        <button class="btn-auth" id="reg-login-btn" style="background:var(--accent)">تسجيل الدخول ←</button>
+      </div>
     </div>
 
     <style>
@@ -870,6 +873,11 @@ setInterval(()=>{
             <div style="font-size:20px;font-weight:900" id="profile-name-display"></div>
             <div style="font-size:13px;color:var(--muted)" id="profile-email-display"></div>
             <div style="font-size:11px;color:var(--muted);margin-top:4px">اضغط على الصورة لتغييرها</div>
+          </div>
+          <div class="sec-title">✏️ تعديل الاسم</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" class="fi" id="edit-name-input" placeholder="اكتب اسمك..." maxlength="25" style="flex:1">
+            <button class="btn btn-p btn-sm" onclick="saveName()">حفظ</button>
           </div>
           <div class="sec-title">اختر إيموجي الصورة</div>
           <div class="avatar-emojis" id="avatar-emojis"></div>
@@ -1431,8 +1439,20 @@ async function doRegister(){
   if(pass.length<6){ showErr('reg-err','كلمة السر 6 أحرف على الأقل'); return; }
   const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{name}}});
   if(error){ showErr('reg-err', error.message==='User already registered'?'الإيميل مسجّل مسبقاً':error.message); return; }
-  document.getElementById('reg-ok').textContent='✅ تم إنشاء الحساب! تحقق من إيميلك للتأكيد';
+  document.getElementById('reg-ok').textContent='✅ تم إنشاء الحساب! تحقق من إيميلك ثم سجّل دخولك';
   document.getElementById('reg-ok').style.display='block';
+  // Show login button — wire it to switch to login step with same email
+  const wrap = document.getElementById('reg-login-wrap');
+  const btn = document.getElementById('reg-login-btn');
+  wrap.style.display='block';
+  btn.onclick = ()=>{
+    document.getElementById('pd-step-register').style.display='none';
+    document.getElementById('pd-email-show-login').textContent = email;
+    document.getElementById('pd-step-login').style.display='block';
+    document.getElementById('pd-pass').value='';
+    setTimeout(()=>document.getElementById('pd-pass').focus(),80);
+    wrap.style.display='none';
+  };
 }
 async function doLogin(){
   const email = document.getElementById('pd-email-show-login').textContent.trim();
@@ -1447,8 +1467,13 @@ async function doLogin(){
   if(error){ showErr('login-err','كلمة السر غلط، حاول مجدداً'); return; }
 }
 async function doLogout(){
-  if(refreshTimer) clearInterval(refreshTimer);
-  await sb.auth.signOut();
+  if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
+  currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  pdReset();
+  try{ await sb.auth.signOut(); }catch(e){}
 }
 
 // ── DATA ───────────────────────────────────────
@@ -1487,25 +1512,31 @@ async function loadAllUsers(){
 
 // ── START APP ──────────────────────────────────
 async function startApp(user){
-  currentUser = user;
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('loading-screen').style.display='flex';
-  await loadMyData();
-  checkAndUnlockTrophies();
-  // Apply saved theme
-  if (myData.theme && myData.theme !== 'default') {
-    document.body.className = `theme-${myData.theme}`;
+  try{
+    currentUser = user;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('loading-screen').style.display='flex';
+    await loadMyData();
+    checkAndUnlockTrophies();
+    if(myData.theme && myData.theme !== 'default'){
+      document.body.className = `theme-${myData.theme}`;
+    }
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('sidebar-name').textContent = myData.display_name;
+    updateTopBar();
+    updateDateDisplays();
+    renderHabits(); renderStreaks(); renderExpenses(); renderBudget();
+    renderProfilePage();
+    await saveMyData();
+    await refreshAll();
+    refreshTimer = setInterval(refreshAll, 20000);
+  } catch(err){
+    console.error('startApp error:', err);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+    showToast('❌ حدث خطأ، حاول مجدداً');
   }
-  document.getElementById('loading-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('sidebar-name').textContent = myData.display_name;
-  updateTopBar();
-  updateDateDisplays();
-  renderHabits(); renderStreaks(); renderExpenses(); renderBudget();
-  renderProfilePage();
-  await saveMyData();
-  await refreshAll();
-  refreshTimer = setInterval(refreshAll, 20000);
 }
 async function refreshAll(){
   await loadAllUsers();
@@ -1842,6 +1873,7 @@ function renderProfilePage(){
   const name=myData.display_name||'';
   document.getElementById('profile-name-display').textContent=name;
   document.getElementById('profile-email-display').textContent=currentUser.email;
+  document.getElementById('edit-name-input').value=name;
   document.getElementById('my-friend-code').textContent=myData.friend_code||'------';
   document.getElementById('status-note-input').value = myData.status_note || '';
   const e2 = document.getElementById('profile-email-display2');
@@ -1872,6 +1904,17 @@ function pickAvatarColor(c){
   document.querySelectorAll('.av-color').forEach(el=>el.classList.remove('sel'));
   event.target.classList.add('sel');
 }
+async function saveName(){
+  const val = document.getElementById('edit-name-input').value.trim();
+  if(!val){ showToast('❌ أدخل اسماً'); return; }
+  myData.display_name = val;
+  await saveMyData();
+  document.getElementById('profile-name-display').textContent = val;
+  document.getElementById('sidebar-name').textContent = val;
+  updateTopBar();
+  showToast('✅ تم تغيير الاسم');
+}
+
 async function saveStatusNote(){
   // updateTopBar called after save below
   const note = document.getElementById('status-note-input').value.trim();
@@ -2418,18 +2461,24 @@ async function init(){
   const timeout = setTimeout(()=>{
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
-  }, 5000);
-  const {data:{session}} = await sb.auth.getSession();
-  clearTimeout(timeout);
-  document.getElementById('loading-screen').style.display='none';
-  if(session?.user){ await startApp(session.user); }
-  else { document.getElementById('auth-screen').style.display='flex'; }
+  }, 4000);
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    if(session?.user){ await startApp(session.user); }
+    else { document.getElementById('auth-screen').style.display='flex'; }
+  }catch(err){
+    clearTimeout(timeout);
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+  }
   sb.auth.onAuthStateChange(async(event,session)=>{
     if(event==='SIGNED_IN'&&session?.user){
       document.getElementById('auth-screen').style.display='none';
       if(!currentUser||currentUser.id!==session.user.id) await startApp(session.user);
     } else if(event==='SIGNED_OUT'){
-      if(refreshTimer)clearInterval(refreshTimer);
+      if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser=null;
       document.getElementById('app').style.display='none';
       document.getElementById('auth-screen').style.display='flex';
