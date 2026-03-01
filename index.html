@@ -2425,7 +2425,12 @@ function openModal(id){
   }
   document.getElementById(id).classList.add('open');
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('open');
+  el.style.display='none';
+}
 function pickEmoji(el,e){document.querySelectorAll('.emo').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');document.getElementById('new-habit-icon').value=e;}
 function saveNewHabit(){
   const name=document.getElementById('new-habit-name').value.trim();
