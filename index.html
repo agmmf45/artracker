@@ -1619,15 +1619,22 @@ async function doLogout(){
 }
 
 // ── DATA ───────────────────────────────────────
+let dataLoadedFromDB = false;
 async function loadMyData(){
   try{
     const dbCall = sb.from('users').select('data').eq('id', currentUser.id).single();
-    const {data} = await Promise.race([
+    const {data, error} = await Promise.race([
       dbCall,
-      new Promise((_,rej)=>setTimeout(()=>rej('db timeout'),3000))
+      new Promise((_,rej)=>setTimeout(()=>rej('db timeout'),6000))
     ]);
-    if(data?.data) myData = data.data;
-  } catch(e){ console.warn('DB load:', e); }
+    if(data?.data){
+      myData = data.data;
+      dataLoadedFromDB = true;
+    } else if(!error || error.code === 'PGRST116'){
+      // new user — no row yet, safe to save
+      dataLoadedFromDB = true;
+    }
+  } catch(e){ console.warn('DB load:', e); dataLoadedFromDB = false; }
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
@@ -1644,6 +1651,11 @@ async function loadMyData(){
   if(!myData.display_name) myData.display_name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
 }
 async function saveMyData(){
+  if(!currentUser) return;
+  if(!dataLoadedFromDB){
+    console.warn('saveMyData skipped — data not confirmed loaded');
+    return;
+  }
   const payload = {
     id: currentUser.id,
     name: myData.display_name || currentUser.email,
@@ -1652,7 +1664,10 @@ async function saveMyData(){
   };
   const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
   if(error){
-    showToast('❌ ' + error.message);
+    console.error('saveMyData error:', error);
+    showToast('❌ خطأ في الحفظ: ' + error.message);
+  } else {
+    showToast('✅ تم الحفظ');
   }
 }
 async function loadAllUsers(){
@@ -1667,12 +1682,13 @@ async function startApp(user){
   document.getElementById('loading-screen').style.display='flex';
 
   // Load data with 4s timeout — never hang
+  // Load data — wait up to 8s
   try{
     await Promise.race([
       loadMyData(),
-      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),4000))
+      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),8000))
     ]);
-  }catch(e){ console.warn('loadMyData:', e); }
+  }catch(e){ console.warn('loadMyData timeout:', e); }
 
   // Apply theme
   if(myData.theme && myData.theme !== 'default'){
@@ -2842,6 +2858,7 @@ async function init(){
       appStarted = false;
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
+      dataLoadedFromDB = false;
       document.getElementById('app').style.display='none';
       document.getElementById('loading-screen').style.display='none';
       document.getElementById('auth-screen').style.display='flex';
