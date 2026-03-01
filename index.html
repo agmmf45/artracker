@@ -3,10 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>متابعتي</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<title>Artrk</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* THEMES */
+body.theme-rose {
+  --bg:#FFF1F2; --surface:#FFF; --surface2:#FFE4E6; --border:#FECDD3;
+  --text:#1C0A0B; --muted:#9F4853; --accent:#E11D48; --accent-light:#FFE4E6;
+  --green:#15803D; --green-light:#DCFCE7; --blue:#1D4ED8;
+}
+body.theme-ocean {
+  --bg:#EFF6FF; --surface:#FFF; --surface2:#DBEAFE; --border:#BFDBFE;
+  --text:#0A1628; --muted:#3B5EA6; --accent:#1D4ED8; --accent-light:#DBEAFE;
+  --green:#15803D; --green-light:#DCFCE7;
+}
+body.theme-lavender {
+  --bg:#F5F3FF; --surface:#FFF; --surface2:#EDE9FE; --border:#DDD6FE;
+  --text:#1A0A2E; --muted:#6D4CA3; --accent:#7C3AED; --accent-light:#EDE9FE;
+  --green:#15803D; --green-light:#DCFCE7;
+}
+body.theme-dark {
+  --bg:#0F0F0F; --surface:#1A1A1A; --surface2:#252525; --border:#333;
+  --text:#F5F5F5; --muted:#888; --accent:#F59E0B; --accent-light:#292000;
+  --green:#22C55E; --green-light:#052E16; --blue:#60A5FA;
+  --shadow:0 1px 8px rgba(0,0,0,0.4); --shadow-lg:0 8px 30px rgba(0,0,0,0.6);
+}
+body.theme-mint {
+  --bg:#F0FDF4; --surface:#FFF; --surface2:#DCFCE7; --border:#BBF7D0;
+  --text:#052E16; --muted:#3D7A55; --accent:#16A34A; --accent-light:#DCFCE7;
+  --green:#15803D; --green-light:#BBF7D0;
+}
+
+/* THEME CARDS */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px;}
+.theme-card{border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.18s;position:relative;}
+.theme-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.theme-card.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.theme-preview{width:100%;height:28px;border-radius:8px;margin-bottom:8px;}
+.theme-name{font-size:12px;font-weight:700;}
+.theme-check{position:absolute;top:6px;left:6px;width:18px;height:18px;background:var(--accent);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;color:white;}
+.theme-card.active .theme-check{display:flex;}
+
+/* PHOTO UPLOAD */
+.photo-upload-wrap{position:relative;width:90px;height:90px;margin:0 auto 16px;cursor:pointer;}
+.photo-upload-wrap img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);}
+.photo-upload-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;font-size:20px;}
+.photo-upload-wrap:hover .photo-upload-overlay{opacity:1;}
+#photo-file-input{display:none;}
+
 :root {
   --bg:#F5F3EE; --surface:#FFF; --surface2:#EDEBE6; --border:#E2DED7;
   --text:#1C1917; --muted:#78716C; --accent:#B45309; --accent-light:#FEF3C7;
@@ -22,16 +67,28 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* AUTH */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;}
-.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:420px;max-width:92vw;box-shadow:var(--shadow-lg);}
-.auth-logo{text-align:center;font-size:44px;margin-bottom:10px;}
-.auth-title{text-align:center;font-size:26px;font-weight:900;color:var(--accent);margin-bottom:4px;}
-.auth-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:24px;}
-.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:22px;gap:4px;}
-.auth-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all 0.18s;}
+#auth-screen{position:fixed;inset:0;background:linear-gradient(145deg,var(--bg) 0%,var(--accent-light) 100%);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:36px 32px;width:400px;max-width:100%;box-shadow:var(--shadow-lg);}
+.auth-header{text-align:center;margin-bottom:28px;}
+.auth-logo-face{margin:0 auto 12px;width:80px;height:80px;animation:bounce 2s ease-in-out infinite;} @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.auth-title{font-size:28px;font-weight:900;color:var(--accent);margin-bottom:6px;}
+.brand-ar{font-family:'Playfair Display',serif;font-size:inherit;font-weight:900;letter-spacing:1px;direction:ltr;display:inline-block;}
+.sidebar-brand .brand-ar{font-size:20px;}
+.auth-sub{font-size:13px;color:var(--muted);line-height:1.7;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:12px;padding:5px;margin-bottom:24px;gap:4px;}
+.auth-tab{flex:1;padding:10px;text-align:center;border-radius:9px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all 0.2s;}
 .auth-tab.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
-.auth-err{color:var(--red);font-size:13px;margin-top:10px;display:none;text-align:center;background:#FEE2E2;padding:8px;border-radius:8px;}
-.auth-ok{color:var(--green);font-size:13px;margin-top:10px;display:none;text-align:center;background:var(--green-light);padding:8px;border-radius:8px;}
+.auth-input-wrap{position:relative;margin-bottom:14px;}
+.auth-input-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.auth-fi{width:100%;padding:13px 42px 13px 14px;border:1.5px solid var(--border);border-radius:11px;background:var(--surface2);font-family:'Tajawal',sans-serif;font-size:14px;color:var(--text);transition:all 0.18s;direction:rtl;}
+.auth-fi:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-light);}
+.auth-fi::placeholder{color:var(--muted);}
+.btn-auth{width:100%;padding:14px;border:none;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;cursor:pointer;background:var(--accent);color:white;transition:all 0.18s;margin-top:6px;letter-spacing:0.3px;}
+.btn-auth:hover{opacity:0.9;transform:translateY(-1px);}
+.auth-switch{text-align:center;margin-top:18px;font-size:13px;color:var(--muted);}
+.auth-switch span{color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;}
+.auth-err{color:var(--red);font-size:13px;margin-top:12px;display:none;text-align:center;background:#FEE2E2;padding:10px 14px;border-radius:10px;border:1px solid #FECACA;}
+.auth-ok{color:var(--green);font-size:13px;margin-top:12px;display:none;text-align:center;background:var(--green-light);padding:10px 14px;border-radius:10px;border:1px solid #BBF7D0;}
 
 /* APP */
 .app{display:flex;min-height:100vh;}
@@ -50,7 +107,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .main{flex:1;margin-right:230px;padding:28px;}
 .top-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:22px;overflow:hidden;}
-.top-tab{flex:1;padding:11px 6px;text-align:center;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;transition:all 0.18s;}
+.top-tab{flex:1;padding:15px 6px;text-align:center;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;transition:all 0.18s;}
 .top-tab:hover{background:var(--surface2);}
 .top-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-light);}
 
@@ -192,27 +249,174 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">🎯</div>
-    <div class="auth-title">متابعتي</div>
-    <div class="auth-sub">تتبع عاداتك ومصاريفك مع أصدقائك</div>
+
+    <!-- HEADER -->
+    <div class="auth-header">
+      <div class="neko-wrap">
+  <svg class="neko-svg" viewBox="0 0 120 130" width="110" height="120" onclick="nekoClick()">
+    <!-- Tail -->
+    <path class="neko-tail" d="M85 115 Q110 100 105 75 Q100 55 90 65" stroke="#C97B3C" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <!-- Body -->
+    <ellipse cx="60" cy="105" rx="32" ry="22" fill="#E8A87C"/>
+    <!-- Ears -->
+    <polygon points="28,38 18,8 46,26" fill="#C97B3C"/>
+    <polygon points="92,38 102,8 74,26" fill="#C97B3C"/>
+    <polygon points="30,36 22,12 44,27" fill="#F4A0B0"/>
+    <polygon points="90,36 98,12 76,27" fill="#F4A0B0"/>
+    <!-- Head -->
+    <ellipse cx="60" cy="62" rx="42" ry="40" fill="#E8A87C"/>
+    <ellipse cx="60" cy="66" rx="27" ry="24" fill="#F5C89A" opacity="0.5"/>
+    <!-- Eyes normal -->
+    <g class="neko-eyes-normal">
+      <ellipse cx="42" cy="54" rx="9" ry="11" fill="#1a1a1a"/>
+      <ellipse cx="78" cy="54" rx="9" ry="11" fill="#1a1a1a"/>
+      <ellipse cx="42" cy="54" rx="5.5" ry="8" fill="#7BC67E"/>
+      <ellipse cx="78" cy="54" rx="5.5" ry="8" fill="#7BC67E"/>
+      <ellipse cx="42" cy="54" rx="2.5" ry="6" fill="#111"/>
+      <ellipse cx="78" cy="54" rx="2.5" ry="6" fill="#111"/>
+      <circle cx="45" cy="50" r="2.2" fill="white"/>
+      <circle cx="81" cy="50" r="2.2" fill="white"/>
+    </g>
+    <!-- Eyes blink -->
+    <g class="neko-eyes-blink" style="display:none">
+      <path d="M33 54 Q42 48 51 54" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M69 54 Q78 48 87 54" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Eyes happy (UwU) -->
+    <g class="neko-eyes-happy" style="display:none">
+      <path d="M33 56 Q42 46 51 56" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M69 56 Q78 46 87 56" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Nose -->
+    <polygon points="60,68 56,64 64,64" fill="#F4A0B0"/>
+    <!-- Mouth normal -->
+    <g class="neko-mouth-normal">
+      <path d="M60 69 Q54 75 50 72" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M60 69 Q66 75 70 72" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Mouth happy -->
+    <g class="neko-mouth-happy" style="display:none">
+      <path d="M48 70 Q60 80 72 70" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Whiskers -->
+    <line x1="63" y1="68" x2="98" y2="60" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <line x1="63" y1="71" x2="98" y2="72" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <line x1="63" y1="74" x2="98" y2="82" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <line x1="57" y1="68" x2="22" y2="60" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <line x1="57" y1="71" x2="22" y2="72" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <line x1="57" y1="74" x2="22" y2="82" stroke="#8B6340" stroke-width="1.3" opacity="0.6"/>
+    <!-- Blush -->
+    <ellipse cx="22" cy="72" rx="10" ry="6" fill="#F4A0B0" opacity="0.35" class="neko-blush"/>
+    <ellipse cx="98" cy="72" rx="10" ry="6" fill="#F4A0B0" opacity="0.35" class="neko-blush"/>
+    <!-- Belly spot -->
+    <ellipse cx="60" cy="108" rx="18" ry="12" fill="#F5C89A" opacity="0.7"/>
+    <!-- Paws -->
+    <ellipse cx="40" cy="122" rx="12" ry="7" fill="#C97B3C"/>
+    <ellipse cx="80" cy="122" rx="12" ry="7" fill="#C97B3C"/>
+    <ellipse cx="40" cy="121" rx="9" ry="5" fill="#E8A87C"/>
+    <ellipse cx="80" cy="121" rx="9" ry="5" fill="#E8A87C"/>
+  </svg>
+</div>
+
+<style>
+.neko-wrap{margin:0 auto 8px;width:110px;height:120px;cursor:pointer;}
+.neko-svg{filter:drop-shadow(0 6px 16px rgba(0,0,0,0.13));}
+.neko-svg{animation:neko-run 1.6s ease-in-out infinite;}
+.neko-tail{animation:tail-wag 0.8s ease-in-out infinite alternate;transform-origin:85px 115px;}
+@keyframes neko-run{
+  0%  {transform:translateY(0) rotate(0deg);}
+  20% {transform:translateY(-22px) rotate(-6deg);}
+  35% {transform:translateY(-8px) rotate(4deg);}
+  50% {transform:translateY(-18px) rotate(-4deg);}
+  65% {transform:translateY(-5px) rotate(3deg);}
+  80% {transform:translateY(-14px) rotate(-2deg);}
+  100%{transform:translateY(0) rotate(0deg);}
+}
+@keyframes tail-wag{
+  0%  {transform:rotate(-20deg);}
+  100%{transform:rotate(20deg);}
+}
+</style>
+
+<script>
+function nekoClick(){
+  const svg = document.querySelector('.neko-svg');
+  const en = document.querySelector('.neko-eyes-normal');
+  const eh = document.querySelector('.neko-eyes-happy');
+  const mn = document.querySelector('.neko-mouth-normal');
+  const mh = document.querySelector('.neko-mouth-happy');
+  const bl = document.querySelectorAll('.neko-blush');
+  if(!svg)return;
+  svg.style.animation='none';
+  svg.style.transform='scale(1.15) rotate(-10deg)';
+  if(en){en.style.display='none'; eh.style.display='block';}
+  if(mn){mn.style.display='none'; mh.style.display='block';}
+  bl.forEach(b=>b.style.opacity='0.7');
+  setTimeout(()=>{
+    svg.style.transform='scale(0.92) rotate(8deg)';
+  },150);
+  setTimeout(()=>{
+    svg.style.transform='';
+    svg.style.animation='neko-run 1.6s ease-in-out infinite';
+    if(en){en.style.display='block'; eh.style.display='none';}
+    if(mn){mn.style.display='block'; mh.style.display='none';}
+    bl.forEach(b=>b.style.opacity='0.35');
+  },500);
+}
+// Blink
+setInterval(()=>{
+  const n=document.querySelector('.neko-eyes-normal');
+  const b=document.querySelector('.neko-eyes-blink');
+  if(!n||!b||n.style.display==='none')return;
+  n.style.display='none'; b.style.display='block';
+  setTimeout(()=>{if(b)b.style.display='none'; if(n)n.style.display='block';},140);
+},2800);
+</script>
+      <div class="auth-title"><span class="brand-ar">Artrk</span></div>
+      <div class="auth-sub">تتبع عاداتك ومصاريفك<br>مع أصدقائك في مكان واحد</div>
+    </div>
+
+    <!-- TABS -->
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">تسجيل الدخول</div>
       <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">حساب جديد</div>
     </div>
+
+    <!-- LOGIN -->
     <div id="login-form">
-      <div class="fg"><label class="fl">الإيميل</label><input type="email" class="fi" id="login-email" placeholder="example@gmail.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="fg"><label class="fl">كلمة السر</label><input type="password" class="fi" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="btn btn-p btn-full" onclick="doLogin()">دخول ←</button>
+      <div class="auth-input-wrap">
+        <span class="auth-input-icon">📧</span>
+        <input type="email" class="auth-fi" id="login-email" placeholder="الإيميل" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="auth-input-wrap">
+        <span class="auth-input-icon">🔒</span>
+        <input type="password" class="auth-fi" id="login-pass" placeholder="كلمة السر" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">دخول ←</button>
       <div class="auth-err" id="login-err"></div>
+      <div class="auth-switch">ما عندك حساب؟ <span onclick="switchAuthTab('register')">سجّل الآن</span></div>
     </div>
+
+    <!-- REGISTER -->
     <div id="register-form" style="display:none">
-      <div class="fg"><label class="fl">اسمك</label><input type="text" class="fi" id="reg-name" placeholder="محمد" maxlength="20"></div>
-      <div class="fg"><label class="fl">الإيميل</label><input type="email" class="fi" id="reg-email" placeholder="example@gmail.com"></div>
-      <div class="fg"><label class="fl">كلمة السر</label><input type="password" class="fi" id="reg-pass" placeholder="6 أحرف على الأقل" onkeydown="if(event.key==='Enter')doRegister()"></div>
-      <button class="btn btn-p btn-full" onclick="doRegister()">إنشاء الحساب</button>
+      <div class="auth-input-wrap">
+        <span class="auth-input-icon">👤</span>
+        <input type="text" class="auth-fi" id="reg-name" placeholder="اسمك" maxlength="20">
+      </div>
+      <div class="auth-input-wrap">
+        <span class="auth-input-icon">📧</span>
+        <input type="email" class="auth-fi" id="reg-email" placeholder="الإيميل">
+      </div>
+      <div class="auth-input-wrap">
+        <span class="auth-input-icon">🔒</span>
+        <input type="password" class="auth-fi" id="reg-pass" placeholder="كلمة السر — 6 أحرف على الأقل" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
+      <button class="btn-auth" onclick="doRegister()">إنشاء الحساب ✓</button>
       <div class="auth-err" id="reg-err"></div>
       <div class="auth-ok" id="reg-ok"></div>
+      <div class="auth-switch">عندك حساب؟ <span onclick="switchAuthTab('login')">سجّل دخول</span></div>
     </div>
+
   </div>
 </div>
 
@@ -220,7 +424,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="app" id="app" style="display:none">
   <nav class="sidebar">
     <div class="logo-area">
-      <h1>متابعتي 🎯</h1>
+      <h1 class="sidebar-brand"><span class="brand-ar">Artrk</span></h1>
       <div class="who">مرحبا، <strong id="sidebar-name"></strong> 👋</div>
       <div class="online-pill"><div class="dot-live"></div> <span id="online-count">1</span> متصل</div>
     </div>
@@ -348,10 +552,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="page-header"><div class="ph2">🪪 ملفي الشخصي</div></div>
       <div class="grid-2">
         <div class="card">
-          <div id="profile-avatar-preview" class="profile-avatar-big">😊</div>
+          <!-- Photo / Avatar -->
+          <div class="photo-upload-wrap" onclick="document.getElementById('photo-file-input').click()">
+            <img id="profile-photo-img" src="" alt="" style="display:none">
+            <div id="profile-avatar-preview" class="profile-avatar-big" style="margin:0;width:90px;height:90px;font-size:36px;">😊</div>
+            <div class="photo-upload-overlay">📷</div>
+          </div>
+          <input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoUpload(event)">
           <div style="text-align:center;margin-bottom:20px">
             <div style="font-size:20px;font-weight:900" id="profile-name-display"></div>
             <div style="font-size:13px;color:var(--muted)" id="profile-email-display"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">اضغط على الصورة لتغييرها</div>
           </div>
           <div class="sec-title">اختر إيموجي الصورة</div>
           <div class="avatar-emojis" id="avatar-emojis"></div>
@@ -368,6 +579,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         </div>
 
         <div style="display:flex;flex-direction:column;gap:18px">
+          <!-- Themes -->
+          <div class="card">
+            <div class="sec-title">🎨 ثيم التطبيق</div>
+            <div class="theme-grid" id="theme-grid"></div>
+          </div>
+
           <!-- My Code -->
           <div class="card">
             <div class="sec-title">كودي الشخصي</div>
@@ -702,6 +919,10 @@ async function startApp(user){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading-screen').style.display='flex';
   await loadMyData();
+  // Apply saved theme
+  if (myData.theme && myData.theme !== 'default') {
+    document.body.className = `theme-${myData.theme}`;
+  }
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('sidebar-name').textContent = myData.display_name;
@@ -783,6 +1004,9 @@ function renderFriends(){
     const pct=total?Math.round(doneCount/total*100):0;
     const color=u.avatar_color||AVATAR_COLORS[0];
     const emoji=u.avatar_emoji||'😊';
+    const avatarHTML = u.avatar_photo
+      ? `<img src="${u.avatar_photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ${color};flex-shrink:0">`
+      : `<div class="f-avatar" style="background:${color}">${emoji}</div>`;
     const habitsHTML=habits.map(h=>`
       <div class="habit-card ${doneMap[h.id]?'done':''} readonly" style="padding:12px 10px;">
         <div class="done-badge">✓</div>
@@ -791,7 +1015,7 @@ function renderFriends(){
       </div>`).join('');
     return`<div class="friend-card">
       <div class="friend-header">
-        <div class="f-avatar" style="background:${color}">${emoji}</div>
+        ${avatarHTML}
         <div>
           <div class="f-name">${u.display_name||u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
           <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
@@ -831,22 +1055,83 @@ function renderFriendsList(){
   if(!codes.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div>`;return;}
   const friends=allUsers.filter(u=>codes.includes(u.friend_code));
   if(!friends.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>أصدقاؤك لم يسجلوا بعد</p></div>`;return;}
-  el.innerHTML=friends.map(u=>`
-    <div class="friend-list-item">
+  el.innerHTML=friends.map(u=>{
+    const av = u.avatar_photo
+      ? `<img src="${u.avatar_photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
+    return `<div class="friend-list-item">
       <div style="display:flex;align-items:center;gap:10px;flex:1">
-        <div style="width:36px;height:36px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>
+        ${av}
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
           ${u.status_note ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 ${u.status_note}</div>` : `<div style="font-size:11px;color:var(--muted)">${u.friend_code}</div>`}
         </div>
       </div>
       <button class="btn-danger" style="flex-shrink:0" onclick="removeFriend('${u.friend_code}')">إزالة</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 async function removeFriend(code){
   if(!confirm('إزالة هذا الصديق؟'))return;
   myData.friends=myData.friends.filter(c=>c!==code);
   await saveMyData(); renderFriendsList(); renderFriends();
+}
+
+// ── THEMES ────────────────────────────────────
+const THEMES = [
+  { id:'default', name:'كلاسيك', colors:['#F5F3EE','#B45309','#E2DED7'] },
+  { id:'rose',    name:'وردي',   colors:['#FFF1F2','#E11D48','#FECDD3'] },
+  { id:'ocean',   name:'بحري',   colors:['#EFF6FF','#1D4ED8','#BFDBFE'] },
+  { id:'lavender',name:'بنفسجي', colors:['#F5F3FF','#7C3AED','#DDD6FE'] },
+  { id:'mint',    name:'نعناعي', colors:['#F0FDF4','#16A34A','#BBF7D0'] },
+  { id:'dark',    name:'ليلي',   colors:['#0F0F0F','#F59E0B','#333']    },
+];
+
+function applyTheme(id) {
+  document.body.className = id === 'default' ? '' : `theme-${id}`;
+  myData.theme = id;
+  renderThemeGrid();
+}
+
+function renderThemeGrid() {
+  const current = myData.theme || 'default';
+  document.getElementById('theme-grid').innerHTML = THEMES.map(t => `
+    <div class="theme-card ${current===t.id?'active':''}" onclick="applyTheme('${t.id}')">
+      <div class="theme-check">✓</div>
+      <div class="theme-preview" style="background:linear-gradient(135deg,${t.colors[0]} 40%,${t.colors[1]} 100%);border:1px solid ${t.colors[2]}"></div>
+      <div class="theme-name">${t.name}</div>
+    </div>`).join('');
+}
+
+// ── PHOTO UPLOAD ──────────────────────────────
+function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('❌ الصورة أكبر من 2MB'); return; }
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const base64 = ev.target.result;
+    myData.avatar_photo = base64;
+    updateAvatarDisplay();
+    await saveMyData();
+    showToast('✅ تم رفع الصورة');
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateAvatarDisplay() {
+  const img = document.getElementById('profile-photo-img');
+  const emojiDiv = document.getElementById('profile-avatar-preview');
+  if (myData.avatar_photo) {
+    img.src = myData.avatar_photo;
+    img.style.display = 'block';
+    emojiDiv.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    emojiDiv.style.display = 'flex';
+    emojiDiv.textContent = myData.avatar_emoji || '😊';
+    emojiDiv.style.background = myData.avatar_color || AVATAR_COLORS[0];
+  }
 }
 
 // ── PROFILE ───────────────────────────────────
@@ -856,9 +1141,8 @@ function renderProfilePage(){
   document.getElementById('profile-email-display').textContent=currentUser.email;
   document.getElementById('my-friend-code').textContent=myData.friend_code||'------';
   document.getElementById('status-note-input').value = myData.status_note || '';
-  // Avatar preview
-  document.getElementById('profile-avatar-preview').textContent=myData.avatar_emoji||'😊';
-  document.getElementById('profile-avatar-preview').style.background=myData.avatar_color||AVATAR_COLORS[0];
+  // Avatar / photo
+  updateAvatarDisplay();
   // Emoji picker
   document.getElementById('avatar-emojis').innerHTML=AVATAR_EMOJIS.map(e=>
     `<span class="av-emoji ${myData.avatar_emoji===e?'sel':''}" onclick="pickAvatarEmoji('${e}')">${e}</span>`
@@ -867,6 +1151,8 @@ function renderProfilePage(){
   document.getElementById('avatar-colors').innerHTML=AVATAR_COLORS.map(c=>
     `<div class="av-color ${myData.avatar_color===c?'sel':''}" style="background:${c}" onclick="pickAvatarColor('${c}')"></div>`
   ).join('');
+  // Themes
+  renderThemeGrid();
 }
 function pickAvatarEmoji(e){
   myData.avatar_emoji=e;
