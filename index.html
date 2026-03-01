@@ -944,7 +944,13 @@ setInterval(()=>{
           <div class="card" style="background:var(--surface2);">
             <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
-            <div style="font-size:11px;color:var(--muted);text-align:center" id="profile-email-display2"></div>
+            <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+              <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
+                🗑 إعادة تعيين الحساب
+              </button>
+              <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">يحذف كل بياناتك ويبدأ من جديد</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1071,7 +1077,7 @@ setInterval(()=>{
       </div>
       <div id="trophies-grid"></div>
     </div>
-          <div class="psub2">تحدث مع أصدقائك</div>
+          
         </div>
       </div>
     </div>
@@ -1104,9 +1110,32 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>
       <span class="tab-label">الإنجازات</span>
     </div>
-    <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">
-      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="tab-label">ملفي</span>
+  </div>
+</div>
+
+
+<!-- RESET ACCOUNT MODAL -->
+<div class="modal-ov" id="reset-modal" onclick="if(event.target===this)closeModal('reset-modal')">
+  <div class="modal-box" style="max-width:360px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:40px;margin-bottom:8px">⚠️</div>
+      <div style="font-size:17px;font-weight:900;color:var(--red)">إعادة تعيين الحساب</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">
+        سيتم حذف جميع عاداتك ومصاريفك ومهامك وإنجازاتك.<br>
+        <strong>هذا الإجراء لا يمكن التراجع عنه.</strong>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:13px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">أدخل كلمة السر للتأكيد</label>
+      <div style="position:relative">
+        <input type="password" class="fi" id="reset-pass-input" placeholder="كلمة السر" style="padding-left:40px">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px" onclick="toggleResetPass()">👁</span>
+      </div>
+      <div id="reset-err" style="color:var(--red);font-size:12px;margin-top:8px;display:none;text-align:center"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-s" style="flex:1" onclick="closeModal('reset-modal')">إلغاء</button>
+      <button class="btn btn-sm" id="reset-confirm-btn" onclick="confirmReset()" style="flex:1;background:var(--red);color:white;border:none;font-weight:800;padding:11px">تأكيد الحذف</button>
     </div>
   </div>
 </div>
@@ -2336,6 +2365,73 @@ function updateTopBar(){
     const emoji = myData.avatar_emoji || '😊';
     avatarWrap.innerHTML = `<div class="tpb-avatar-emoji" style="background:${color}">${emoji}</div>`;
   }
+}
+
+
+// ── ACCOUNT RESET ─────────────────────────────
+function openResetModal(){
+  document.getElementById('reset-pass-input').value='';
+  document.getElementById('reset-err').style.display='none';
+  document.getElementById('reset-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('reset-pass-input').focus(),100);
+}
+
+function toggleResetPass(){
+  const inp = document.getElementById('reset-pass-input');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+async function confirmReset(){
+  const pass = document.getElementById('reset-pass-input').value;
+  const errEl = document.getElementById('reset-err');
+  const btn = document.getElementById('reset-confirm-btn');
+  errEl.style.display='none';
+
+  if(!pass){ errEl.textContent='أدخل كلمة السر'; errEl.style.display='block'; return; }
+
+  btn.textContent='جاري التحقق...'; btn.disabled=true;
+
+  // Re-authenticate
+  const {error} = await sb.auth.signInWithPassword({
+    email: currentUser.email,
+    password: pass
+  });
+
+  if(error){
+    btn.textContent='تأكيد الحذف'; btn.disabled=false;
+    errEl.textContent='كلمة السر غلط، حاول مجدداً';
+    errEl.style.display='block';
+    return;
+  }
+
+  // Reset data
+  const freshData = {
+    display_name: myData.display_name,
+    avatar_emoji: myData.avatar_emoji,
+    avatar_color: myData.avatar_color,
+    avatar_photo: myData.avatar_photo,
+    friend_code: myData.friend_code,
+    friends: myData.friends || [],
+    sent_requests: myData.sent_requests || [],
+    incoming_requests: myData.incoming_requests || [],
+    habits_list: [],
+    done: {},
+    expenses: [],
+    budget: 0,
+    todos: [],
+    _trophies: {},
+    theme: myData.theme
+  };
+
+  await sb.from('users').update({data: freshData}).eq('id', currentUser.id);
+  myData = freshData;
+
+  closeModal('reset-modal');
+  showToast('✅ تم إعادة تعيين الحساب');
+  btn.textContent='تأكيد الحذف'; btn.disabled=false;
+
+  // Reload page
+  setTimeout(()=>location.reload(), 1200);
 }
 
 // ── INIT ──────────────────────────────────────
