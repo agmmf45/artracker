@@ -3028,13 +3028,15 @@ function init(){
   });
 
   // Check session on load — don't wait for onAuthStateChange
+  const sessionTimeout = setTimeout(showAuth, 4000);
   sb.auth.getSession().then(({data:{session}})=>{
+    clearTimeout(sessionTimeout);
     if(session?.user){
       startApp(session.user);
     } else {
       showAuth();
     }
-  }).catch(()=> showAuth());
+  }).catch(()=>{ clearTimeout(sessionTimeout); showAuth(); });
 }
 init();
 </script>
