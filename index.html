@@ -1620,8 +1620,11 @@ async function doLogout(){
 
 // ── DATA ───────────────────────────────────────
 async function loadMyData(){
-  const {data} = await sb.from('users').select('data').eq('id', currentUser.id).single();
-  if(data?.data) myData = data.data;
+  try{
+    const {data, error} = await sb.from('users').select('data').eq('id', currentUser.id).single();
+    if(data?.data) myData = data.data;
+    // ignore "no rows" error — new user
+  } catch(e){ /* new user or network issue — use defaults */ }
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
@@ -1656,31 +1659,24 @@ async function loadAllUsers(){
 
 // ── START APP ──────────────────────────────────
 async function startApp(user){
-  try{
-    currentUser = user;
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('loading-screen').style.display='flex';
-    await loadMyData();
-    checkAndUnlockTrophies();
-    if(myData.theme && myData.theme !== 'default'){
-      document.body.className = `theme-${myData.theme}`;
-    }
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    document.getElementById('sidebar-name').textContent = myData.display_name;
-    updateTopBar();
-    updateDateDisplays();
-    renderHabits(); renderStreaks(); renderWallets(); renderBudget();
-    renderProfilePage();
-    await saveMyData();
-    await refreshAll();
-    refreshTimer = setInterval(refreshAll, 20000);
-  } catch(err){
-    console.error('startApp error:', err);
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
-    showToast('❌ حدث خطأ، حاول مجدداً');
+  currentUser = user;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('loading-screen').style.display='flex';
+  try{ await loadMyData(); }catch(e){ console.warn('loadMyData failed, using defaults', e); }
+  try{ checkAndUnlockTrophies(); }catch(e){}
+  if(myData.theme && myData.theme !== 'default'){
+    document.body.className = `theme-${myData.theme}`;
   }
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('sidebar-name').textContent = myData.display_name;
+  try{ updateTopBar(); }catch(e){}
+  updateDateDisplays();
+  try{ renderHabits(); renderStreaks(); renderWallets(); renderBudget(); }catch(e){}
+  try{ renderProfilePage(); }catch(e){}
+  try{ await saveMyData(); }catch(e){}
+  try{ await refreshAll(); }catch(e){}
+  refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 20000);
 }
 async function refreshAll(){
   await loadAllUsers();
