@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Artrk</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
 /* THEMES */
 body.theme-rose {
@@ -1334,13 +1334,7 @@ setInterval(()=>{
 <script>
 const SUPABASE_URL = 'https://vbubelofnmbizoatyajr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZidWJlbG9mbm1iaXpvYXR5YWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMzU0MDQsImV4cCI6MjA4NzkxMTQwNH0.mm79U80ZJ4mBdad0lqXB_cX6KbkiLup-tLH-7w01yuw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false
-  }
-});
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const EMOJIS = ['🏋️','😴','📚','💧','🧘','🏃','🥗','✍️','🎨','🎸','🌿','💊','🧹','📖','🙏','☕','🛁','🚴','🧠','💻','🎯','🧗','🌅','🎻'];
 const AVATAR_EMOJIS = ['😊','🦁','🐯','🦊','🐻','🦄','🐼','🦋','🦅','⚡','🔥','🌊','🌟','💎','🎯'];
@@ -2884,43 +2878,28 @@ async function confirmReset(){
 }
 
 // ── INIT ──────────────────────────────────────
-async function init(){
-  let appStarted = false;
-
+function init(){
   const showAuth = () => {
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('app').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
   };
 
+  // Fallback: if nothing fires in 5s, show auth
+  const fallback = setTimeout(showAuth, 5000);
+
   sb.auth.onAuthStateChange(async(event, session)=>{
-    if(event==='SIGNED_OUT'){
-      appStarted = false;
+    clearTimeout(fallback);
+    if(session?.user){
+      if(!currentUser || currentUser.id !== session.user.id){
+        await startApp(session.user);
+      }
+    } else {
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
       showAuth();
-    } else if(event==='SIGNED_IN' && session?.user && !appStarted){
-      appStarted = true;
-      await startApp(session.user);
     }
   });
-
-  try{
-    // Hard 3s timeout on getSession
-    const sessionResult = await Promise.race([
-      sb.auth.getSession(),
-      new Promise((_,rej) => setTimeout(()=>rej('timeout'), 3000))
-    ]);
-    const session = sessionResult?.data?.session;
-    if(session?.user && !appStarted){
-      appStarted = true;
-      await startApp(session.user);
-    } else if(!appStarted){
-      showAuth();
-    }
-  } catch(e){
-    if(!appStarted) showAuth();
-  }
 }
 init();
 </script>
