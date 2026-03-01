@@ -2885,21 +2885,27 @@ function init(){
     document.getElementById('auth-screen').style.display='flex';
   };
 
-  // Fallback: if nothing fires in 5s, show auth
-  const fallback = setTimeout(showAuth, 5000);
-
+  // Handle future auth events (login/logout)
   sb.auth.onAuthStateChange(async(event, session)=>{
-    clearTimeout(fallback);
-    if(session?.user){
+    if(event==='SIGNED_IN' && session?.user){
       if(!currentUser || currentUser.id !== session.user.id){
         await startApp(session.user);
       }
-    } else {
+    } else if(event==='SIGNED_OUT'){
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
       showAuth();
     }
   });
+
+  // Check session on load — don't wait for onAuthStateChange
+  sb.auth.getSession().then(({data:{session}})=>{
+    if(session?.user){
+      startApp(session.user);
+    } else {
+      showAuth();
+    }
+  }).catch(()=> showAuth());
 }
 init();
 </script>
