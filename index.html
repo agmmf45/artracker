@@ -1338,8 +1338,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage
+    detectSessionInUrl: false,
+    storage: window.localStorage,
+    storageKey: 'artrk_auth',
+    lock: (name, acquireTimeout, fn) => fn()  // disable lock to prevent AbortError
   }
 });
 
@@ -1619,6 +1621,8 @@ async function doLogout(){
 }
 
 // ── DATA ───────────────────────────────────────
+const CACHE_KEY = 'artrk_data_v1';
+
 function applyDefaults(){
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
@@ -1636,29 +1640,50 @@ function applyDefaults(){
   if(!myData.display_name) myData.display_name = currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || '';
 }
 
-async function loadMyData(){
+function loadFromCache(userId){
   try{
-    const {data, error} = await sb.from('users')
+    const raw = localStorage.getItem(CACHE_KEY + '_' + userId);
+    if(raw){ myData = JSON.parse(raw); return true; }
+  } catch(e){}
+  return false;
+}
+
+function saveToCache(userId){
+  try{ localStorage.setItem(CACHE_KEY + '_' + userId, JSON.stringify(myData)); }
+  catch(e){}
+}
+
+async function loadMyData(){
+  // 1. Load from cache instantly (so UI shows immediately)
+  const hadCache = loadFromCache(currentUser.id);
+  if(hadCache) applyDefaults();
+
+  // 2. Load from DB (may be slower)
+  try{
+    const {data} = await sb.from('users')
       .select('data')
       .eq('id', currentUser.id)
       .single();
 
     if(data?.data){
       myData = data.data;
-      console.log('✅ loaded from DB:', Object.keys(myData));
+      applyDefaults();
+      saveToCache(currentUser.id); // update cache
     } else {
-      console.log('ℹ️ no row found, new user');
+      applyDefaults();
     }
   } catch(e){
-    console.warn('⚠️ loadMyData error:', e);
+    console.warn('⚠️ DB load failed, using cache:', e);
+    if(!hadCache) applyDefaults();
   }
-  applyDefaults();
 }
 
 async function saveMyData(){
   if(!currentUser) return;
   applyDefaults();
-  try{
+  saveToCache(currentUser.id); // always save locally first
+
+  const doSave = async () => {
     const payload = {
       id: currentUser.id,
       name: myData.display_name || currentUser.email,
@@ -1666,16 +1691,30 @@ async function saveMyData(){
       updated_at: new Date().toISOString()
     };
     const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
+    return error;
+  };
+
+  try{
+    let error = await doSave();
+
+    // Retry once if AbortError (lock conflict)
+    if(error?.message?.includes('AbortError') || error?.message?.includes('abort')){
+      await new Promise(r=>setTimeout(r,800));
+      error = await doSave();
+    }
+
     if(error){
-      console.error('❌ saveMyData error:', error);
-      showToast('❌ خطأ في الحفظ: ' + error.message);
+      console.error('❌ saveMyData:', error.message);
+      // Don't show error for lock issues — data is in cache
+      if(!error.message?.includes('AbortError')){
+        showToast('❌ خطأ في الحفظ: ' + error.message);
+      }
     } else {
-      console.log('✅ saved to DB');
       showToast('✅ تم الحفظ');
     }
   } catch(e){
-    console.error('❌ saveMyData exception:', e);
-    showToast('❌ تعذّر الحفظ');
+    // Network/lock error — data already saved to localStorage cache
+    console.warn('saveMyData catch:', e);
   }
 }
 async function loadAllUsers(){
@@ -2851,58 +2890,30 @@ async function confirmReset(){
 async function init(){
   let appStarted = false;
 
-  // Timeout fallback
-  const timeout = setTimeout(()=>{
-    if(!appStarted){
-      document.getElementById('loading-screen').style.display='none';
-      document.getElementById('auth-screen').style.display='flex';
-    }
-  }, 5000);
+  const showAuth = () => {
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+  };
 
-  // Listen for auth changes
+  const timeout = setTimeout(()=>{ if(!appStarted) showAuth(); }, 6000);
+
   sb.auth.onAuthStateChange(async(event, session)=>{
-    if((event==='SIGNED_IN' || event==='INITIAL_SESSION') && session?.user){
-      clearTimeout(timeout);
-      if(!appStarted && (!currentUser || currentUser.id !== session.user.id)){
-        appStarted = true;
-        await startApp(session.user);
-      }
-    } else if(event==='SIGNED_OUT'){
+    if(event==='SIGNED_OUT'){
       clearTimeout(timeout);
       appStarted = false;
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
-      dataLoadedFromDB = false;
-      document.getElementById('app').style.display='none';
-      document.getElementById('loading-screen').style.display='none';
-      document.getElementById('auth-screen').style.display='flex';
+      showAuth();
+      return;
     }
-  });
-
-  // Also try getSession directly as fallback
-  try{
-    const {data:{session}} = await sb.auth.getSession();
-    if(session?.user && !appStarted){
+    if((event==='INITIAL_SESSION'||event==='SIGNED_IN') && session?.user){
       clearTimeout(timeout);
+      if(appStarted && currentUser?.id===session.user.id) return; // already running
       appStarted = true;
       await startApp(session.user);
-    } else if(!session?.user && !appStarted){
-      // give onAuthStateChange 2 more seconds before giving up
-      setTimeout(()=>{
-        if(!appStarted){
-          document.getElementById('loading-screen').style.display='none';
-          document.getElementById('auth-screen').style.display='flex';
-        }
-      }, 2000);
     }
-  }catch(e){
-    // network error — show auth screen
-    if(!appStarted){
-      clearTimeout(timeout);
-      document.getElementById('loading-screen').style.display='none';
-      document.getElementById('auth-screen').style.display='flex';
-    }
-  }
+  });
 }
 init();
 </script>
