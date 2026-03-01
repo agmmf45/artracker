@@ -292,6 +292,51 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+/* wallet stats */
+.ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
+.ws-cat-bar-wrap{flex:1;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.ws-cat-bar{height:100%;background:var(--accent);border-radius:99px;transition:width 0.4s ease;}
+.ws-cat-amount{font-size:12px;font-weight:800;color:var(--muted);min-width:60px;text-align:left;}
+.ws-wallet-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.ws-wallet-row:last-child{border-bottom:none;}
+.ws-wallet-info{display:flex;align-items:center;gap:10px;}
+.ws-wallet-amounts{display:flex;gap:14px;font-size:12px;}
+.ws-wallet-amounts span{font-weight:700;}
+
+/* ── WALLETS ─────────────────────────────── */
+.wallets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.wallet-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:18px 16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.wallet-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 12%,transparent);}
+.wallet-card.selected{border-color:var(--accent);background:linear-gradient(145deg,var(--surface),var(--accent-light));}
+.wallet-icon{font-size:28px;margin-bottom:8px;}
+.wallet-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.wallet-balance{font-size:22px;font-weight:900;color:var(--accent);letter-spacing:-0.5px;}
+.wallet-balance.negative{color:var(--red);}
+.wallet-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.wallet-actions{position:absolute;top:10px;left:10px;display:flex;gap:4px;opacity:0;transition:opacity 0.18s;}
+.wallet-card:hover .wallet-actions{opacity:1;}
+.wallet-act-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 7px;font-size:11px;cursor:pointer;transition:all 0.15s;}
+.wallet-act-btn:hover{background:var(--surface);border-color:var(--accent);}
+.txn-type-btn{flex:1;padding:9px 6px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:1.5px solid var(--border);color:var(--muted);background:var(--surface2);transition:all 0.15s;--tc:var(--red);}
+.txn-type-btn:hover{border-color:var(--tc);color:var(--tc);}
+.txn-type-btn.active{background:var(--tc);border-color:var(--tc);color:white;}
+.txn-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.txn-item:last-child{border-bottom:none;}
+.txn-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.txn-ico.spend{background:#FEE2E2;}
+.txn-ico.save{background:#DCFCE7;}
+.txn-ico.add{background:#DBEAFE;}
+.txn-info{flex:1;min-width:0;}
+.txn-desc{font-size:13px;font-weight:700;color:var(--text);}
+.txn-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.txn-amount{font-size:14px;font-weight:900;white-space:nowrap;}
+.txn-amount.spend{color:var(--red);}
+.txn-amount.save{color:#16A34A;}
+.txn-amount.add{color:#2563EB;}
+.w-emoji{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all 0.15s;}
+.w-emoji.active{border-color:var(--accent);background:var(--accent-light);}
+
 /* ── TOP PROFILE BAR ─────────────────────────── */
 .top-profile-bar{
   position:fixed;top:0;right:230px;left:0;
@@ -788,58 +833,109 @@ setInterval(()=>{
       <div class="friends-grid" id="friends-grid"></div>
     </div>
 
-    <!-- EXPENSES -->
+    <!-- EXPENSES / WALLETS -->
     <div class="page" id="page-expenses">
-      <div class="page-header"><div class="ph2">المصاريف</div><div class="psub2">سجّل مصاريفك وتابع ميزانيتك</div></div>
-      <div class="grid-2 mb-20">
-        <div class="card">
-          <div class="sec-title">ميزانيتي الشهرية</div>
-          <div class="flex-b" style="margin-bottom:8px">
-            <div><div class="plabel">الميزانية</div><div class="bph" id="budget-display">0</div><div class="psub">ريال</div></div>
-            <div style="text-align:left"><div class="plabel">المتبقي</div><div class="bph" id="remaining-display" style="color:var(--green)">0</div><div class="psub">ريال</div></div>
-          </div>
-          <div class="bar-wrap"><div class="bar-fill" id="budget-bar" style="width:0%"></div></div>
-          <div class="flex-b" style="font-size:12px;color:var(--muted)"><span>الإنفاق: <strong id="spent-display">0</strong> ر</span><span id="budget-pct">0%</span></div>
-          <div style="margin-top:14px">
-            <div class="fl">تعديل الميزانية</div>
-            <div style="display:flex;gap:8px"><input type="number" class="fi" id="budget-input" placeholder="5000" style="flex:1"><button class="btn btn-p btn-sm" onclick="setBudget()">حفظ</button></div>
+      <div class="page-header flex-b" style="margin-bottom:16px">
+        <div><div class="ph2">💰 محافظي</div><div class="psub2">تتبع رصيدك وإنفاقك</div></div>
+        <button class="btn btn-p btn-sm" onclick="openWalletModal()">+ محفظة</button>
+      </div>
+
+      <!-- Wallets grid -->
+      <div id="wallets-grid" class="wallets-grid mb-20"></div>
+
+      <!-- Transaction form — shown after selecting wallet -->
+      <div class="card mb-20" id="txn-form-card" style="display:none">
+        <div class="flex-b" style="margin-bottom:14px">
+          <div class="sec-title" style="margin:0">إضافة حركة إلى: <span id="txn-wallet-name" style="color:var(--accent)"></span></div>
+          <span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="closeTxnForm()">✕</span>
+        </div>
+
+        <!-- Type toggle -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <div class="txn-type-btn active" id="txn-type-spend" onclick="setTxnType('spend',this)">💸 إنفاق</div>
+          <div class="txn-type-btn" id="txn-type-save" onclick="setTxnType('save',this)" style="--tc:#16A34A">💰 ادخار</div>
+          <div class="txn-type-btn" id="txn-type-add" onclick="setTxnType('add',this)" style="--tc:#2563EB">➕ إيداع</div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input type="text" class="fi" id="txn-desc" placeholder="الوصف..." style="flex:2;min-width:120px">
+          <input type="number" class="fi" id="txn-amount" placeholder="المبلغ" style="flex:1;min-width:80px">
+        </div>
+
+        <!-- Category (spend only) -->
+        <div id="txn-cat-row" style="margin-top:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div class="todo-quick-btn active" data-cat="🍔 أكل" onclick="setTxnCat(this)">🍔 أكل</div>
+            <div class="todo-quick-btn" data-cat="🛒 تسوق" onclick="setTxnCat(this)">🛒 تسوق</div>
+            <div class="todo-quick-btn" data-cat="🎮 ترفيه" onclick="setTxnCat(this)">🎮 ترفيه</div>
+            <div class="todo-quick-btn" data-cat="🚗 مواصلات" onclick="setTxnCat(this)">🚗 مواصلات</div>
+            <div class="todo-quick-btn" data-cat="📋 فواتير" onclick="setTxnCat(this)">📋 فواتير</div>
+            <div class="todo-quick-btn" data-cat="💊 صحة" onclick="setTxnCat(this)">💊 صحة</div>
+            <div class="todo-quick-btn" data-cat="📦 أخرى" onclick="setTxnCat(this)">📦 أخرى</div>
           </div>
         </div>
-        <div class="card">
-          <div class="sec-title">إضافة مصروف</div>
-          <div class="fg"><label class="fl">الوصف</label><input type="text" class="fi" id="exp-name" placeholder="غداء، تسوق..."></div>
-          <div class="fg"><label class="fl">المبلغ (ريال)</label><input type="number" class="fi" id="exp-amount" placeholder="0.00"></div>
-          <div class="fg">
-            <label class="fl">التصنيف</label>
-            <select class="fs" id="exp-cat">
-              <option value="🍔 أكل">🍔 أكل</option>
-              <option value="🛒 تسوق">🛒 تسوق</option>
-              <option value="🎮 ترفيه">🎮 ترفيه</option>
-              <option value="🚗 مواصلات">🚗 مواصلات</option>
-              <option value="📋 فواتير">📋 فواتير</option>
-              <option value="💊 صحة">💊 صحة</option>
-              <option value="📦 أخرى">📦 أخرى</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label class="fl">التاريخ</label>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div class="date-display" style="flex:1">
-                <div class="date-ar" id="exp-date-ar"></div>
-                <div class="date-en" id="exp-date-en"></div>
-              </div>
-              <div class="date-pick-btn" onclick="openDatePicker('expense')">📅</div>
-            </div>
-          </div>
-          <button class="btn btn-p" style="width:100%" onclick="addExpense()">➕ إضافة</button>
+
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <div class="date-pick-btn" onclick="openDatePicker('expense')" style="flex-shrink:0">📅 <span id="txn-date-label"></span></div>
+          <button class="btn btn-p" style="flex:1" onclick="addTransaction()">✓ إضافة</button>
         </div>
       </div>
-      <div class="card">
+
+      <!-- Transactions list -->
+      <div class="card" id="txn-list-card" style="display:none">
         <div class="flex-b mb-20">
-          <div class="sec-title" style="margin-bottom:0">قائمة المصاريف</div>
+          <div class="sec-title" style="margin:0">سجل <span id="txn-list-title" style="color:var(--accent)"></span></div>
           <div class="cat-chips" id="filter-chips"></div>
         </div>
         <div id="expenses-list"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="wallets-empty" style="text-align:center;padding:50px 20px;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:12px">💰</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:6px">لا توجد محافظ بعد</div>
+        <div style="font-size:13px">اضغط "+ محفظة" لتبدأ</div>
+      </div>
+
+      <!-- ── WALLET STATS ── -->
+      <div id="wallet-stats-section" style="display:none;margin-top:24px">
+        <div class="sec-title" style="margin-bottom:14px">📊 ملخص مالي</div>
+
+        <!-- Summary cards -->
+        <div class="wallets-grid mb-20" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+          <div class="stat-card">
+            <div class="plabel">💰 إجمالي الرصيد</div>
+            <div class="bph" id="ws-total-balance">0</div>
+            <div class="psub">ريال</div>
+          </div>
+          <div class="stat-card">
+            <div class="plabel">💸 إجمالي الصرف</div>
+            <div class="bph" id="ws-total-spend" style="color:var(--red)">0</div>
+            <div class="psub">ريال</div>
+          </div>
+          <div class="stat-card">
+            <div class="plabel">🏦 إجمالي الادخار</div>
+            <div class="bph" id="ws-total-save" style="color:#16A34A">0</div>
+            <div class="psub">ريال</div>
+          </div>
+          <div class="stat-card">
+            <div class="plabel">📥 إجمالي الإيداع</div>
+            <div class="bph" id="ws-total-add" style="color:#2563EB">0</div>
+            <div class="psub">ريال</div>
+          </div>
+        </div>
+
+        <!-- Spending by category -->
+        <div class="card mb-20">
+          <div class="sec-title">الإنفاق حسب التصنيف</div>
+          <div id="ws-cat-breakdown"></div>
+        </div>
+
+        <!-- Per-wallet breakdown -->
+        <div class="card">
+          <div class="sec-title">تفاصيل كل محفظة</div>
+          <div id="ws-wallet-breakdown"></div>
+        </div>
       </div>
     </div>
 
@@ -1129,6 +1225,37 @@ setInterval(()=>{
     <div style="display:flex;gap:10px">
       <button class="btn btn-s" style="flex:1" onclick="closeModal('reset-modal')">إلغاء</button>
       <button class="btn btn-sm" id="reset-confirm-btn" onclick="confirmReset()" style="flex:1;background:var(--red);color:white;border:none;font-weight:800;padding:11px">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- WALLET MODAL -->
+<div class="modal-ov" id="wallet-modal" onclick="if(event.target===this)closeModal('wallet-modal')">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-title" id="wallet-modal-title">➕ محفظة جديدة</div>
+    <input type="hidden" id="wallet-edit-id">
+    <div class="fg"><label class="fl">اسم المحفظة</label>
+      <input type="text" class="fi" id="wallet-name-inp" placeholder="مثال: راتب، ادخار، مصروف يومي" maxlength="20">
+    </div>
+    <div class="fg"><label class="fl">الرصيد الابتدائي (ريال)</label>
+      <input type="number" class="fi" id="wallet-balance-inp" placeholder="0">
+    </div>
+    <div class="fg"><label class="fl">الأيقونة</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="w-emoji active" onclick="selectWalletEmoji(this)" data-e="💰">💰</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="🏦">🏦</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="💵">💵</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="🎯">🎯</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="🏠">🏠</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="🚗">🚗</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="✈️">✈️</span>
+        <span class="w-emoji" onclick="selectWalletEmoji(this)" data-e="📦">📦</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-s" style="flex:1" onclick="closeModal('wallet-modal')">إلغاء</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveWallet()">حفظ</button>
     </div>
   </div>
 </div>
@@ -1439,9 +1566,17 @@ async function doRegister(){
   if(pass.length<6){ showErr('reg-err','كلمة السر 6 أحرف على الأقل'); return; }
   const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{name}}});
   if(error){ showErr('reg-err', error.message==='User already registered'?'الإيميل مسجّل مسبقاً':error.message); return; }
+
+  // Try auto login immediately (works if email confirm is disabled)
+  const {data:loginData, error:loginErr} = await sb.auth.signInWithPassword({email, password:pass});
+  if(!loginErr && loginData?.user){
+    // startApp will be triggered by onAuthStateChange
+    return;
+  }
+
+  // Fallback: show success + login button (email confirm enabled)
   document.getElementById('reg-ok').textContent='✅ تم إنشاء الحساب! تحقق من إيميلك ثم سجّل دخولك';
   document.getElementById('reg-ok').style.display='block';
-  // Show login button — wire it to switch to login step with same email
   const wrap = document.getElementById('reg-login-wrap');
   const btn = document.getElementById('reg-login-btn');
   wrap.style.display='block';
@@ -1484,6 +1619,8 @@ async function loadMyData(){
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
   if(!myData.budget) myData.budget = 0;
+  if(!myData.wallets) myData.wallets = [];
+  if(!myData.transactions) myData.transactions = [];
   if(!myData.friends) myData.friends = [];
   if(!myData.sent_requests) myData.sent_requests = [];
   if(!myData.incoming_requests) myData.incoming_requests = [];
@@ -1526,7 +1663,7 @@ async function startApp(user){
     document.getElementById('sidebar-name').textContent = myData.display_name;
     updateTopBar();
     updateDateDisplays();
-    renderHabits(); renderStreaks(); renderExpenses(); renderBudget();
+    renderHabits(); renderStreaks(); renderWallets(); renderBudget();
     renderProfilePage();
     await saveMyData();
     await refreshAll();
@@ -1933,69 +2070,269 @@ function copyCode(){
 }
 
 // ── EXPENSES ──────────────────────────────────
-function addExpense(){
-  const name=document.getElementById('exp-name').value.trim();
-  const amount=parseFloat(document.getElementById('exp-amount').value);
-  const cat=document.getElementById('exp-cat').value;
-  if(!name||!amount){showToast('اكتب الوصف والمبلغ');return;}
-  myData.expenses.unshift({id:Date.now(),name,amount,cat,date:selectedExpenseDate});
-  saveMyData();
-  checkAndUnlockTrophies();
-  document.getElementById('exp-name').value='';
-  document.getElementById('exp-amount').value='';
-  renderExpenses(); showToast('✅ تمت الإضافة');
+// ── WALLETS SYSTEM ────────────────────────────
+let activeWalletId = null;
+let activeTxnType = 'spend';
+let activeTxnCat = '🍔 أكل';
+let activeFilter = 'الكل';
+
+function initWallets(){
+  if(!myData.wallets) myData.wallets=[];
+  if(!myData.transactions) myData.transactions=[];
+  // migrate old expenses to a default wallet
+  if((myData.expenses||[]).length && !myData._migrated){
+    const defWallet={id:'w_default',name:'المحفظة الرئيسية',icon:'💰',balance:myData.budget||0};
+    myData.wallets.unshift(defWallet);
+    myData.transactions = (myData.expenses||[]).map(e=>({
+      id:e.id,walletId:'w_default',type:'spend',amount:e.amount,
+      desc:e.name,cat:e.cat,date:e.date
+    })).concat(myData.transactions||[]);
+    myData._migrated=true;
+  }
 }
-function deleteExpense(id){
-  myData.expenses=myData.expenses.filter(e=>e.id!==id);
-  saveMyData(); renderExpenses();
-}
-function setBudget(){
-  const val=parseFloat(document.getElementById('budget-input').value);
-  if(!val)return;
-  myData.budget=val; saveMyData(); renderBudget(); showToast('✅ تم حفظ الميزانية');
-}
-let activeFilter='الكل';
-function renderFilterChips(){
-  const cats=['الكل',...new Set((myData.expenses||[]).map(e=>e.cat))];
-  document.getElementById('filter-chips').innerHTML=cats.map(c=>`<div class="chip ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</div>`).join('');
-}
-function setFilter(cat){activeFilter=cat;renderExpenses();}
-function renderExpenses(){
-  renderFilterChips();
-  const exps=(myData.expenses||[]).filter(e=>activeFilter==='الكل'||e.cat===activeFilter);
-  const el=document.getElementById('expenses-list');
-  if(!exps.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🧾</div><p>لا توجد مصاريف</p></div>`;renderBudget();return;}
-  el.innerHTML=exps.map(e=>{
-    const {ar,en}=formatDateBilingual(e.date);
-    return`<div class="exp-item">
-      <div class="exp-left">
-        <div class="exp-ico">${e.cat.split(' ')[0]}</div>
+
+function renderExpenses(){ renderWallets(); }
+function renderBudget(){}
+function addExpense(){}
+function setBudget(){}
+function renderFilterChips(){}
+function setFilter(cat){ activeFilter=cat; renderTxnList(); }
+
+
+function renderWalletStats(){
+  initWallets();
+  const txns = myData.transactions||[];
+  const wallets = myData.wallets||[];
+  if(!wallets.length){ document.getElementById('wallet-stats-section').style.display='none'; return; }
+  document.getElementById('wallet-stats-section').style.display='block';
+
+  // totals
+  const totalSpend = txns.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
+  const totalSave  = txns.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
+  const totalAdd   = txns.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
+  const totalBalance = wallets.reduce((sum,w)=>{
+    const wt=txns.filter(t=>t.walletId===w.id);
+    return sum+(w.balance||0)+wt.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0)
+      -wt.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0)
+      -wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
+  },0);
+
+  document.getElementById('ws-total-balance').textContent = totalBalance.toLocaleString('ar');
+  document.getElementById('ws-total-spend').textContent   = totalSpend.toLocaleString('ar');
+  document.getElementById('ws-total-save').textContent    = totalSave.toLocaleString('ar');
+  document.getElementById('ws-total-add').textContent     = totalAdd.toLocaleString('ar');
+
+  // by category
+  const spendTxns = txns.filter(t=>t.type==='spend');
+  const catMap = {};
+  spendTxns.forEach(t=>{ catMap[t.cat]=(catMap[t.cat]||0)+t.amount; });
+  const cats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const maxCat = cats[0]?.[1]||1;
+  document.getElementById('ws-cat-breakdown').innerHTML = cats.length
+    ? cats.map(([cat,amt])=>`
+      <div class="ws-cat-row">
+        <div class="ws-cat-label">${cat}</div>
+        <div class="ws-cat-bar-wrap"><div class="ws-cat-bar" style="width:${Math.round(amt/maxCat*100)}%"></div></div>
+        <div class="ws-cat-amount">${amt.toLocaleString('ar')} ر</div>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px">لا يوجد إنفاق بعد</div>';
+
+  // per wallet
+  document.getElementById('ws-wallet-breakdown').innerHTML = wallets.map(w=>{
+    const wt=txns.filter(t=>t.walletId===w.id);
+    const sp=wt.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
+    const sv=wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
+    const ad=wt.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
+    const bal=(w.balance||0)+ad-sp-sv;
+    return`<div class="ws-wallet-row">
+      <div class="ws-wallet-info">
+        <span style="font-size:22px">${w.icon||'💰'}</span>
         <div>
-          <div class="exp-name">${e.name}</div>
-          <div class="exp-meta">${e.cat.split(' ').slice(1).join(' ')} · ${ar} / ${en}</div>
+          <div style="font-size:13px;font-weight:800">${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">رصيد: <strong style="color:${bal<0?'var(--red)':'var(--accent)'}">${bal.toLocaleString('ar')} ر</strong></div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="exp-amount">- ${e.amount.toLocaleString('ar')} ر</div>
-        <button class="btn-danger" onclick="deleteExpense(${e.id})">🗑</button>
+      <div class="ws-wallet-amounts">
+        <span style="color:var(--red)">-${sp.toLocaleString('ar')}</span>
+        <span style="color:#16A34A">🏦${sv.toLocaleString('ar')}</span>
+        <span style="color:#2563EB">+${ad.toLocaleString('ar')}</span>
       </div>
     </div>`;
   }).join('');
-  renderBudget();
 }
-function renderBudget(){
-  const budget=myData.budget||0;
-  const now=new Date();const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const spent=(myData.expenses||[]).filter(e=>e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);
-  const pct=budget?Math.min(100,Math.round(spent/budget*100)):0;
-  document.getElementById('budget-display').textContent=budget.toLocaleString('ar');
-  document.getElementById('remaining-display').textContent=Math.max(0,budget-spent).toLocaleString('ar');
-  document.getElementById('spent-display').textContent=spent.toLocaleString('ar');
-  document.getElementById('budget-pct').textContent=pct+'%';
-  const bar=document.getElementById('budget-bar');
-  bar.style.width=pct+'%';
-  bar.className='bar-fill'+(pct>=90?' over':pct>=70?' warn':'');
-  if(budget)document.getElementById('budget-input').placeholder=budget;
+
+function renderWallets(){
+  initWallets();
+  const grid = document.getElementById('wallets-grid');
+  const empty = document.getElementById('wallets-empty');
+  if(!myData.wallets.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  renderWalletStats();
+  grid.innerHTML = myData.wallets.map(w=>{
+    const txns = (myData.transactions||[]).filter(t=>t.walletId===w.id);
+    const spent = txns.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
+    const saved = txns.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
+    const added = txns.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
+    const balance = (w.balance||0) + added - spent - saved;
+    const isSelected = activeWalletId===w.id;
+    return`<div class="wallet-card ${isSelected?'selected':''}" onclick="selectWallet('${w.id}')">
+      <div class="wallet-actions">
+        <div class="wallet-act-btn" onclick="event.stopPropagation();editWallet('${w.id}')">✏️</div>
+        <div class="wallet-act-btn" onclick="event.stopPropagation();deleteWallet('${w.id}')">🗑</div>
+      </div>
+      <div class="wallet-icon">${w.icon||'💰'}</div>
+      <div class="wallet-name">${w.name}</div>
+      <div class="wallet-balance ${balance<0?'negative':''}">${balance.toLocaleString('ar')} ر</div>
+      <div class="wallet-sub">خصم: ${spent.toLocaleString('ar')} · ادخار: ${saved.toLocaleString('ar')}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectWallet(id){
+  activeWalletId = id;
+  const w = myData.wallets.find(x=>x.id===id);
+  if(!w) return;
+  renderWallets();
+  // show form
+  document.getElementById('txn-form-card').style.display='block';
+  document.getElementById('txn-wallet-name').textContent = w.name;
+  document.getElementById('txn-list-card').style.display='block';
+  document.getElementById('txn-list-title').textContent = w.name;
+  updateTxnDateLabel();
+  renderTxnList();
+  document.getElementById('txn-desc').focus();
+}
+
+function closeTxnForm(){
+  activeWalletId=null;
+  renderWallets();
+  document.getElementById('txn-form-card').style.display='none';
+  document.getElementById('txn-list-card').style.display='none';
+}
+
+function setTxnType(type, el){
+  activeTxnType=type;
+  document.querySelectorAll('.txn-type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('txn-cat-row').style.display = type==='spend' ? 'block' : 'none';
+}
+
+function setTxnCat(el){
+  activeTxnCat = el.dataset.cat;
+  document.querySelectorAll('#txn-cat-row .todo-quick-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateTxnDateLabel(){
+  const el=document.getElementById('txn-date-label');
+  if(el) el.textContent=selectedExpenseDate||'التاريخ';
+}
+
+function addTransaction(){
+  if(!activeWalletId){ showToast('اختر محفظة أولاً'); return; }
+  const desc=document.getElementById('txn-desc').value.trim();
+  const amount=parseFloat(document.getElementById('txn-amount').value);
+  if(!desc||!amount){ showToast('اكتب الوصف والمبلغ'); return; }
+  const txn={
+    id: Date.now(),
+    walletId: activeWalletId,
+    type: activeTxnType,
+    amount,
+    desc,
+    cat: activeTxnType==='spend' ? activeTxnCat : activeTxnType==='save' ? '💰 ادخار' : '➕ إيداع',
+    date: selectedExpenseDate
+  };
+  if(!myData.transactions) myData.transactions=[];
+  myData.transactions.unshift(txn);
+  // keep old expenses in sync for stats
+  if(activeTxnType==='spend'){
+    if(!myData.expenses) myData.expenses=[];
+    myData.expenses.unshift({id:txn.id,name:desc,amount,cat:txn.cat,date:txn.date});
+  }
+  saveMyData();
+  checkAndUnlockTrophies();
+  document.getElementById('txn-desc').value='';
+  document.getElementById('txn-amount').value='';
+  renderWallets();
+  renderTxnList();
+  showToast('✅ تمت الإضافة');
+}
+
+function deleteTxn(id){
+  myData.transactions=(myData.transactions||[]).filter(t=>t.id!==id);
+  myData.expenses=(myData.expenses||[]).filter(e=>e.id!==id);
+  saveMyData(); renderWallets(); renderTxnList();
+}
+
+function renderTxnList(){
+  if(!activeWalletId) return;
+  const allTxns=(myData.transactions||[]).filter(t=>t.walletId===activeWalletId);
+  const cats=['الكل',...new Set(allTxns.map(t=>t.cat))];
+  document.getElementById('filter-chips').innerHTML=cats.map(c=>
+    `<div class="chip ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</div>`
+  ).join('');
+  const txns=allTxns.filter(t=>activeFilter==='الكل'||t.cat===activeFilter);
+  const el=document.getElementById('expenses-list');
+  if(!txns.length){ el.innerHTML=`<div class="empty"><div class="empty-ico">🧾</div><p>لا توجد حركات</p></div>`; return; }
+  el.innerHTML=txns.map(t=>{
+    const {ar}=formatDateBilingual(t.date);
+    const icons={spend:'💸',save:'💰',add:'➕'};
+    const labels={spend:'إنفاق',save:'ادخار',add:'إيداع'};
+    const prefix={spend:'-',save:'-',add:'+'};
+    return`<div class="txn-item">
+      <div class="txn-ico ${t.type}">${icons[t.type]||'💸'}</div>
+      <div class="txn-info">
+        <div class="txn-desc">${t.desc}</div>
+        <div class="txn-meta">${t.cat} · ${ar} · ${labels[t.type]}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="txn-amount ${t.type}">${prefix[t.type]}${t.amount.toLocaleString('ar')} ر</div>
+        <button class="btn-danger" onclick="deleteTxn(${t.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── WALLET CRUD ──
+function openWalletModal(id=null){
+  document.getElementById('wallet-edit-id').value = id||'';
+  document.getElementById('wallet-modal-title').textContent = id ? '✏️ تعديل المحفظة' : '➕ محفظة جديدة';
+  const w = id ? myData.wallets.find(x=>x.id===id) : null;
+  document.getElementById('wallet-name-inp').value = w?.name||'';
+  document.getElementById('wallet-balance-inp').value = w?.balance||'';
+  document.querySelectorAll('.w-emoji').forEach(el=>{
+    el.classList.toggle('active', el.dataset.e===(w?.icon||'💰'));
+  });
+  document.getElementById('wallet-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('wallet-name-inp').focus(),80);
+}
+function editWallet(id){ openWalletModal(id); }
+function selectWalletEmoji(el){
+  document.querySelectorAll('.w-emoji').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+function saveWallet(){
+  const name=document.getElementById('wallet-name-inp').value.trim();
+  const balance=parseFloat(document.getElementById('wallet-balance-inp').value)||0;
+  const icon=document.querySelector('.w-emoji.active')?.dataset.e||'💰';
+  const editId=document.getElementById('wallet-edit-id').value;
+  if(!name){ showToast('أدخل اسم المحفظة'); return; }
+  if(!myData.wallets) myData.wallets=[];
+  if(editId){
+    const idx=myData.wallets.findIndex(w=>w.id===editId);
+    if(idx!==-1) myData.wallets[idx]={...myData.wallets[idx],name,balance,icon};
+  } else {
+    myData.wallets.push({id:'w_'+Date.now(),name,balance,icon});
+  }
+  saveMyData(); closeModal('wallet-modal'); renderWallets(); showToast('✅ تم الحفظ');
+}
+function deleteWallet(id){
+  if(!confirm('حذف المحفظة وكل حركاتها؟')) return;
+  myData.wallets=myData.wallets.filter(w=>w.id!==id);
+  myData.transactions=(myData.transactions||[]).filter(t=>t.walletId!==id);
+  if(activeWalletId===id){ activeWalletId=null; document.getElementById('txn-form-card').style.display='none'; document.getElementById('txn-list-card').style.display='none'; }
+  saveMyData(); renderWallets(); showToast('🗑 تم الحذف');
 }
 
 // ── STATS ─────────────────────────────────────
@@ -2062,6 +2399,7 @@ function showPage(name,tabEl,dir){
   if(name==='friends')refreshAll();
   if(name==='profile'){renderProfilePage();renderFriendsList();}
   if(name==='todo')renderTodos();
+  if(name==='expenses'){renderWallets();renderWalletStats();}
   if(name==='trophies')renderTrophies();
 }
 
