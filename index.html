@@ -597,19 +597,32 @@ setInterval(()=>{
 
           <!-- Add Friend -->
           <div class="card">
-            <div class="sec-title">إضافة صديق</div>
+            <div class="sec-title">➕ إرسال طلب صداقة</div>
             <div class="fg">
               <label class="fl">كود الصديق</label>
               <input type="text" class="fi" id="friend-code-input" placeholder="ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:18px;text-align:center;" oninput="this.value=this.value.toUpperCase()">
             </div>
-            <button class="btn btn-p btn-full" onclick="addFriendByCode()">➕ إضافة صديق</button>
+            <button class="btn btn-p btn-full" onclick="sendFriendRequest()">📨 إرسال الطلب</button>
             <div id="add-friend-msg" style="margin-top:10px;font-size:13px;display:none;text-align:center;padding:8px;border-radius:8px;"></div>
+          </div>
+
+          <!-- Incoming Requests -->
+          <div class="card" id="requests-card" style="display:none">
+            <div class="sec-title">🔔 طلبات الصداقة <span id="req-badge" style="background:var(--red);color:white;border-radius:99px;padding:2px 8px;font-size:11px;margin-right:6px;"></span></div>
+            <div id="incoming-requests-list"></div>
           </div>
 
           <!-- Friends List -->
           <div class="card">
-            <div class="sec-title">قائمة أصدقائي</div>
+            <div class="sec-title">👥 أصدقائي</div>
             <div id="my-friends-list"><div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div></div>
+          </div>
+
+          <!-- Logout -->
+          <div class="card" style="background:var(--surface2);">
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
+            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
+            <div style="font-size:11px;color:var(--muted);text-align:center" id="profile-email-display2"></div>
           </div>
         </div>
       </div>
@@ -891,6 +904,8 @@ async function loadMyData(){
   if(!myData.expenses) myData.expenses = [];
   if(!myData.budget) myData.budget = 0;
   if(!myData.friends) myData.friends = [];
+  if(!myData.sent_requests) myData.sent_requests = [];
+  if(!myData.incoming_requests) myData.incoming_requests = [];
   if(!myData.friend_code) { myData.friend_code = generateCode(); }
   if(!myData.avatar_emoji) myData.avatar_emoji = '😊';
   if(!myData.avatar_color) myData.avatar_color = AVATAR_COLORS[0];
@@ -939,6 +954,7 @@ async function refreshAll(){
   document.getElementById('online-count').textContent = Math.max(1, recent.length);
   renderFriends();
   renderFriendsList();
+  renderIncomingRequests();
 }
 
 // ── HABITS ────────────────────────────────────
@@ -1031,24 +1047,148 @@ function renderFriends(){
 }
 
 // ── FRIENDS LIST & ADD ─────────────────────────
-async function addFriendByCode(){
+// ── FRIEND REQUESTS SYSTEM ────────────────────
+// myData.friends = [code, ...] — confirmed friends
+// myData.sent_requests = [code, ...] — requests I sent
+// myData.incoming_requests = [code, ...] — requests I received
+
+async function sendFriendRequest(){
   const code = document.getElementById('friend-code-input').value.trim().toUpperCase();
   const msgEl = document.getElementById('add-friend-msg');
   msgEl.style.display='none';
-  if(code.length!==6){ msgEl.textContent='الكود يجب أن يكون 6 أحرف'; msgEl.style.background='#FEE2E2'; msgEl.style.color=AVATAR_COLORS[4]; msgEl.style.display='block'; return; }
-  if(code===myData.friend_code){ msgEl.textContent='هذا كودك أنت! 😄'; msgEl.style.background='#FEF3C7'; msgEl.style.color=AVATAR_COLORS[0]; msgEl.style.display='block'; return; }
-  if(myData.friends.includes(code)){ msgEl.textContent='هذا الصديق مضاف مسبقاً'; msgEl.style.background='#FEF3C7'; msgEl.style.color=AVATAR_COLORS[0]; msgEl.style.display='block'; return; }
-  // Search in all users
+
+  if(code.length!==6){ showMsg(msgEl,'الكود يجب أن يكون 6 أحرف','err'); return; }
+  if(code===myData.friend_code){ showMsg(msgEl,'هذا كودك أنت! 😄','warn'); return; }
+  if((myData.friends||[]).includes(code)){ showMsg(msgEl,'أنتم أصدقاء مسبقاً ✅','warn'); return; }
+  if((myData.sent_requests||[]).includes(code)){ showMsg(msgEl,'أرسلت طلباً مسبقاً ⏳','warn'); return; }
+
   const found = allUsers.find(u=>u.friend_code===code);
-  if(!found){ msgEl.textContent='لم يُعثر على هذا الكود'; msgEl.style.background='#FEE2E2'; msgEl.style.color=AVATAR_COLORS[4]; msgEl.style.display='block'; return; }
-  myData.friends.push(code);
+  if(!found){ showMsg(msgEl,'لم يُعثر على هذا الكود ❌','err'); return; }
+
+  // Check if they already sent me a request → auto accept = become friends!
+  const theyRequested = (found.sent_requests||[]).includes(myData.friend_code);
+  if(theyRequested){
+    // Mutual! Add as friends on both sides
+    if(!myData.friends) myData.friends=[];
+    if(!myData.incoming_requests) myData.incoming_requests=[];
+    myData.friends.push(code);
+    myData.incoming_requests = myData.incoming_requests.filter(c=>c!==code);
+    await saveMyData();
+    document.getElementById('friend-code-input').value='';
+    showMsg(msgEl,`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`,'ok');
+    showToast(`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`);
+    renderFriendsList(); renderFriends(); renderIncomingRequests();
+    return;
+  }
+
+  // Send request — add my code to their incoming_requests
+  if(!myData.sent_requests) myData.sent_requests=[];
+  myData.sent_requests.push(code);
+
+  // Push to their data too
+  const theirData = {...found};
+  if(!theirData.incoming_requests) theirData.incoming_requests=[];
+  if(!theirData.incoming_requests.includes(myData.friend_code)){
+    theirData.incoming_requests.push(myData.friend_code);
+    // Save to their record
+    const theirUser = allUsers.find(u=>u.friend_code===code);
+    if(theirUser){
+      const theirFullData = {...theirUser};
+      delete theirFullData.name; delete theirFullData.updated_at;
+      theirFullData.incoming_requests = theirData.incoming_requests;
+      await sb.from('users').update({data: theirFullData}).eq('id', await getUserIdByCode(code));
+    }
+  }
+
   await saveMyData();
   document.getElementById('friend-code-input').value='';
-  msgEl.textContent=`✅ تمت إضافة ${found.display_name||found.name}!`;
-  msgEl.style.background='var(--green-light)'; msgEl.style.color='var(--green)'; msgEl.style.display='block';
-  renderFriendsList(); renderFriends();
-  showToast(`✅ تمت إضافة ${found.display_name||found.name}`);
+  showMsg(msgEl,`📨 تم إرسال الطلب إلى ${found.display_name||found.name}!`,'ok');
+  showToast(`📨 أُرسل الطلب!`);
+  renderFriendsList();
 }
+
+async function getUserIdByCode(code){
+  const {data} = await sb.from('users').select('id, data').eq('data->>friend_code', code).single();
+  return data?.id;
+}
+
+async function acceptRequest(code){
+  if(!myData.friends) myData.friends=[];
+  myData.friends.push(code);
+  myData.incoming_requests = (myData.incoming_requests||[]).filter(c=>c!==code);
+  await saveMyData();
+
+  // Also add me to their friends list
+  const found = allUsers.find(u=>u.friend_code===code);
+  if(found){
+    const theirFullData = {...found};
+    delete theirFullData.name; delete theirFullData.updated_at;
+    if(!theirFullData.friends) theirFullData.friends=[];
+    if(!theirFullData.friends.includes(myData.friend_code)){
+      theirFullData.friends.push(myData.friend_code);
+    }
+    theirFullData.sent_requests = (theirFullData.sent_requests||[]).filter(c=>c!==myData.friend_code);
+    const uid = await getUserIdByCode(code);
+    if(uid) await sb.from('users').update({data: theirFullData}).eq('id', uid);
+  }
+
+  showToast(`🎉 قبلت طلب ${found?.display_name||found?.name||code}`);
+  renderFriendsList(); renderFriends(); renderIncomingRequests();
+}
+
+async function rejectRequest(code){
+  myData.incoming_requests = (myData.incoming_requests||[]).filter(c=>c!==code);
+  // Remove from their sent_requests
+  const found = allUsers.find(u=>u.friend_code===code);
+  if(found){
+    const theirFullData = {...found};
+    delete theirFullData.name; delete theirFullData.updated_at;
+    theirFullData.sent_requests = (theirFullData.sent_requests||[]).filter(c=>c!==myData.friend_code);
+    const uid = await getUserIdByCode(code);
+    if(uid) await sb.from('users').update({data: theirFullData}).eq('id', uid);
+  }
+  await saveMyData();
+  renderIncomingRequests();
+}
+
+function showMsg(el, msg, type){
+  el.textContent = msg;
+  if(type==='err'){ el.style.background='#FEE2E2'; el.style.color='var(--red)'; }
+  else if(type==='ok'){ el.style.background='var(--green-light)'; el.style.color='var(--green)'; }
+  else { el.style.background='#FEF3C7'; el.style.color='#92400E'; }
+  el.style.display='block';
+}
+
+function renderIncomingRequests(){
+  const incoming = (myData.incoming_requests||[]);
+  const card = document.getElementById('requests-card');
+  const list = document.getElementById('incoming-requests-list');
+  const badge = document.getElementById('req-badge');
+  if(!incoming.length){ card.style.display='none'; return; }
+  card.style.display='block';
+  badge.textContent = incoming.length;
+  const senders = allUsers.filter(u=>incoming.includes(u.friend_code));
+  if(!senders.length){ list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">لا يوجد طلبات</p>'; return; }
+  list.innerHTML = senders.map(u=>{
+    const av = u.avatar_photo
+      ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
+    return `<div class="friend-list-item">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        ${av}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
+          <div style="font-size:11px;color:var(--muted)">يريد إضافتك صديقاً</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-p btn-sm" style="padding:6px 12px;font-size:12px" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
+        <button class="btn btn-s btn-sm" style="padding:6px 12px;font-size:12px" onclick="rejectRequest('${u.friend_code}')">❌ رفض</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderFriendsList(){
   const el=document.getElementById('my-friends-list');
   const codes=myData.friends||[];
@@ -1141,6 +1281,9 @@ function renderProfilePage(){
   document.getElementById('profile-email-display').textContent=currentUser.email;
   document.getElementById('my-friend-code').textContent=myData.friend_code||'------';
   document.getElementById('status-note-input').value = myData.status_note || '';
+  const e2 = document.getElementById('profile-email-display2');
+  if(e2) e2.textContent = currentUser?.email || '';
+  renderIncomingRequests();
   // Avatar / photo
   updateAvatarDisplay();
   // Emoji picker
