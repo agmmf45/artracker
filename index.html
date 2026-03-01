@@ -22,17 +22,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;}
-.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:400px;max-width:92vw;box-shadow:var(--shadow-lg);text-align:center;}
-.login-logo{font-size:44px;margin-bottom:12px;}
-.login-title{font-size:28px;font-weight:900;color:var(--accent);margin-bottom:6px;}
-.login-sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
-.avatar-row{display:flex;justify-content:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-.avatar-btn{padding:9px 16px;border-radius:99px;border:2px solid var(--border);background:var(--surface);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;color:var(--muted);transition:all 0.18s;}
-.avatar-btn:hover,.avatar-btn.sel{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
-.or-line{color:var(--muted);font-size:13px;margin:10px 0;}
-#login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+/* AUTH */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:420px;max-width:92vw;box-shadow:var(--shadow-lg);}
+.auth-logo{text-align:center;font-size:44px;margin-bottom:12px;}
+.auth-title{text-align:center;font-size:26px;font-weight:900;color:var(--accent);margin-bottom:6px;}
+.auth-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:24px;gap:4px;}
+.auth-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all 0.18s;}
+.auth-tab.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
+.auth-err{color:var(--red);font-size:13px;margin-top:10px;display:none;text-align:center;background:#FEE2E2;padding:8px;border-radius:8px;}
+.auth-ok{color:var(--green);font-size:13px;margin-top:10px;display:none;text-align:center;background:var(--green-light);padding:8px;border-radius:8px;}
 
 /* APP */
 .app{display:flex;min-height:100vh;}
@@ -65,7 +65,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .mb-20{margin-bottom:20px;}
 .flex-b{display:flex;align-items:center;justify-content:space-between;}
 .sec-title{font-size:15px;font-weight:800;margin-bottom:14px;}
-.ph{font-size:26px;font-weight:900;letter-spacing:-0.5px;}
+.bph{font-size:26px;font-weight:900;letter-spacing:-0.5px;}
 .psub{font-size:12px;color:var(--muted);margin-top:3px;}
 .plabel{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
 .page-header{margin-bottom:22px;}
@@ -92,7 +92,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .s-dot.today-d{background:var(--accent);border-color:var(--accent);}
 
 /* FRIENDS */
-.friends-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.friends-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .friend-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);}
 .friend-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .f-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0;}
@@ -109,6 +109,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .btn-s{background:var(--surface2);color:var(--text);}
 .btn-sm{padding:7px 14px;font-size:13px;}
 .btn-danger{background:var(--red);color:white;font-size:12px;padding:6px 10px;border-radius:7px;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;}
+.btn-full{width:100%;padding:12px;font-size:15px;}
 
 /* EXPENSES */
 .exp-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
@@ -144,8 +145,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .emo{font-size:22px;cursor:pointer;padding:4px 6px;border-radius:7px;border:2px solid transparent;transition:all 0.13s;}
 .emo:hover{border-color:var(--border);} .emo.sel{border-color:var(--accent);background:var(--accent-light);}
 
-/* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
 @media(max-width:680px){
@@ -163,28 +163,34 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <div style="color:var(--muted);font-size:14px">جاري التحميل...</div>
 </div>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">🎯</div>
-    <div class="login-title">متابعتي</div>
-    <div class="login-sub">تتبع عاداتك ومصاريفك مع أصدقائك في مكان واحد</div>
-    <div class="plabel" style="margin-bottom:10px">اختر اسمك</div>
-    <div class="avatar-row">
-      <div class="avatar-btn" onclick="quickName(this,'محمد')">محمد</div>
-      <div class="avatar-btn" onclick="quickName(this,'فهد')">فهد</div>
-      <div class="avatar-btn" onclick="quickName(this,'عبدالله')">عبدالله</div>
-      <div class="avatar-btn" onclick="quickName(this,'سلطان')">سلطان</div>
-      <div class="avatar-btn" onclick="quickName(this,'خالد')">خالد</div>
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🎯</div>
+    <div class="auth-title">متابعتي</div>
+    <div class="auth-sub">تتبع عاداتك ومصاريفك مع أصدقائك</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">تسجيل الدخول</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">حساب جديد</div>
     </div>
-    <div class="or-line">أو اكتب اسمك</div>
-    <div style="display:flex;gap:8px;">
-      <input type="text" class="fi" id="name-input" placeholder="اسمك هنا..." maxlength="20" style="flex:1" onkeydown="if(event.key==='Enter')login()">
-      <button class="btn btn-p" onclick="login()">دخول ←</button>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="fg"><label class="fl">الإيميل</label><input type="email" class="fi" id="login-email" placeholder="example@gmail.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fg"><label class="fl">كلمة السر</label><input type="password" class="fi" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-p btn-full" onclick="doLogin()">دخول ←</button>
+      <div class="auth-err" id="login-err"></div>
     </div>
-    <div id="login-err">اكتب اسمك أولاً</div>
-    <div style="margin-top:16px;font-size:12px;color:var(--muted);background:var(--surface2);padding:10px;border-radius:10px;">
-      🔗 شارك رابط الموقع مع صديقك — كل واحد يدخل اسمه وتشوفون بيانات بعض
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" style="display:none">
+      <div class="fg"><label class="fl">اسمك</label><input type="text" class="fi" id="reg-name" placeholder="محمد" maxlength="20"></div>
+      <div class="fg"><label class="fl">الإيميل</label><input type="email" class="fi" id="reg-email" placeholder="example@gmail.com"></div>
+      <div class="fg"><label class="fl">كلمة السر</label><input type="password" class="fi" id="reg-pass" placeholder="6 أحرف على الأقل" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button class="btn btn-p btn-full" onclick="doRegister()">إنشاء الحساب</button>
+      <div class="auth-err" id="reg-err"></div>
+      <div class="auth-ok" id="reg-ok"></div>
     </div>
   </div>
 </div>
@@ -194,15 +200,15 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <nav class="sidebar">
     <div class="logo-area">
       <h1>متابعتي 🎯</h1>
-      <div class="who">مرحبا، <strong id="sidebar-name"></strong></div>
-      <div class="online-pill"><div class="dot-live"></div> <span id="online-count">1</span> متصل الآن</div>
+      <div class="who">مرحبا، <strong id="sidebar-name"></strong> 👋</div>
+      <div class="online-pill"><div class="dot-live"></div> <span id="online-count">1</span> متصل</div>
     </div>
     <div class="nav-item active" data-p="habits" onclick="showPage('habits',document.getElementById('tab-habits'))"><span>✅</span> العادات</div>
     <div class="nav-item" data-p="friends" onclick="showPage('friends',document.getElementById('tab-friends'))"><span>👥</span> الأصدقاء</div>
     <div class="nav-item" data-p="expenses" onclick="showPage('expenses',document.getElementById('tab-expenses'))"><span>💸</span> المصاريف</div>
     <div class="nav-item" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>📊</span> إحصائيات</div>
     <div class="sidebar-footer">
-      <button class="btn btn-s btn-sm" onclick="logout()" style="width:100%">🚪 تغيير الاسم</button>
+      <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
     </div>
   </nav>
 
@@ -243,8 +249,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         <div class="card">
           <div class="sec-title">ميزانيتي الشهرية</div>
           <div class="flex-b" style="margin-bottom:8px">
-            <div><div class="plabel">الميزانية</div><div class="ph" id="budget-display">0</div><div class="psub">ريال</div></div>
-            <div style="text-align:left"><div class="plabel">المتبقي</div><div class="ph" id="remaining-display" style="color:var(--green)">0</div><div class="psub">ريال</div></div>
+            <div><div class="plabel">الميزانية</div><div class="bph" id="budget-display">0</div><div class="psub">ريال</div></div>
+            <div style="text-align:left"><div class="plabel">المتبقي</div><div class="bph" id="remaining-display" style="color:var(--green)">0</div><div class="psub">ريال</div></div>
           </div>
           <div class="bar-wrap"><div class="bar-fill" id="budget-bar" style="width:0%"></div></div>
           <div class="flex-b" style="font-size:12px;color:var(--muted)">
@@ -287,9 +293,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="page" id="page-stats">
       <div class="page-header"><div class="ph2">📊 الإحصائيات</div><div class="psub2">نظرة شاملة على أدائك</div></div>
       <div class="grid-3 mb-20">
-        <div class="stat-card"><div class="plabel">🔥 أطول سلسلة</div><div class="ph" id="stat-streak">0</div><div class="psub">يوم متواصل</div></div>
-        <div class="stat-card"><div class="plabel">✅ إنجاز الأسبوع</div><div class="ph" id="stat-week">0%</div><div class="psub">نسبة الإنجاز</div></div>
-        <div class="stat-card"><div class="plabel">💸 مصاريف الشهر</div><div class="ph" id="stat-total">0</div><div class="psub">ريال</div></div>
+        <div class="stat-card"><div class="plabel">🔥 أطول سلسلة</div><div class="bph" id="stat-streak">0</div><div class="psub">يوم متواصل</div></div>
+        <div class="stat-card"><div class="plabel">✅ إنجاز الأسبوع</div><div class="bph" id="stat-week">0%</div><div class="psub">نسبة الإنجاز</div></div>
+        <div class="stat-card"><div class="plabel">💸 مصاريف الشهر</div><div class="bph" id="stat-total">0</div><div class="psub">ريال</div></div>
       </div>
       <div class="grid-2">
         <div class="card"><div class="sec-title">المصاريف — آخر 7 أيام</div><div class="chart-wrap" id="weekly-chart"></div></div>
@@ -319,9 +325,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════
-// SUPABASE SETUP
-// ══════════════════════════════════════════
 const SUPABASE_URL = 'https://vbubelofnmbizoatyajr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fICGukXRd1fDQjhmq-bQtQ_WlMdIA0c';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -335,121 +338,126 @@ const DEFAULT_HABITS = [
 ];
 const COLORS = ['#B45309','#1D4ED8','#15803D','#7C3AED','#B91C1C','#0E7490'];
 
-let ME = '';
-let myData = {}; // local cache
+let currentUser = null;
+let myData = {};
 let allUsers = [];
 let refreshTimer = null;
 
 function todayKey(){ return new Date().toISOString().slice(0,10); }
 function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+function showErr(id,msg){ const el=document.getElementById(id);el.textContent=msg;el.style.display='block'; }
+function hideErr(id){ document.getElementById(id).style.display='none'; }
 
-// ══════════════════════════════════════════
-// SUPABASE DB HELPERS
-// We use a single table: "users" with columns: name (PK), data (jsonb), updated_at
-// ══════════════════════════════════════════
-async function dbSetup() {
-  // Try to create table via RPC — if fails, we use upsert which auto-creates if table exists
-  // We'll just try upsert and handle errors gracefully
-}
-
-async function pushData() {
-  try {
-    const payload = {
-      name: ME,
-      data: JSON.stringify(myData),
-      updated_at: new Date().toISOString()
-    };
-    await sb.from('users').upsert(payload, { onConflict: 'name' });
-  } catch(e){ console.log('push error', e); }
+// ── AUTH TABS ──────────────────────────────────
+function switchAuthTab(tab){
+  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display = tab==='register'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
 }
 
-async function pullAllUsers() {
-  try {
-    const { data, error } = await sb.from('users').select('*');
-    if (error) return [];
-    return (data||[]).map(row => {
-      try { return { name: row.name, ...JSON.parse(row.data), updated_at: row.updated_at }; }
-      catch(e){ return { name: row.name, updated_at: row.updated_at }; }
-    });
-  } catch(e){ return []; }
+// ── REGISTER ───────────────────────────────────
+async function doRegister(){
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  hideErr('reg-err');
+  document.getElementById('reg-ok').style.display='none';
+  if(!name||!email||!pass){ showErr('reg-err','اكمل جميع الحقول'); return; }
+  if(pass.length<6){ showErr('reg-err','كلمة السر 6 أحرف على الأقل'); return; }
+
+  const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{name}}});
+  if(error){ showErr('reg-err', error.message==='User already registered'?'الإيميل مسجّل مسبقاً':error.message); return; }
+
+  document.getElementById('reg-ok').textContent='✅ تم إنشاء الحساب! تحقق من إيميلك للتأكيد';
+  document.getElementById('reg-ok').style.display='block';
 }
 
-// ══════════════════════════════════════════
-// LOCAL CACHE HELPERS
-// ══════════════════════════════════════════
-function initMyData() {
-  const saved = localStorage.getItem('tracker_data_'+ME);
-  if (saved) { try{ myData = JSON.parse(saved); }catch(e){ myData={}; } }
-  if (!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
-  if (!myData.done) myData.done = {};
-  if (!myData.expenses) myData.expenses = [];
-  if (!myData.budget) myData.budget = 0;
-}
-function saveMyData() {
-  localStorage.setItem('tracker_data_'+ME, JSON.stringify(myData));
-  pushData();
+// ── LOGIN ──────────────────────────────────────
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  hideErr('login-err');
+  if(!email||!pass){ showErr('login-err','أدخل الإيميل وكلمة السر'); return; }
+
+  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+  if(error){ showErr('login-err','الإيميل أو كلمة السر غلط'); return; }
+  // onAuthStateChange will handle the rest
 }
 
-function getHabits(){ return myData.habits_list || DEFAULT_HABITS; }
-function isDone(id){ return !!(myData.done[todayKey()] && myData.done[todayKey()][id]); }
-
-// ══════════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════════
-function quickName(el, name){
-  document.querySelectorAll('.avatar-btn').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('name-input').value = name;
-}
-async function login(){
-  const name = document.getElementById('name-input').value.trim();
-  if (!name){ document.getElementById('login-err').style.display='block'; return; }
-  ME = name;
-  localStorage.setItem('tracker_me', ME);
-  initMyData();
-  document.getElementById('login-screen').style.display = 'none';
-  startApp();
-}
-function logout(){
-  ME='';
+// ── LOGOUT ─────────────────────────────────────
+async function doLogout(){
   if(refreshTimer) clearInterval(refreshTimer);
-  document.getElementById('app').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('name-input').value='';
+  await sb.auth.signOut();
 }
 
-// ══════════════════════════════════════════
-// APP INIT
-// ══════════════════════════════════════════
-async function startApp(){
+// ── LOAD / SAVE DATA ───────────────────────────
+async function loadMyData(){
+  const {data} = await sb.from('users').select('data').eq('id', currentUser.id).single();
+  if(data && data.data){
+    myData = data.data;
+  }
+  if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
+  if(!myData.done) myData.done = {};
+  if(!myData.expenses) myData.expenses = [];
+  if(!myData.budget) myData.budget = 0;
+}
+
+async function saveMyData(){
+  await sb.from('users').upsert({
+    id: currentUser.id,
+    name: currentUser.user_metadata?.name || currentUser.email,
+    data: myData,
+    updated_at: new Date().toISOString()
+  });
+}
+
+async function loadAllUsers(){
+  const {data} = await sb.from('users').select('name, data, updated_at');
+  allUsers = (data||[]).map(row=>({name:row.name, ...row.data, updated_at:row.updated_at}));
+}
+
+// ── START APP ──────────────────────────────────
+async function startApp(user){
+  currentUser = user;
+  const name = user.user_metadata?.name || user.email.split('@')[0];
+
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('loading-screen').style.display='flex';
+
+  await loadMyData();
+
+  document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  document.getElementById('sidebar-name').textContent=ME;
-  document.getElementById('habits-date').textContent=new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('habits-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
   renderHabits(); renderStreaks(); renderExpenses(); renderBudget();
-  await pushData();
+  await saveMyData();
   await refreshAll();
   refreshTimer = setInterval(refreshAll, 20000);
 }
 
 async function refreshAll(){
-  allUsers = await pullAllUsers();
-  const recent = allUsers.filter(u=>{ const t=new Date(u.updated_at);return Date.now()-t<10*60*1000; });
+  await loadAllUsers();
+  const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
   document.getElementById('online-count').textContent = Math.max(1, recent.length);
   renderFriends();
 }
 
-// ══════════════════════════════════════════
-// HABITS
-// ══════════════════════════════════════════
+// ── HABITS ────────────────────────────────────
+function getHabits(){ return myData.habits_list || DEFAULT_HABITS; }
+function isDone(id){ return !!(myData.done[todayKey()]&&myData.done[todayKey()][id]); }
+
 function toggleHabit(id){
   if(!myData.done[todayKey()]) myData.done[todayKey()]={};
-  myData.done[todayKey()][id] = !myData.done[todayKey()][id];
+  myData.done[todayKey()][id]=!myData.done[todayKey()][id];
   saveMyData(); renderHabits(); renderStreaks();
 }
 function deleteHabit(id,e){
   e.stopPropagation();
-  if(!confirm('حذف هذه العادة؟')) return;
-  myData.habits_list = getHabits().filter(h=>h.id!==id);
+  if(!confirm('حذف هذه العادة؟'))return;
+  myData.habits_list=getHabits().filter(h=>h.id!==id);
   saveMyData(); renderHabits(); renderStreaks();
 }
 function renderHabits(){
@@ -478,16 +486,15 @@ function renderStreaks(){
   }).join('');
 }
 
-// ══════════════════════════════════════════
-// FRIENDS
-// ══════════════════════════════════════════
+// ── FRIENDS ───────────────────────────────────
 function renderFriends(){
   const el=document.getElementById('friends-grid');
-  const sorted=[...allUsers.filter(u=>u.name===ME),...allUsers.filter(u=>u.name!==ME)];
+  const myName=currentUser.user_metadata?.name||currentUser.email.split('@')[0];
+  const sorted=[...allUsers.filter(u=>u.name===myName),...allUsers.filter(u=>u.name!==myName)];
   if(!sorted.length){el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد — شارك الرابط!</p></div>`;return;}
   el.innerHTML=sorted.map((u,i)=>{
-    const isMe=u.name===ME;
-    const habits=(u.habits_list||[]);
+    const isMe=u.name===myName;
+    const habits=u.habits_list||[];
     const doneMap=(u.done||{})[todayKey()]||{};
     const doneCount=habits.filter(h=>doneMap[h.id]).length;
     const total=habits.length;
@@ -503,21 +510,19 @@ function renderFriends(){
       <div class="friend-header">
         <div class="f-avatar" style="background:${color}">${u.name.charAt(0)}</div>
         <div>
-          <div class="f-name">${u.name} ${isMe?'<span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
+          <div class="f-name">${u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
           <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
         </div>
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:8px;margin-top:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
         ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
       </div>
     </div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════════
-// EXPENSES
-// ══════════════════════════════════════════
+// ── EXPENSES ──────────────────────────────────
 function addExpense(){
   const name=document.getElementById('exp-name').value.trim();
   const amount=parseFloat(document.getElementById('exp-amount').value);
@@ -527,8 +532,7 @@ function addExpense(){
   saveMyData();
   document.getElementById('exp-name').value='';
   document.getElementById('exp-amount').value='';
-  renderExpenses();
-  showToast('✅ تمت الإضافة');
+  renderExpenses(); showToast('✅ تمت الإضافة');
 }
 function deleteExpense(id){
   myData.expenses=myData.expenses.filter(e=>e.id!==id);
@@ -537,8 +541,7 @@ function deleteExpense(id){
 function setBudget(){
   const val=parseFloat(document.getElementById('budget-input').value);
   if(!val)return;
-  myData.budget=val; saveMyData(); renderBudget();
-  showToast('✅ تم حفظ الميزانية');
+  myData.budget=val; saveMyData(); renderBudget(); showToast('✅ تم حفظ الميزانية');
 }
 let activeFilter='الكل';
 function renderFilterChips(){
@@ -579,11 +582,9 @@ function renderBudget(){
   if(budget)document.getElementById('budget-input').placeholder=budget;
 }
 
-// ══════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════
+// ── STATS ─────────────────────────────────────
 function renderStats(){
-  const list=getHabits();const doneMap=myData.done||{};
+  const list=getHabits(); const doneMap=myData.done||{};
   let streak=0,d=new Date();
   while(true){const k=d.toISOString().slice(0,10);if(!(doneMap[k]&&list.every(h=>doneMap[k][h.id])))break;streak++;d.setDate(d.getDate()-1);}
   document.getElementById('stat-streak').textContent=streak;
@@ -605,9 +606,7 @@ function renderStats(){
   cb.innerHTML=sorted.map(([cat,amt])=>`<div style="margin-bottom:10px"><div class="flex-b" style="margin-bottom:4px;font-size:12px"><span>${cat}</span><span style="font-weight:700">${amt.toLocaleString('ar')} ر</span></div><div class="bar-wrap" style="margin:0"><div class="bar-fill" style="width:${Math.round(amt/maxC*100)}%;background:var(--blue)"></div></div></div>`).join('');
 }
 
-// ══════════════════════════════════════════
-// MODAL & NAV
-// ══════════════════════════════════════════
+// ── MODAL & NAV ───────────────────────────────
 function openModal(id){
   if(id==='habit-modal'){
     document.getElementById('new-habit-name').value='';
@@ -623,8 +622,7 @@ function saveNewHabit(){
   const icon=document.getElementById('new-habit-icon').value.trim()||'⭐';
   if(!name){document.getElementById('new-habit-name').focus();return;}
   myData.habits_list=[...getHabits(),{id:'h_'+Date.now(),name,icon}];
-  saveMyData();closeModal('habit-modal');renderHabits();renderStreaks();
-  showToast('✅ تمت إضافة العادة');
+  saveMyData();closeModal('habit-modal');renderHabits();renderStreaks();showToast('✅ تمت إضافة العادة');
 }
 function showPage(name,tabEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -637,26 +635,22 @@ function showPage(name,tabEl){
   if(name==='friends')refreshAll();
 }
 
-// ══════════════════════════════════════════
-// INIT — check if table exists, then login
-// ══════════════════════════════════════════
-async function init(){
-  // Hide loading
+// ── INIT ──────────────────────────────────────
+sb.auth.onAuthStateChange(async (event, session) => {
   document.getElementById('loading-screen').style.display='none';
-  // Auto-login
-  const saved=localStorage.getItem('tracker_me');
-  if(saved){
-    ME=saved;
-    document.getElementById('name-input').value=saved;
-    initMyData();
-    document.getElementById('login-screen').style.display='none';
-    startApp();
+  if(session?.user){
+    document.getElementById('app').style.display='flex';
+    document.getElementById('auth-screen').style.display='none';
+    if(!currentUser || currentUser.id !== session.user.id){
+      await startApp(session.user);
+    }
   } else {
-    document.getElementById('login-screen').style.display='flex';
+    if(refreshTimer) clearInterval(refreshTimer);
+    currentUser=null;
+    document.getElementById('app').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
   }
-}
-
-init();
+});
 </script>
 </body>
 </html>
