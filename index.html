@@ -2799,38 +2799,59 @@ async function confirmReset(){
 
 // ── INIT ──────────────────────────────────────
 async function init(){
-  // Timeout fallback — if nothing happens in 6s, show auth screen
+  let appStarted = false;
+
+  // Timeout fallback
   const timeout = setTimeout(()=>{
-    if(!currentUser){
+    if(!appStarted){
       document.getElementById('loading-screen').style.display='none';
       document.getElementById('auth-screen').style.display='flex';
     }
-  }, 6000);
+  }, 5000);
 
-  // onAuthStateChange fires INITIAL_SESSION on page load with the stored session
+  // Listen for auth changes
   sb.auth.onAuthStateChange(async(event, session)=>{
-    if(event==='INITIAL_SESSION' || event==='SIGNED_IN'){
+    if((event==='SIGNED_IN' || event==='INITIAL_SESSION') && session?.user){
       clearTimeout(timeout);
-      if(session?.user){
-        if(!currentUser || currentUser.id !== session.user.id){
-          await startApp(session.user);
-        }
-      } else {
-        // No session
-        document.getElementById('loading-screen').style.display='none';
-        document.getElementById('auth-screen').style.display='flex';
+      if(!appStarted && (!currentUser || currentUser.id !== session.user.id)){
+        appStarted = true;
+        await startApp(session.user);
       }
     } else if(event==='SIGNED_OUT'){
       clearTimeout(timeout);
+      appStarted = false;
       if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
       currentUser = null;
       document.getElementById('app').style.display='none';
       document.getElementById('loading-screen').style.display='none';
       document.getElementById('auth-screen').style.display='flex';
-    } else if(event==='TOKEN_REFRESHED'){
-      // session refreshed silently — no action needed
     }
   });
+
+  // Also try getSession directly as fallback
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(session?.user && !appStarted){
+      clearTimeout(timeout);
+      appStarted = true;
+      await startApp(session.user);
+    } else if(!session?.user && !appStarted){
+      // give onAuthStateChange 2 more seconds before giving up
+      setTimeout(()=>{
+        if(!appStarted){
+          document.getElementById('loading-screen').style.display='none';
+          document.getElementById('auth-screen').style.display='flex';
+        }
+      }, 2000);
+    }
+  }catch(e){
+    // network error — show auth screen
+    if(!appStarted){
+      clearTimeout(timeout);
+      document.getElementById('loading-screen').style.display='none';
+      document.getElementById('auth-screen').style.display='flex';
+    }
+  }
 }
 init();
 </script>
