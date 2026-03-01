@@ -138,14 +138,46 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .nav-item.active::before{content:'';position:absolute;right:0;top:5px;bottom:5px;width:3px;background:var(--accent);border-radius:3px 0 0 3px;}
 .sidebar-footer{margin-top:auto;padding:14px 20px;}
 
-.main{flex:1;margin-right:230px;padding:28px;}
-.top-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:22px;overflow:hidden;}
-.top-tab{flex:1;padding:12px 4px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.top-tab:hover{background:var(--surface2);}
-.top-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-light);}
+.main{flex:1;margin-right:230px;padding:24px 28px 90px;}
 
+/* ── BOTTOM NAV ─────────────────── */
+.top-tabs{
+  display:flex;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  z-index:500;
+  padding:0;
+  margin:0;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.08);
+}
+.top-tab{
+  flex:1;padding:10px 2px 12px;
+  text-align:center;cursor:pointer;
+  font-size:10px;font-weight:700;color:var(--muted);
+  border-top:2.5px solid transparent;
+  transition:all 0.18s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  min-width:0;
+}
+.top-tab .tab-icon{width:26px;height:26px;display:block;stroke:currentColor;transition:transform 0.18s;}
+.top-tab .tab-label{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.top-tab:hover{background:var(--surface2);}
+.top-tab.active{color:var(--accent);border-top-color:var(--accent);}
+.top-tab.active .tab-icon{transform:scale(1.18);stroke:var(--accent);}
+
+/* ── SWIPE PAGES ─────────────────── */
+.pages-wrapper{
+  overflow:hidden;
+  position:relative;
+  touch-action:pan-y;
+}
 .page{display:none;}
-.page.active{display:block;animation:up 0.22s ease;}
+.page.active{display:block;}
+.page.slide-in-left{animation:slide-left 0.25s ease;}
+.page.slide-in-right{animation:slide-right 0.25s ease;}
+@keyframes slide-left{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slide-right{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);}
@@ -259,44 +291,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-/* ── CHAT ─────────────────────────────────── */
-.chat-layout{display:flex;height:calc(100vh - 180px);gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-.chat-sidebar{width:240px;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-.chat-sidebar-title{padding:14px 16px;font-size:13px;font-weight:800;color:var(--muted);border-bottom:1px solid var(--border);letter-spacing:0.3px;}
-.chat-friends-list{flex:1;overflow-y:auto;}
-.chat-friend-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border);}
-.chat-friend-item:hover{background:var(--surface2);}
-.chat-friend-item.active{background:var(--accent-light);}
-.chat-friend-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.chat-friend-name{font-size:13px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.chat-friend-unread{background:var(--accent);color:white;border-radius:99px;font-size:10px;font-weight:800;padding:2px 7px;min-width:18px;text-align:center;}
-.chat-main{flex:1;display:flex;flex-direction:column;min-width:0;}
-.chat-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.chat-header-name{font-size:15px;font-weight:800;}
-.chat-header-status{font-size:11px;color:var(--muted);}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
-.chat-empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:10px;}
-.chat-empty-ico{font-size:48px;opacity:0.4;}
-.msg-row{display:flex;gap:8px;align-items:flex-end;}
-.msg-row.mine{flex-direction:row-reverse;}
-.msg-bubble{max-width:70%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;position:relative;}
-.msg-row.mine .msg-bubble{background:var(--accent);color:white;border-bottom-left-radius:5px;}
-.msg-row.other .msg-bubble{background:var(--surface2);color:var(--text);border-bottom-right-radius:5px;}
-.msg-time{font-size:10px;opacity:0.6;margin-top:3px;}
-.msg-row.mine .msg-time{text-align:left;}
-.msg-avatar-sm{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.chat-input-bar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;}
-.chat-input{flex:1;padding:11px 16px;border:1.5px solid var(--border);border-radius:99px;font-family:'Tajawal',sans-serif;font-size:14px;background:var(--surface2);color:var(--text);direction:rtl;outline:none;transition:border-color 0.18s;}
-.chat-input:focus{border-color:var(--accent);background:var(--surface);}
-.chat-send-btn{width:42px;height:42px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all 0.18s;}
-.chat-send-btn:hover{filter:brightness(1.1);transform:scale(1.05);}
-.chat-no-friends{padding:40px;text-align:center;color:var(--muted);}
-.typing-indicator{display:flex;gap:4px;align-items:center;padding:8px 14px;background:var(--surface2);border-radius:18px;width:fit-content;}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:typing-bounce 1.2s ease-in-out infinite;}
-.typing-dot:nth-child(2){animation-delay:0.2s;}
-.typing-dot:nth-child(3){animation-delay:0.4s;}
-@keyframes typing-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-@media(max-width:680px){.chat-sidebar{width:60px;}.chat-friend-name,.chat-sidebar-title,.chat-friend-unread{display:none;}.chat-friend-item{justify-content:center;padding:10px;}}
 
 /* TROPHIES */
 .trophy-section-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
@@ -341,6 +335,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .friend-list-item:last-child{border-bottom:none;}
 
 @media(max-width:680px){
+  .main{margin-right:0;padding:16px 16px 90px;}
+  .top-tabs{left:0;right:0;}
+
   .sidebar{display:none;}
   .main{margin-right:0;padding:14px;}
   .grid-2,.grid-3,.friends-grid{grid-template-columns:1fr;}
@@ -717,7 +714,6 @@ setInterval(()=>{
       <div class="online-pill"><div class="dot-live"></div> <span id="online-count">1</span> متصل</div>
     </div>
     <div class="nav-item active" data-p="habits" onclick="showPage('habits',document.getElementById('tab-habits'))"><span>✅</span> العادات</div>
-    <div class="nav-item" data-p="chat" onclick="showPage('chat',document.getElementById('tab-chat'))"><span>💬</span> الشات</div>
     <div class="nav-item" data-p="friends" onclick="showPage('friends',document.getElementById('tab-friends'))"><span>👥</span> الأصدقاء</div>
     <div class="nav-item" data-p="expenses" onclick="showPage('expenses',document.getElementById('tab-expenses'))"><span>💸</span> المصاريف</div>
     <div class="nav-item" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>📊</span> إحصائيات</div>
@@ -730,16 +726,7 @@ setInterval(()=>{
   </nav>
 
   <main class="main">
-    <div class="top-tabs">
-      <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)"><span style="font-size:16px">✅</span><span>العادات</span></div>
-      <div class="top-tab" id="tab-chat" onclick="showPage('chat',this)"><span style="font-size:16px">💬</span><span>الشات</span></div>
-      <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)"><span style="font-size:16px">👥</span><span>الأصدقاء</span></div>
-      <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)"><span style="font-size:16px">💸</span><span>المصاريف</span></div>
-      <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)"><span style="font-size:16px">📊</span><span>إحصائيات</span></div>
-      <div class="top-tab" id="tab-todo" onclick="showPage('todo',this)"><span style="font-size:16px">📝</span><span>المهام</span></div>
-      <div class="top-tab" id="tab-trophies" onclick="showPage('trophies',this)"><span style="font-size:16px">🏆</span><span>التروفيات</span></div>
-      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)"><span style="font-size:16px">🪪</span><span>ملفي</span></div>
-    </div>
+    <div class="pages-wrapper" id="pages-wrapper">
 
     <!-- HABITS -->
     <div class="page active" id="page-habits">
@@ -1007,51 +994,44 @@ setInterval(()=>{
       </div>
       <div id="trophies-grid"></div>
     </div>
-
-    <!-- CHAT PAGE -->
-    <div class="page" id="page-chat">
-      <div class="page-header flex-b" style="margin-bottom:14px">
-        <div>
-          <div class="ph2">💬 الشات</div>
           <div class="psub2">تحدث مع أصدقائك</div>
         </div>
       </div>
-      <div class="chat-layout" id="chat-layout">
-        <!-- Sidebar: friends list -->
-        <div class="chat-sidebar">
-          <div class="chat-sidebar-title">المحادثات</div>
-          <div class="chat-friends-list" id="chat-friends-list">
-            <div class="chat-no-friends"><div style="font-size:32px">👥</div><div style="font-size:13px;margin-top:8px">لا يوجد أصدقاء</div></div>
-          </div>
-        </div>
-        <!-- Main chat area -->
-        <div class="chat-main" id="chat-main">
-          <div class="chat-empty-state" id="chat-empty-state">
-            <div style="font-size:56px;animation:chat-pulse 2s ease-in-out infinite">💬</div>
-            <div style="font-size:17px;font-weight:800;color:var(--text)">أهلاً بك في الشات!</div>
-            <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.7;max-width:200px">اختر صديق من القائمة على اليمين لتبدأ المحادثة</div>
-            <div style="background:var(--accent-light);border:1.5px solid var(--accent);border-radius:12px;padding:10px 18px;margin-top:4px;animation:chat-hint 1.5s ease-in-out infinite;">
-              <span style="font-size:13px;color:var(--accent);font-weight:700">👈 اختر من هنا</span>
-            </div>
-          </div>
-          <style>
-          @keyframes chat-pulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(-5deg)}}
-          @keyframes chat-hint{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
-          </style>
-          <div id="chat-active" style="display:none;flex-direction:column;flex:1;min-height:0">
-            <div class="chat-header" id="chat-header"></div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input-bar">
-              <button class="chat-send-btn" onclick="sendMsg()">↑</button>
-              <input class="chat-input" id="chat-input" placeholder="اكتب رسالة..." 
-                onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendMsg()"
-                oninput="handleTyping()">
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+    </div><!-- /pages-wrapper -->
   </main>
+
+  <!-- BOTTOM NAV -->
+  <div class="top-tabs">
+    <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span class="tab-label">العادات</span>
+    </div>
+    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      <span class="tab-label">الأصدقاء</span>
+    </div>
+    <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span class="tab-label">المصاريف</span>
+    </div>
+    <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="tab-label">إحصائيات</span>
+    </div>
+    <div class="top-tab" id="tab-todo" onclick="showPage('todo',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="tab-label">المهام</span>
+    </div>
+    <div class="top-tab" id="tab-trophies" onclick="showPage('trophies',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>
+      <span class="tab-label">الإنجازات</span>
+    </div>
+    <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="tab-label">ملفي</span>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Add Habit -->
@@ -2034,18 +2014,28 @@ function saveNewHabit(){
   myData.habits_list=[...getHabits(),{id:'h_'+Date.now(),name,icon}];
   saveMyData();closeModal('habit-modal');renderHabits();renderStreaks();showToast('✅ تمت إضافة العادة');
 }
-function showPage(name,tabEl){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+const PAGE_ORDER=['habits','friends','expenses','stats','todo','trophies','profile'];
+function showPage(name,tabEl,dir){
+  const prev=document.querySelector('.page.active');
+  const prevName=prev?prev.id.replace('page-',''):null;
+  // auto-detect direction if not passed
+  if(!dir&&prevName){
+    const pi=PAGE_ORDER.indexOf(prevName),ni=PAGE_ORDER.indexOf(name);
+    dir=ni>pi?'left':'right';
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active','slide-in-left','slide-in-right'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.top-tab').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
+  const next=document.getElementById('page-'+name);
+  next.classList.add('active');
+  if(dir==='left') next.classList.add('slide-in-left');
+  else if(dir==='right') next.classList.add('slide-in-right');
   if(tabEl)tabEl.classList.add('active');
   const si=document.querySelector(`.nav-item[data-p="${name}"]`);if(si)si.classList.add('active');
   if(name==='stats')renderStats();
   if(name==='friends')refreshAll();
   if(name==='profile'){renderProfilePage();renderFriendsList();}
   if(name==='todo')renderTodos();
-  if(name==='chat')initChat();
   if(name==='trophies')renderTrophies();
 }
 
@@ -2233,9 +2223,9 @@ function updateTrophyBadge(){
   const tab=document.getElementById('tab-trophies');
   if(tab){
     if(newCount>0){
-      tab.innerHTML=`<span style='font-size:16px'>🏆</span><span>التروفيات <span style='background:var(--red);color:white;border-radius:99px;padding:1px 5px;font-size:9px;font-weight:800'>${newCount}</span></span>`;
+      tab.innerHTML=`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات <span style='background:var(--red);color:white;border-radius:99px;padding:1px 5px;font-size:9px;font-weight:800'>${newCount}</span></span>`;
     } else {
-      tab.innerHTML=`<span style='font-size:16px'>🏆</span><span>التروفيات</span>`;
+      tab.innerHTML=`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات</span>`;
     }
   }
 }
@@ -2309,201 +2299,31 @@ function cat3dPat(){
 const _origApplyTheme=applyTheme;
 
 
-// ── CHAT SYSTEM ───────────────────────────────
-let chatChannel = null;
-let activeFriendCode = null;
-let chatMessages = {};
-let typingTimeout = null;
-let typingChannel = null;
 
-function getChatRoomId(codeA, codeB){
-  // deterministic room id from two codes
-  return [codeA, codeB].sort().join('_');
-}
 
-async function initChat(){
-  renderChatFriendsList();
-  if(activeFriendCode) openChat(activeFriendCode);
-}
-
-function renderChatFriendsList(){
-  const el = document.getElementById('chat-friends-list');
-  const friends = allUsers.filter(u=>(myData.friends||[]).includes(u.friend_code));
-  if(!friends.length){
-    el.innerHTML='<div class="chat-no-friends"><div style="font-size:32px">👥</div><div style="font-size:13px;margin-top:8px">أضف أصدقاء أولاً</div></div>';
-    return;
-  }
-  el.innerHTML = friends.map(u=>{
-    const avHTML = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div class="chat-friend-avatar" style="background:${u.avatar_color||AVATAR_COLORS[0]}">${u.avatar_emoji||'😊'}</div>`;
-    const isActive = activeFriendCode === u.friend_code;
-    return `<div class="chat-friend-item ${isActive?'active':''}" onclick="openChat('${u.friend_code}')">
-      ${avHTML}
-      <div class="chat-friend-name">${u.display_name||u.name}</div>
-    </div>`;
-  }).join('');
-}
-
-async function openChat(friendCode){
-  activeFriendCode = friendCode;
-  renderChatFriendsList();
-
-  const friend = allUsers.find(u=>u.friend_code===friendCode);
-  if(!friend) return;
-
-  // Show chat area
-  document.getElementById('chat-empty-state').style.display='none';
-  const chatActive = document.getElementById('chat-active');
-  chatActive.style.display='flex';
-
-  // Header
-  const avHTML = friend.avatar_photo
-    ? `<img src="${friend.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
-    : `<div class="chat-friend-avatar" style="background:${friend.avatar_color||AVATAR_COLORS[0]};width:38px;height:38px">${friend.avatar_emoji||'😊'}</div>`;
-  document.getElementById('chat-header').innerHTML = `
-    ${avHTML}
-    <div>
-      <div class="chat-header-name">${friend.display_name||friend.name}</div>
-      <div class="chat-header-status" id="chat-status">متصل</div>
-    </div>
-  `;
-
-  // Unsubscribe old channel
-  if(chatChannel){ sb.removeChannel(chatChannel); chatChannel=null; }
-
-  const roomId = getChatRoomId(myData.friend_code, friendCode);
-
-  // Load messages from Supabase
-  await loadMessages(roomId);
-
-  // Subscribe to realtime
-  chatChannel = sb.channel(`chat:${roomId}`)
-    .on('broadcast', {event:'message'}, ({payload})=>{
-      appendMessage(payload, false);
-    })
-    .on('broadcast', {event:'typing'}, ({payload})=>{
-      if(payload.from !== myData.friend_code) showTypingIndicator();
-    })
-    .subscribe();
-
-  document.getElementById('chat-input').focus();
-}
-
-async function loadMessages(roomId){
-  const msgsEl = document.getElementById('chat-messages');
-  msgsEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">جاري التحميل...</div>';
-
-  const {data, error} = await sb
-    .from('messages')
-    .select('*')
-    .eq('room_id', roomId)
-    .order('created_at', {ascending:true})
-    .limit(100);
-
-  msgsEl.innerHTML = '';
-
-  if(!data || !data.length){
-    msgsEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:40px">ابدأ المحادثة! 👋</div>';
-    return;
-  }
-
-  data.forEach(msg => appendMessage(msg, true));
-  scrollToBottom();
-}
-
-function appendMessage(msg, isHistory){
-  const msgsEl = document.getElementById('chat-messages');
-  // Remove "start chat" placeholder
-  const placeholder = msgsEl.querySelector('[data-placeholder]');
-  if(placeholder) placeholder.remove();
-  const emptyMsg = msgsEl.querySelector('div[style*="padding:40px"]');
-  if(emptyMsg) emptyMsg.remove();
-
-  const isMe = msg.sender_code === myData.friend_code;
-  const time = new Date(msg.created_at).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
-  
-  const senderData = isMe ? myData : allUsers.find(u=>u.friend_code===msg.sender_code);
-  const avHTML = (senderData?.avatar_photo)
-    ? `<img src="${senderData.avatar_photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
-    : `<div class="msg-avatar-sm" style="background:${senderData?.avatar_color||AVATAR_COLORS[0]}">${senderData?.avatar_emoji||'😊'}</div>`;
-
-  const div = document.createElement('div');
-  div.className = `msg-row ${isMe?'mine':'other'}`;
-  div.innerHTML = `
-    ${!isMe ? avHTML : ''}
-    <div>
-      <div class="msg-bubble">${escapeHtml(msg.text)}</div>
-      <div class="msg-time">${time}</div>
-    </div>
-    ${isMe ? avHTML : ''}
-  `;
-  msgsEl.appendChild(div);
-  if(!isHistory) scrollToBottom();
-}
-
-async function sendMsg(){
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if(!text || !activeFriendCode) return;
-  input.value = '';
-
-  const roomId = getChatRoomId(myData.friend_code, activeFriendCode);
-  const msg = {
-    room_id: roomId,
-    sender_code: myData.friend_code,
-    sender_name: myData.display_name,
-    text: text,
-    created_at: new Date().toISOString()
-  };
-
-  // Save to DB
-  const {data, error} = await sb.from('messages').insert([msg]).select().single();
-  if(error){ showToast('❌ فشل إرسال الرسالة'); console.error(error); return; }
-
-  // Broadcast to friend
-  if(chatChannel){
-    chatChannel.send({type:'broadcast', event:'message', payload: data||msg});
-  }
-  // Show locally
-  appendMessage(data||msg, false);
-  scrollToBottom();
-}
-
-function handleTyping(){
-  if(!chatChannel||!activeFriendCode) return;
-  chatChannel.send({type:'broadcast', event:'typing', payload:{from:myData.friend_code}});
-  clearTimeout(typingTimeout);
-}
-
-let typingIndicatorEl = null;
-let typingHideTimeout = null;
-function showTypingIndicator(){
-  const msgsEl = document.getElementById('chat-messages');
-  if(!typingIndicatorEl){
-    typingIndicatorEl = document.createElement('div');
-    typingIndicatorEl.className = 'msg-row other';
-    typingIndicatorEl.id = 'typing-indicator-row';
-    typingIndicatorEl.innerHTML = `<div class="typing-indicator">
-      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-    </div>`;
-    msgsEl.appendChild(typingIndicatorEl);
-    scrollToBottom();
-  }
-  clearTimeout(typingHideTimeout);
-  typingHideTimeout = setTimeout(()=>{
-    if(typingIndicatorEl){ typingIndicatorEl.remove(); typingIndicatorEl=null; }
-  }, 2500);
-}
-
-function scrollToBottom(){
-  const el = document.getElementById('chat-messages');
-  if(el) el.scrollTop = el.scrollHeight;
-}
-
-function escapeHtml(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ── SWIPE NAVIGATION ──────────────────────────
+(function(){
+  let sx=0,sy=0;
+  document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(Math.abs(dx)<55||dy>100)return;
+    // ignore if touch started on a modal or fab
+    if(e.target.closest('.modal-ov,.theme-popup,.theme-fab'))return;
+    const cur=document.querySelector('.page.active');
+    if(!cur)return;
+    const idx=PAGE_ORDER.indexOf(cur.id.replace('page-',''));
+    if(idx===-1)return;
+    if(dx>0&&idx>0){
+      // swipe right in RTL → previous
+      showPage(PAGE_ORDER[idx-1],document.getElementById('tab-'+PAGE_ORDER[idx-1]),'right');
+    }else if(dx<0&&idx<PAGE_ORDER.length-1){
+      // swipe left in RTL → next
+      showPage(PAGE_ORDER[idx+1],document.getElementById('tab-'+PAGE_ORDER[idx+1]),'left');
+    }
+  },{passive:true});
+})();
 
 // ── INIT ──────────────────────────────────────
 async function init(){
