@@ -636,21 +636,41 @@ function showPage(name,tabEl){
 }
 
 // ── INIT ──────────────────────────────────────
-sb.auth.onAuthStateChange(async (event, session) => {
-  document.getElementById('loading-screen').style.display='none';
-  if(session?.user){
-    document.getElementById('app').style.display='flex';
-    document.getElementById('auth-screen').style.display='none';
-    if(!currentUser || currentUser.id !== session.user.id){
-      await startApp(session.user);
-    }
+async function init() {
+  // timeout fallback — إذا ما رد Supabase خلال 4 ثواني اعرض شاشة الدخول
+  const timeout = setTimeout(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+  }, 4000);
+
+  const { data: { session } } = await sb.auth.getSession();
+  clearTimeout(timeout);
+
+  document.getElementById('loading-screen').style.display = 'none';
+
+  if (session?.user) {
+    await startApp(session.user);
   } else {
-    if(refreshTimer) clearInterval(refreshTimer);
-    currentUser=null;
-    document.getElementById('app').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
+    document.getElementById('auth-screen').style.display = 'flex';
   }
-});
+
+  // استمع للتغييرات (تسجيل دخول/خروج)
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      document.getElementById('auth-screen').style.display = 'none';
+      if (!currentUser || currentUser.id !== session.user.id) {
+        await startApp(session.user);
+      }
+    } else if (event === 'SIGNED_OUT') {
+      if (refreshTimer) clearInterval(refreshTimer);
+      currentUser = null;
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+  });
+}
+
+init();
 </script>
 </body>
 </html>
