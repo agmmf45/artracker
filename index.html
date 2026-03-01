@@ -1634,7 +1634,7 @@ async function loadMyData(){
       // new user — no row yet, safe to save
       dataLoadedFromDB = true;
     }
-  } catch(e){ console.warn('DB load:', e); dataLoadedFromDB = false; }
+  } catch(e){ console.warn('DB load:', e); dataLoadedFromDB = true; /* allow saves even if load failed */ }
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
@@ -1651,21 +1651,7 @@ async function loadMyData(){
   if(!myData.display_name) myData.display_name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
 }
 async function saveMyData(){
-  if(!currentUser){ console.warn('no currentUser'); return; }
-
-  // If data not confirmed loaded, try loading once more before saving
-  if(!dataLoadedFromDB){
-    showToast('⏳ جاري التزامن...');
-    try{
-      const {data} = await sb.from('users').select('data').eq('id',currentUser.id).single();
-      if(data?.data){ myData = {...data.data, ...myData}; } // merge: keep local changes on top
-      dataLoadedFromDB = true;
-    } catch(e){ 
-      // new user — no row yet, safe to save
-      dataLoadedFromDB = true;
-    }
-  }
-
+  if(!currentUser){ return; }
   const payload = {
     id: currentUser.id,
     name: myData.display_name || currentUser.email,
@@ -1719,8 +1705,7 @@ async function startApp(user){
   try{ checkAndUnlockTrophies(); }catch(e){}
   try{ renderProfilePage(); }catch(e){}
 
-  // Save + refresh in background — don't block UI
-  saveMyData().catch(()=>{});
+  // Refresh in background — DO NOT save on load (would overwrite real data)
   refreshAll().catch(()=>{});
   refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 20000);
 }
@@ -2027,14 +2012,27 @@ function renderThemeGrid() {
 function handlePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { showToast('❌ الصورة أكبر من 2MB'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('❌ الصورة أكبر من 10MB'); return; }
+
   const reader = new FileReader();
-  reader.onload = async (ev) => {
-    const base64 = ev.target.result;
-    myData.avatar_photo = base64;
-    updateAvatarDisplay();
-    await saveMyData();
-    showToast('✅ تم رفع الصورة');
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = async () => {
+      // Compress to max 300x300
+      const canvas = document.createElement('canvas');
+      const MAX = 300;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
+      else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      myData.avatar_photo = compressed;
+      updateAvatarDisplay();
+      updateTopBar();
+      await saveMyData();
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
