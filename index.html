@@ -2310,6 +2310,7 @@ function addTransaction(){
   checkAndUnlockTrophies();
   document.getElementById('txn-desc').value='';
   document.getElementById('txn-amount').value='';
+  document.getElementById('txn-form-card').style.display='none';
   renderWallets();
   renderTxnList();
   showToast('✅ تمت الإضافة');
