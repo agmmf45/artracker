@@ -1660,6 +1660,8 @@ async function loadMyData(){
       myData = data.data;
       applyDefaults();
       saveToCache(currentUser.id); // update cache
+      // Re-render now that real data is loaded
+      try{ renderHabits(); renderStreaks(); renderWallets(); renderProfilePage(); updateTopBar(); }catch(e){}
     } else {
       applyDefaults();
     }
