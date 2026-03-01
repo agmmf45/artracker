@@ -1749,6 +1749,7 @@ async function loadAllUsers(){
 
 // ── START APP ──────────────────────────────────
 async function startApp(user){
+  if(currentUser?.id === user.id) return; // already running
   currentUser = user;
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading-screen').style.display='flex';
