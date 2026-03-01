@@ -132,7 +132,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .online-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:6px;}
 .dot-live{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);position:relative;transition:all 0.18s;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);position:relative;transition:all 0.18s;}.nav-item span{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
 .nav-item.active{color:var(--accent);background:var(--accent-light);}
 .nav-item.active::before{content:'';position:absolute;right:0;top:5px;bottom:5px;width:3px;background:var(--accent);border-radius:3px 0 0 3px;}
@@ -140,7 +140,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .main{flex:1;margin-right:230px;padding:28px;}
 .top-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:22px;overflow:hidden;}
-.top-tab{flex:1;padding:20px 6px;text-align:center;cursor:pointer;font-size:15px;font-weight:700;color:var(--muted);border-bottom:4px solid transparent;transition:all 0.18s;}
+.top-tab{flex:1;padding:12px 4px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .top-tab:hover{background:var(--surface2);}
 .top-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-light);}
 
@@ -153,12 +153,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
 .mb-20{margin-bottom:20px;}
 .flex-b{display:flex;align-items:center;justify-content:space-between;}
-.sec-title{font-size:15px;font-weight:800;margin-bottom:14px;}
+.sec-title{font-size:13px;font-weight:800;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
 .bph{font-size:26px;font-weight:900;letter-spacing:-0.5px;}
 .psub{font-size:12px;color:var(--muted);margin-top:3px;}
 .plabel{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
 .page-header{margin-bottom:22px;}
-.ph2{font-size:24px;font-weight:900;letter-spacing:-0.5px;}
+.ph2{font-size:20px;font-weight:900;letter-spacing:-0.5px;}
 .psub2{color:var(--muted);font-size:13px;margin-top:3px;}
 
 /* DATE DISPLAY */
@@ -731,14 +731,14 @@ setInterval(()=>{
 
   <main class="main">
     <div class="top-tabs">
-      <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)">العادات</div>
-      <div class="top-tab" id="tab-chat" onclick="showPage('chat',this)">💬</div>
-      <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">الأصدقاء</div>
-      <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)">المصاريف</div>
-      <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">إحصائيات</div>
-      <div class="top-tab" id="tab-todo" onclick="showPage('todo',this)">المهام</div>
-      <div class="top-tab" id="tab-trophies" onclick="showPage('trophies',this)">🏆</div>
-      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)">ملفي</div>
+      <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)"><span style="font-size:16px">✅</span><span>العادات</span></div>
+      <div class="top-tab" id="tab-chat" onclick="showPage('chat',this)"><span style="font-size:16px">💬</span><span>الشات</span></div>
+      <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)"><span style="font-size:16px">👥</span><span>الأصدقاء</span></div>
+      <div class="top-tab" id="tab-expenses" onclick="showPage('expenses',this)"><span style="font-size:16px">💸</span><span>المصاريف</span></div>
+      <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)"><span style="font-size:16px">📊</span><span>إحصائيات</span></div>
+      <div class="top-tab" id="tab-todo" onclick="showPage('todo',this)"><span style="font-size:16px">📝</span><span>المهام</span></div>
+      <div class="top-tab" id="tab-trophies" onclick="showPage('trophies',this)"><span style="font-size:16px">🏆</span><span>التروفيات</span></div>
+      <div class="top-tab" id="tab-profile" onclick="showPage('profile',this)"><span style="font-size:16px">🪪</span><span>ملفي</span></div>
     </div>
 
     <!-- HABITS -->
@@ -1027,10 +1027,17 @@ setInterval(()=>{
         <!-- Main chat area -->
         <div class="chat-main" id="chat-main">
           <div class="chat-empty-state" id="chat-empty-state">
-            <div class="chat-empty-ico">💬</div>
-            <div style="font-size:15px;font-weight:700">اختر محادثة</div>
-            <div style="font-size:13px">اختر صديق من القائمة للبدء</div>
+            <div style="font-size:56px;animation:chat-pulse 2s ease-in-out infinite">💬</div>
+            <div style="font-size:17px;font-weight:800;color:var(--text)">أهلاً بك في الشات!</div>
+            <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.7;max-width:200px">اختر صديق من القائمة على اليمين لتبدأ المحادثة</div>
+            <div style="background:var(--accent-light);border:1.5px solid var(--accent);border-radius:12px;padding:10px 18px;margin-top:4px;animation:chat-hint 1.5s ease-in-out infinite;">
+              <span style="font-size:13px;color:var(--accent);font-weight:700">👈 اختر من هنا</span>
+            </div>
           </div>
+          <style>
+          @keyframes chat-pulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(-5deg)}}
+          @keyframes chat-hint{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+          </style>
           <div id="chat-active" style="display:none;flex-direction:column;flex:1;min-height:0">
             <div class="chat-header" id="chat-header"></div>
             <div class="chat-messages" id="chat-messages"></div>
@@ -2226,9 +2233,9 @@ function updateTrophyBadge(){
   const tab=document.getElementById('tab-trophies');
   if(tab){
     if(newCount>0){
-      tab.innerHTML=`🏆 <span style="background:var(--red);color:white;border-radius:99px;padding:1px 6px;font-size:10px;font-weight:800;vertical-align:middle">${newCount}</span>`;
+      tab.innerHTML=`<span style='font-size:16px'>🏆</span><span>التروفيات <span style='background:var(--red);color:white;border-radius:99px;padding:1px 5px;font-size:9px;font-weight:800'>${newCount}</span></span>`;
     } else {
-      tab.textContent='🏆';
+      tab.innerHTML=`<span style='font-size:16px'>🏆</span><span>التروفيات</span>`;
     }
   }
 }
