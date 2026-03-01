@@ -1619,22 +1619,7 @@ async function doLogout(){
 }
 
 // ── DATA ───────────────────────────────────────
-let dataLoadedFromDB = false;
-async function loadMyData(){
-  try{
-    const dbCall = sb.from('users').select('data').eq('id', currentUser.id).single();
-    const {data, error} = await Promise.race([
-      dbCall,
-      new Promise((_,rej)=>setTimeout(()=>rej('db timeout'),6000))
-    ]);
-    if(data?.data){
-      myData = data.data;
-      dataLoadedFromDB = true;
-    } else if(!error || error.code === 'PGRST116'){
-      // new user — no row yet, safe to save
-      dataLoadedFromDB = true;
-    }
-  } catch(e){ console.warn('DB load:', e); dataLoadedFromDB = true; /* allow saves even if load failed */ }
+function applyDefaults(){
   if(!myData.habits_list) myData.habits_list = DEFAULT_HABITS;
   if(!myData.done) myData.done = {};
   if(!myData.expenses) myData.expenses = [];
@@ -1645,25 +1630,52 @@ async function loadMyData(){
   if(!myData.sent_requests) myData.sent_requests = [];
   if(!myData.incoming_requests) myData.incoming_requests = [];
   if(!myData.todos) myData.todos = [];
-  if(!myData.friend_code) { myData.friend_code = generateCode(); }
+  if(!myData.friend_code) myData.friend_code = generateCode();
   if(!myData.avatar_emoji) myData.avatar_emoji = '😊';
   if(!myData.avatar_color) myData.avatar_color = AVATAR_COLORS[0];
-  if(!myData.display_name) myData.display_name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+  if(!myData.display_name) myData.display_name = currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || '';
 }
+
+async function loadMyData(){
+  try{
+    const {data, error} = await sb.from('users')
+      .select('data')
+      .eq('id', currentUser.id)
+      .single();
+
+    if(data?.data){
+      myData = data.data;
+      console.log('✅ loaded from DB:', Object.keys(myData));
+    } else {
+      console.log('ℹ️ no row found, new user');
+    }
+  } catch(e){
+    console.warn('⚠️ loadMyData error:', e);
+  }
+  applyDefaults();
+}
+
 async function saveMyData(){
-  if(!currentUser){ return; }
-  const payload = {
-    id: currentUser.id,
-    name: myData.display_name || currentUser.email,
-    data: myData,
-    updated_at: new Date().toISOString()
-  };
-  const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
-  if(error){
-    console.error('saveMyData error:', error.message, error.code);
-    showToast('❌ خطأ في الحفظ: ' + error.message);
-  } else {
-    showToast('✅ تم الحفظ');
+  if(!currentUser) return;
+  applyDefaults();
+  try{
+    const payload = {
+      id: currentUser.id,
+      name: myData.display_name || currentUser.email,
+      data: myData,
+      updated_at: new Date().toISOString()
+    };
+    const {error} = await sb.from('users').upsert(payload, {onConflict: 'id'});
+    if(error){
+      console.error('❌ saveMyData error:', error);
+      showToast('❌ خطأ في الحفظ: ' + error.message);
+    } else {
+      console.log('✅ saved to DB');
+      showToast('✅ تم الحفظ');
+    }
+  } catch(e){
+    console.error('❌ saveMyData exception:', e);
+    showToast('❌ تعذّر الحفظ');
   }
 }
 async function loadAllUsers(){
@@ -1677,25 +1689,18 @@ async function startApp(user){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading-screen').style.display='flex';
 
-  // Load data with 4s timeout — never hang
-  // Load data — wait up to 8s
-  try{
-    await Promise.race([
-      loadMyData(),
-      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),8000))
-    ]);
-  }catch(e){ console.warn('loadMyData timeout:', e); }
+  await loadMyData();
 
   // Apply theme
   if(myData.theme && myData.theme !== 'default'){
     document.body.className = `theme-${myData.theme}`;
   }
 
-  // Show app
+  // Show app immediately
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
 
-  // Render everything
+  // Render
   try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
   try{ updateTopBar(); }catch(e){}
   try{ updateDateDisplays(); }catch(e){}
@@ -1705,9 +1710,10 @@ async function startApp(user){
   try{ checkAndUnlockTrophies(); }catch(e){}
   try{ renderProfilePage(); }catch(e){}
 
-  // Refresh in background — DO NOT save on load (would overwrite real data)
+  // Refresh friends in background
   refreshAll().catch(()=>{});
-  refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 20000);
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 30000);
 }
 async function refreshAll(){
   try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
