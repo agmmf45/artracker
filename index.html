@@ -645,59 +645,60 @@ setInterval(()=>{
       <div class="auth-sub" style="font-size:14px;color:var(--muted);margin-top:4px">تتبع عاداتك ومصاريفك<br>مع أصدقائك في مكان واحد 🌿</div>
     </div>
 
-    <!-- ✦ PROGRESSIVE DISCLOSURE ✦ -->
+    <!-- AUTH FORM -->
 
-    <!-- خطوة 1: الإيميل فقط -->
+    <!-- Step 1: Email -->
     <div id="pd-step1">
-      <p class="pd-hint">أدخل إيميلك للبدء</p>
+      <p class="pd-hint">أدخل إيميلك للمتابعة</p>
       <div class="auth-input-wrap">
         <span class="auth-input-icon">📧</span>
         <input type="email" class="auth-fi" id="pd-email" placeholder="example@gmail.com"
-               oninput="pdReset()" onkeydown="if(event.key==='Enter')pdNext()">
+          onkeydown="if(event.key==='Enter')pdNext()">
       </div>
-      <button class="btn-auth" id="pd-btn1" onclick="pdNext()">متابعة →</button>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn-auth" id="pd-btn-login" onclick="pdGoLogin()" style="flex:1;background:var(--accent)">دخول</button>
+        <button class="btn-auth" id="pd-btn-reg" onclick="pdGoRegister()" style="flex:1;background:var(--surface2);color:var(--text);box-shadow:none;border:1.5px solid var(--border)">حساب جديد</button>
+      </div>
       <div class="auth-err" id="pd-err1"></div>
     </div>
 
-    <!-- خطوة 2أ: مستخدم موجود → كلمة السر -->
+    <!-- Step 2a: Login -->
     <div id="pd-step-login" style="display:none">
       <div class="pd-pill">
-        <span class="pd-pill-icon">🧑</span>
+        <span class="pd-pill-icon">📧</span>
         <span id="pd-email-show-login" style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <span class="pd-back" onclick="pdReset()">✕</span>
+        <span class="pd-back" onclick="pdReset()">تغيير</span>
       </div>
       <div class="auth-input-wrap" style="margin-top:14px">
         <span class="auth-input-icon">🔒</span>
-        <input type="password" class="auth-fi" id="pd-pass"
-               placeholder="كلمة السر" onkeydown="if(event.key==='Enter')doLogin()">
+        <input type="password" class="auth-fi" id="pd-pass" placeholder="كلمة السر"
+          onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <button class="btn-auth" id="pd-login-btn" onclick="doLogin()">دخول ←</button>
       <div class="auth-err" id="login-err"></div>
-      <div style="text-align:center;margin-top:10px">
+      <div style="text-align:center;margin-top:12px">
         <span class="pd-link" onclick="pdForgotPass()">نسيت كلمة السر؟</span>
       </div>
     </div>
 
-    <!-- خطوة 2ب: مستخدم جديد → الاسم ثم كلمة السر -->
+    <!-- Step 2b: Register -->
     <div id="pd-step-register" style="display:none">
       <div class="pd-new-tag">✨ حساب جديد</div>
       <div class="pd-pill" style="margin-bottom:14px">
         <span class="pd-pill-icon">📧</span>
-        <span id="pd-email-show-reg" style="flex:1;font-size:13px;"></span>
-        <span class="pd-back" onclick="pdReset()">✕</span>
+        <span id="pd-email-show-reg" style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span class="pd-back" onclick="pdReset()">تغيير</span>
       </div>
-      <!-- اسمك -->
       <div class="auth-input-wrap">
         <span class="auth-input-icon">👤</span>
         <input type="text" class="auth-fi" id="reg-name" placeholder="اسمك"
-               maxlength="20" oninput="pdRevealPass()">
+          maxlength="20" oninput="pdRevealPass()">
       </div>
-      <!-- كلمة السر — تظهر بعد كتابة الاسم -->
       <div id="pd-pass-wrap" style="max-height:0;overflow:hidden;opacity:0;transition:max-height 0.35s ease,opacity 0.3s ease">
         <div class="auth-input-wrap">
           <span class="auth-input-icon">🔒</span>
           <input type="password" class="auth-fi" id="reg-pass"
-                 placeholder="كلمة السر — 6 أحرف+" onkeydown="if(event.key==='Enter')doRegister()">
+            placeholder="كلمة السر — 6 أحرف+" onkeydown="if(event.key==='Enter')doRegister()">
         </div>
         <button class="btn-auth" onclick="doRegister()">إنشاء الحساب ✓</button>
       </div>
@@ -707,32 +708,16 @@ setInterval(()=>{
 
     <style>
     .pd-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6;}
-    .pd-pill{
-      display:flex;align-items:center;gap:10px;
-      background:var(--surface2);border:1.5px solid var(--border);
-      border-radius:14px;padding:11px 14px;
-    }
+    .pd-pill{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:11px 14px;}
     .pd-pill-icon{font-size:20px;}
-    .pd-back{
-      font-size:12px;color:var(--muted);cursor:pointer;font-weight:700;
-      padding:3px 8px;border-radius:8px;transition:all 0.15s;margin-right:auto;
-      border:1px solid var(--border);
-    }
+    .pd-back{font-size:12px;color:var(--muted);cursor:pointer;font-weight:700;padding:3px 8px;border-radius:8px;transition:all 0.15s;border:1px solid var(--border);}
     .pd-back:hover{background:var(--surface2);color:var(--text);}
-    .pd-new-tag{
-      background:var(--accent-light);color:var(--accent);
-      border-radius:99px;padding:6px 18px;font-size:12px;font-weight:700;
-      text-align:center;margin-bottom:14px;display:block;
-    }
+    .pd-new-tag{background:var(--accent-light);color:var(--accent);border-radius:99px;padding:6px 18px;font-size:12px;font-weight:700;text-align:center;margin-bottom:12px;display:block;}
     .pd-link{font-size:12px;color:var(--muted);cursor:pointer;}
     .pd-link:hover{color:var(--accent);text-decoration:underline;}
-    .pd-divider{display:flex;align-items:center;gap:10px;margin:16px 0 4px;}
-    .pd-divider::before,.pd-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-    .pd-divider span{font-size:11px;color:var(--muted);}
     #pd-step1,#pd-step-login,#pd-step-register{animation:pd-in 0.3s cubic-bezier(0.34,1.56,0.64,1);}
     @keyframes pd-in{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
     </style>
-
   </div>
 </div>
 
@@ -1381,8 +1366,6 @@ function generateCode() {
 function switchAuthTab(tab){} // kept for compatibility
 
 function pdReset(){
-  // only reset if called from back button (not from oninput)
-  if(event && event.type==='input') return;
   document.getElementById('pd-step1').style.display='block';
   document.getElementById('pd-step-login').style.display='none';
   document.getElementById('pd-step-register').style.display='none';
@@ -1391,36 +1374,32 @@ function pdReset(){
   setTimeout(()=>document.getElementById('pd-email').focus(),50);
 }
 
-async function pdNext(){
+function pdGetEmail(){
   const email = document.getElementById('pd-email').value.trim();
   const errEl = document.getElementById('pd-err1');
   errEl.style.display='none';
   if(!email || !email.includes('@') || !email.includes('.')){
-    errEl.textContent='أدخل إيميل صحيح'; errEl.style.display='block'; return;
+    errEl.textContent='أدخل إيميل صحيح'; errEl.style.display='block'; return null;
   }
-  const btn = document.getElementById('pd-btn1');
-  btn.textContent='جاري التحقق...'; btn.disabled=true;
+  return email;
+}
 
-  // Try dummy login to detect if user exists
-  const {error} = await sb.auth.signInWithPassword({email, password:'__artrk_check__'});
-  btn.textContent='متابعة →'; btn.disabled=false;
+function pdNext(){ pdGoLogin(); }
 
+function pdGoLogin(){
+  const email = pdGetEmail(); if(!email) return;
   document.getElementById('pd-step1').style.display='none';
+  document.getElementById('pd-email-show-login').textContent = email;
+  document.getElementById('pd-step-login').style.display='block';
+  setTimeout(()=>document.getElementById('pd-pass').focus(),80);
+}
 
-  const userExists = error && (
-    error.message.includes('Invalid login credentials') ||
-    error.message.includes('invalid_credentials')
-  );
-
-  if(userExists){
-    document.getElementById('pd-email-show-login').textContent = email;
-    document.getElementById('pd-step-login').style.display='block';
-    setTimeout(()=>document.getElementById('pd-pass').focus(),80);
-  } else {
-    document.getElementById('pd-email-show-reg').textContent = email;
-    document.getElementById('pd-step-register').style.display='block';
-    setTimeout(()=>document.getElementById('reg-name').focus(),80);
-  }
+function pdGoRegister(){
+  const email = pdGetEmail(); if(!email) return;
+  document.getElementById('pd-step1').style.display='none';
+  document.getElementById('pd-email-show-reg').textContent = email;
+  document.getElementById('pd-step-register').style.display='block';
+  setTimeout(()=>document.getElementById('reg-name').focus(),80);
 }
 
 function pdRevealPass(){
