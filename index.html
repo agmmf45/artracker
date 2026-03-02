@@ -310,9 +310,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .streak-period-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s;}
 .streak-period-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
-.streak-date-row{display:flex;gap:3px;margin-bottom:3px;direction:ltr;}
+.streak-date-row{display:flex;gap:3px;margin-bottom:3px;direction:rtl;}
 .s-date-lbl{width:18px;font-size:8px;text-align:center;flex-shrink:0;line-height:1.2;}
-.streak-row{display:flex;gap:3px;flex-wrap:nowrap;direction:ltr;}
+.streak-row{display:flex;gap:3px;flex-wrap:nowrap;direction:rtl;}
 .s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;}
 .s-dot.filled{background:var(--green);border-color:var(--green);}
 .s-dot.today-d{background:var(--accent);border-color:var(--accent);}
@@ -1846,7 +1846,9 @@ function renderStreaks(){
   // Find earliest day with ANY completion within the period
   const firstDoneIdx = allDays.findIndex(day => Object.keys(doneMap[day]||{}).some(k=>doneMap[day][k]));
   // Start from first completion, or just today if none
-  const days = firstDoneIdx === -1 ? [todayKey()] : allDays.slice(firstDoneIdx);
+  const daysLTR = firstDoneIdx === -1 ? [todayKey()] : allDays.slice(firstDoneIdx);
+  // Reverse for RTL display: today on left, oldest on right
+  const days = [...daysLTR].reverse();
 
   const step = days.length<=14?1:days.length<=30?3:7;
   const makeDateRow = () => `<div class="streak-date-row">${days.map((day,i)=>{
