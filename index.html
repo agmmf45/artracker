@@ -749,6 +749,67 @@ setInterval(()=>{
       <div class="auth-err" id="pin-err" style="margin-top:10px"></div>
     </div>
 
+
+    <!-- PIN SCREEN -->
+    <div id="pd-pin-screen" style="display:none;text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px" id="pin-user-name"></div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:20px">أدخل الرقم السري</div>
+      <div style="display:flex;justify-content:center;gap:14px;margin-bottom:22px" id="pin-dots-wrap">
+        <div class="pin-dot" id="pind0"></div>
+        <div class="pin-dot" id="pind1"></div>
+        <div class="pin-dot" id="pind2"></div>
+        <div class="pin-dot" id="pind3"></div>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <div></div>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key" onclick="pinKey('del')" style="font-size:20px">⌫</button>
+      </div>
+      <div class="auth-err" id="pin-err" style="margin-top:14px"></div>
+      <div style="margin-top:14px">
+        <span onclick="pinUsePassword()" style="font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline">استخدم كلمة السر</span>
+      </div>
+    </div>
+
+    <!-- PIN SETUP SCREEN -->
+    <div id="pd-pin-setup" style="display:none;text-align:center">
+      <div style="font-size:26px;margin-bottom:8px">🔢</div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:6px" id="pin-setup-title">اختر رقم سري</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:18px" id="pin-setup-sub">4 أرقام للدخول السريع في المرة القادمة</div>
+      <div style="display:flex;justify-content:center;gap:14px;margin-bottom:22px">
+        <div class="pin-dot" id="pinsd0"></div>
+        <div class="pin-dot" id="pinsd1"></div>
+        <div class="pin-dot" id="pinsd2"></div>
+        <div class="pin-dot" id="pinsd3"></div>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="pinSetupKey('1')">1</button>
+        <button class="pin-key" onclick="pinSetupKey('2')">2</button>
+        <button class="pin-key" onclick="pinSetupKey('3')">3</button>
+        <button class="pin-key" onclick="pinSetupKey('4')">4</button>
+        <button class="pin-key" onclick="pinSetupKey('5')">5</button>
+        <button class="pin-key" onclick="pinSetupKey('6')">6</button>
+        <button class="pin-key" onclick="pinSetupKey('7')">7</button>
+        <button class="pin-key" onclick="pinSetupKey('8')">8</button>
+        <button class="pin-key" onclick="pinSetupKey('9')">9</button>
+        <div></div>
+        <button class="pin-key" onclick="pinSetupKey('0')">0</button>
+        <button class="pin-key" onclick="pinSetupKey('del')" style="font-size:20px">⌫</button>
+      </div>
+      <div style="margin-top:14px">
+        <span onclick="skipPinSetup()" style="font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline">تخطى</span>
+      </div>
+    </div>
+
     <div id="pd-step1">
       <p class="pd-hint">أدخل إيميلك للمتابعة</p>
       <div class="auth-input-wrap">
@@ -821,7 +882,16 @@ setInterval(()=>{
     .pd-link:hover{color:var(--accent);text-decoration:underline;}
     #pd-step1,#pd-step-login,#pd-step-register{animation:pd-in 0.3s cubic-bezier(0.34,1.56,0.64,1);}
     @keyframes pd-in{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-    </style>
+    
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);transition:all 0.15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15);}
+.pin-dot.error{background:var(--red);border-color:var(--red);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:210px;margin:0 auto;}
+.pin-key{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:15px 10px;font-size:22px;font-weight:700;cursor:pointer;color:var(--text);transition:all 0.12s;-webkit-tap-highlight-color:transparent;}
+.pin-key:active{transform:scale(0.9);background:var(--accent);color:white;border-color:var(--accent);}
+@keyframes pin-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+</style>
   </div>
 </div>
 
@@ -1102,6 +1172,7 @@ setInterval(()=>{
           <div class="card" style="background:var(--surface2);">
             <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
+            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="resetPIN()">🔢 إعادة ضبط الرقم السري</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
               <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
@@ -1675,6 +1746,10 @@ async function doLogin(){
   const {error} = await sb.auth.signInWithPassword({email, password:pass});
   if(btn){btn.textContent='دخول ←';btn.disabled=false;}
   if(error){ showErr('login-err','كلمة السر غلط، حاول مجدداً'); return; }
+  // Save creds for PIN
+  _saveCreds(email, pass);
+  // Show PIN setup if not set
+  if(!_hasPIN()) setTimeout(showPinSetup, 1200);
 }
 async function doLogout(){
   if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
@@ -1967,6 +2042,138 @@ async function tryBiometric(){
       }
     }
   }catch(e){}
+}
+
+
+// ── PIN LOGIN ─────────────────────────────────
+const _PIN_KEY   = 'artrk_pin2';
+const _CRED_KEY  = 'artrk_cred2';
+
+function _hashPin(p){ let h=5381; for(let i=0;i<p.length;i++) h=((h<<5)+h)+p.charCodeAt(i); return (h>>>0).toString(36); }
+function _hasPIN(){ return !!localStorage.getItem(_PIN_KEY); }
+function _saveCreds(e,p){ localStorage.setItem(_CRED_KEY, btoa(unescape(encodeURIComponent(JSON.stringify({e,p}))))); }
+function _getCreds(){ try{ return JSON.parse(decodeURIComponent(escape(atob(localStorage.getItem(_CRED_KEY))))); }catch(x){return null;} }
+function _clearPIN(){ localStorage.removeItem(_PIN_KEY); localStorage.removeItem(_CRED_KEY); }
+
+let _pinBuf = '';
+let _pinSetupBuf = '';
+let _pinSetupFirst = '';
+
+function showPinScreen(name){
+  document.getElementById('pd-step1').style.display='none';
+  document.getElementById('pd-step-login').style.display='none';
+  document.getElementById('pd-step-register').style.display='none';
+  document.getElementById('pd-pin-setup').style.display='none';
+  document.getElementById('pd-pin-screen').style.display='block';
+  const nameEl = document.getElementById('pin-user-name');
+  if(nameEl && name) nameEl.textContent = '👋 ' + name;
+  _pinBuf = '';
+  _updatePinDots('pind', _pinBuf);
+  document.getElementById('pin-err').textContent = '';
+}
+
+function showPinSetup(){
+  document.getElementById('pd-step1').style.display='none';
+  document.getElementById('pd-step-login').style.display='none';
+  document.getElementById('pd-pin-screen').style.display='none';
+  document.getElementById('pd-pin-setup').style.display='block';
+  document.getElementById('pin-setup-title').textContent = 'اختر رقم سري';
+  document.getElementById('pin-setup-sub').textContent = '4 أرقام للدخول السريع';
+  _pinSetupBuf = '';
+  _pinSetupFirst = '';
+  _updatePinDots('pinsd', '');
+}
+
+function _updatePinDots(prefix, buf){
+  for(let i=0;i<4;i++){
+    const d = document.getElementById(prefix+i);
+    if(!d) continue;
+    d.className = 'pin-dot' + (i < buf.length ? ' filled' : '');
+  }
+}
+
+function _shakeAndClear(prefix){
+  const wrap = document.getElementById('pin-dots-wrap');
+  if(wrap){ wrap.style.animation='none'; wrap.offsetHeight; wrap.style.animation='pin-shake 0.35s ease'; }
+  for(let i=0;i<4;i++){
+    const d=document.getElementById(prefix+i);
+    if(d){ d.className='pin-dot error'; setTimeout(()=>d.className='pin-dot',400); }
+  }
+  _pinBuf='';
+}
+
+function pinKey(k){
+  if(k==='del'){ _pinBuf=_pinBuf.slice(0,-1); _updatePinDots('pind',_pinBuf); document.getElementById('pin-err').textContent=''; return; }
+  if(_pinBuf.length>=4) return;
+  _pinBuf += k;
+  _updatePinDots('pind', _pinBuf);
+  if(_pinBuf.length===4) setTimeout(_verifyPIN, 120);
+}
+
+async function _verifyPIN(){
+  const stored = localStorage.getItem(_PIN_KEY);
+  if(_hashPin(_pinBuf) !== stored){
+    _shakeAndClear('pind');
+    document.getElementById('pin-err').textContent = '❌ رقم سري خاطئ';
+    return;
+  }
+  const creds = _getCreds();
+  if(!creds){ pinUsePassword(); return; }
+  document.getElementById('pin-err').textContent = '';
+  const {error} = await sb.auth.signInWithPassword({email: creds.e, password: creds.p});
+  if(error){ _shakeAndClear('pind'); document.getElementById('pin-err').textContent = 'انتهت الجلسة، استخدم كلمة السر'; return; }
+  // onAuthStateChange will handle startApp
+}
+
+function pinUsePassword(){
+  _clearPIN();
+  document.getElementById('pd-pin-screen').style.display='none';
+  document.getElementById('pd-step1').style.display='block';
+}
+
+// Setup PIN
+function pinSetupKey(k){
+  if(k==='del'){ _pinSetupBuf=_pinSetupBuf.slice(0,-1); _updatePinDots('pinsd',_pinSetupBuf); return; }
+  if(_pinSetupBuf.length>=4) return;
+  _pinSetupBuf += k;
+  _updatePinDots('pinsd', _pinSetupBuf);
+  if(_pinSetupBuf.length===4) setTimeout(_pinSetupNext, 120);
+}
+
+function _pinSetupNext(){
+  if(!_pinSetupFirst){
+    // First entry — ask to confirm
+    _pinSetupFirst = _pinSetupBuf;
+    _pinSetupBuf = '';
+    _updatePinDots('pinsd','');
+    document.getElementById('pin-setup-title').textContent = 'أعد إدخال الرقم';
+    document.getElementById('pin-setup-sub').textContent = 'تأكيداً للحفظ';
+  } else {
+    // Confirm
+    if(_pinSetupBuf === _pinSetupFirst){
+      localStorage.setItem(_PIN_KEY, _hashPin(_pinSetupBuf));
+      document.getElementById('pd-pin-setup').style.display='none';
+      document.getElementById('pd-step1').style.display='none';
+      showToast('✅ تم تفعيل الرقم السري! يستخدم في الدخول القادم');
+    } else {
+      // Mismatch
+      _pinSetupFirst = '';
+      _pinSetupBuf = '';
+      _updatePinDots('pinsd','');
+      document.getElementById('pin-setup-title').textContent = 'اختر رقم سري';
+      document.getElementById('pin-setup-sub').textContent = '⚠️ الرقمان مختلفان، حاول مجدداً';
+    }
+  }
+}
+
+function skipPinSetup(){
+  document.getElementById('pd-pin-setup').style.display='none';
+  // app already loaded, just hide
+}
+
+function resetPIN(){
+  _clearPIN();
+  showToast('🗑 تم حذف الرقم السري');
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -3071,11 +3278,15 @@ async function init(){
     clearTimeout(timeout);
     document.getElementById('loading-screen').style.display='none';
     if(session?.user){ await startApp(session.user); }
-    else { document.getElementById('auth-screen').style.display='flex'; }
+    else {
+      document.getElementById('auth-screen').style.display='flex';
+      if(_hasPIN()){ const cr=_getCreds(); showPinScreen(cr?'':null); }
+    }
   }catch(err){
     clearTimeout(timeout);
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
+    if(_hasPIN()){ const cr=_getCreds(); showPinScreen(cr?'':null); }
   }
   sb.auth.onAuthStateChange(async(event,session)=>{
     if(event==='SIGNED_IN'&&session?.user){
