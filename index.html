@@ -709,9 +709,53 @@ setInterval(()=>{
       <div class="auth-sub" style="font-size:14px;color:var(--muted);margin-top:4px">تتبع عاداتك ومصاريفك<br>مع أصدقائك في مكان واحد 🌿</div>
     </div>
 
+
+<style>
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);transition:all 0.15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-dot.shake{animation:pin-shake 0.3s ease;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:220px;margin:0 auto;}
+.pin-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:16px;font-size:20px;font-weight:700;cursor:pointer;transition:all 0.12s;color:var(--text);}
+.pin-btn:active{transform:scale(0.92);background:var(--accent);color:white;border-color:var(--accent);}
+@keyframes pin-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+
     <!-- AUTH FORM -->
 
     <!-- Step 1: Email -->
+
+    <!-- PIN SCREEN -->
+    <div id="pd-pin-screen" style="display:none;text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="pin-username"></div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:18px;color:var(--text)">أدخل الرقم السري</div>
+      <!-- PIN dots -->
+      <div style="display:flex;justify-content:center;gap:14px;margin-bottom:24px">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <!-- Numpad -->
+      <div class="pin-pad">
+        <button class="pin-btn" onclick="pinPress('1')">1</button>
+        <button class="pin-btn" onclick="pinPress('2')">2</button>
+        <button class="pin-btn" onclick="pinPress('3')">3</button>
+        <button class="pin-btn" onclick="pinPress('4')">4</button>
+        <button class="pin-btn" onclick="pinPress('5')">5</button>
+        <button class="pin-btn" onclick="pinPress('6')">6</button>
+        <button class="pin-btn" onclick="pinPress('7')">7</button>
+        <button class="pin-btn" onclick="pinPress('8')">8</button>
+        <button class="pin-btn" onclick="pinPress('9')">9</button>
+        <button class="pin-btn" id="pin-bio-btn" onclick="tryBiometric()" style="font-size:22px">🪪</button>
+        <button class="pin-btn" onclick="pinPress('0')">0</button>
+        <button class="pin-btn" onclick="pinBackspace()" style="font-size:18px">⌫</button>
+      </div>
+      <div style="margin-top:16px">
+        <span style="font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline" onclick="pinLogout()">تسجيل الدخول بطريقة أخرى</span>
+      </div>
+      <div class="auth-err" id="pin-err" style="margin-top:10px"></div>
+    </div>
+
     <div id="pd-step1">
       <p class="pd-hint">أدخل إيميلك للمتابعة</p>
       <div class="auth-input-wrap">
@@ -1065,6 +1109,7 @@ setInterval(()=>{
           <div class="card" style="background:var(--surface2);">
             <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
+            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px;border-color:var(--accent);color:var(--accent)" onclick="resetPin()">🔢 تغيير الرقم السري</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
               <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
@@ -1900,6 +1945,153 @@ function editHabitNote(){
 function formatDate(dateStr){
   const d=new Date(dateStr+'T00:00:00');
   return d.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+
+// ── PIN / BIOMETRIC ───────────────────────────
+const PIN_KEY   = 'artrk_pin_hash';
+const CREDS_KEY = 'artrk_saved_creds';
+let pinBuffer = '';
+let pinMode = 'verify'; // 'verify' | 'set'
+
+function hasSavedPin(){
+  return !!localStorage.getItem(PIN_KEY);
+}
+function getSavedCreds(){
+  try{ return JSON.parse(localStorage.getItem(CREDS_KEY)); }catch(e){ return null; }
+}
+function hashPin(pin){
+  // simple hash (not crypto, just obfuscation)
+  let h = 0;
+  for(let i=0;i<pin.length;i++) h = (Math.imul(31,h)+pin.charCodeAt(i))|0;
+  return h.toString(36);
+}
+function savePinAndCreds(pin, email, pass){
+  localStorage.setItem(PIN_KEY, hashPin(pin));
+  localStorage.setItem(CREDS_KEY, btoa(JSON.stringify({email,pass})));
+}
+function clearPin(){
+  localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(CREDS_KEY);
+}
+
+function showPinScreen(name){
+  document.getElementById('pd-step1').style.display='none';
+  document.getElementById('pd-step-login').style.display='none';
+  document.getElementById('pd-step-register').style.display='none';
+  document.getElementById('pd-pin-screen').style.display='block';
+  document.getElementById('pin-username').textContent = name || '';
+  pinBuffer = '';
+  updatePinDots();
+  // Check biometric support
+  const bioBtn = document.getElementById('pin-bio-btn');
+  if(window.PublicKeyCredential){
+    bioBtn.style.display='flex';
+    // Try biometric automatically
+    setTimeout(tryBiometric, 500);
+  } else {
+    bioBtn.style.display='none';
+  }
+}
+
+function pinPress(d){
+  if(pinBuffer.length>=4) return;
+  pinBuffer += d;
+  updatePinDots();
+  if(pinBuffer.length===4){
+    setTimeout(()=> pinMode==='set' ? confirmSetPin() : verifyPin(), 100);
+  }
+}
+
+function pinBackspace(){
+  pinBuffer = pinBuffer.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pin-err').textContent='';
+}
+
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(d) d.className='pin-dot'+(i<pinBuffer.length?' filled':'');
+  }
+}
+
+function shakeDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(d){ d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),400); }
+  }
+  pinBuffer='';
+  updatePinDots();
+}
+
+async function verifyPin(){
+  const creds = getSavedCreds();
+  if(!creds){ pinLogout(); return; }
+  const stored = localStorage.getItem(PIN_KEY);
+  if(hashPin(pinBuffer) === stored){
+    // Correct! login with saved creds
+    try{
+      const decoded = JSON.parse(atob(creds));
+      document.getElementById('pin-err').textContent='';
+      const {data,error} = await sb.auth.signInWithPassword({email:decoded.email,password:decoded.pass});
+      if(data?.user){ /* onAuthStateChange handles it */ }
+      else { shakeDots(); document.getElementById('pin-err').textContent='حدث خطأ، سجّل الدخول بطريقة أخرى'; }
+    }catch(e){ shakeDots(); }
+  } else {
+    shakeDots();
+    document.getElementById('pin-err').textContent='رقم سري خاطئ ❌';
+  }
+}
+
+// Called after first login to let user set PIN
+function promptSetPin(){
+  const set = confirm('هل تريد تفعيل الرقم السري للدخول السريع؟');
+  if(!set) return;
+  const pin = prompt('اختر رقم سري من 4 أرقام:');
+  if(!pin || pin.length!==4 || !/^\d{4}$/.test(pin)){
+    alert('يجب أن يكون 4 أرقام'); return;
+  }
+  const email = document.getElementById('pd-email')?.value || document.getElementById('pd-email-show-login')?.textContent || '';
+  const pass  = document.getElementById('pd-pass')?.value || '';
+  if(email && pass) savePinAndCreds(pin, email, pass);
+  showToast('✅ تم تفعيل الرقم السري!');
+}
+
+function resetPin(){
+  clearPin();
+  showToast('✅ تم حذف الرقم السري — سيُطلب منك ضبط رقم جديد عند الدخول القادم');
+}
+function pinLogout(){
+  clearPin();
+  document.getElementById('pd-pin-screen').style.display='none';
+  document.getElementById('pd-step1').style.display='block';
+}
+
+async function tryBiometric(){
+  if(!window.PublicKeyCredential) return;
+  try{
+    const avail = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if(!avail) return;
+    // Use a simple get() to trigger biometric verification
+    const cred = await navigator.credentials.get({
+      publicKey:{
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: 'required',
+        rpId: location.hostname
+      }
+    }).catch(()=>null);
+    if(cred){
+      // Biometric verified — auto-login with saved creds
+      pinBuffer = 'BIO';
+      const creds = getSavedCreds();
+      if(creds){
+        const decoded = JSON.parse(atob(creds));
+        await sb.auth.signInWithPassword({email:decoded.email, password:decoded.pass});
+      }
+    }
+  }catch(e){}
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -2997,18 +3189,28 @@ async function confirmReset(){
 async function init(){
   const timeout = setTimeout(()=>{
     document.getElementById('loading-screen').style.display='none';
-    document.getElementById('auth-screen').style.display='flex';
+    // Show PIN if saved, else normal auth
+    if(hasSavedPin()){
+      document.getElementById('auth-screen').style.display='flex';
+      showPinScreen();
+    } else {
+      document.getElementById('auth-screen').style.display='flex';
+    }
   }, 4000);
   try{
     const {data:{session}} = await sb.auth.getSession();
     clearTimeout(timeout);
     document.getElementById('loading-screen').style.display='none';
     if(session?.user){ await startApp(session.user); }
-    else { document.getElementById('auth-screen').style.display='flex'; }
+    else {
+      document.getElementById('auth-screen').style.display='flex';
+      if(hasSavedPin()) showPinScreen();
+    }
   }catch(err){
     clearTimeout(timeout);
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
+    if(hasSavedPin()) showPinScreen();
   }
   sb.auth.onAuthStateChange(async(event,session)=>{
     if(event==='SIGNED_IN'&&session?.user){
