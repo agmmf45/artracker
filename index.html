@@ -221,6 +221,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);}
 .s-dot.filled{background:var(--green);border-color:var(--green);}
 .s-dot.today-d{background:var(--accent);border-color:var(--accent);}
+.s-dot.has-note::after{content:"";position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
 
 /* FRIENDS */
 .friends-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -292,6 +293,19 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.h-note-btn{font-size:10px;color:var(--muted);margin-top:4px;cursor:pointer;}
+.h-note-btn:hover{color:var(--accent);}
+
+.streak-period-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s;}
+.streak-period-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+.streak-date-row{display:flex;gap:3px;margin-bottom:3px;}
+.s-date-lbl{width:18px;font-size:8px;text-align:center;flex-shrink:0;line-height:1.2;}
+.streak-row{display:flex;gap:3px;flex-wrap:nowrap;}
+.s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;}
+.s-dot.filled{background:var(--green);border-color:var(--green);}
+.s-dot.today-d{background:var(--accent);border-color:var(--accent);}
+.s-dot.has-note::after{content:"";position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
+
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
@@ -819,8 +833,16 @@ setInterval(()=>{
       </div>
       <div class="habits-grid" id="my-habits-grid"></div>
       <div class="card">
-        <div class="sec-title">سجل الإنجاز — آخر 30 يوم</div>
-        <div id="my-streaks"></div>
+        <div class="flex-b" style="margin-bottom:12px">
+          <div class="sec-title" style="margin:0">📊 سجل الإنجاز</div>
+          <div style="display:flex;gap:6px">
+            <button class="streak-period-btn active" onclick="setStreakPeriod(7,this)">7</button>
+            <button class="streak-period-btn" onclick="setStreakPeriod(14,this)">14</button>
+            <button class="streak-period-btn" onclick="setStreakPeriod(30,this)">30</button>
+            <button class="streak-period-btn" onclick="setStreakPeriod(90,this)">90</button>
+          </div>
+        </div>
+        <div id="my-streaks" style="overflow-x:auto"></div>
       </div>
     </div>
 
@@ -1777,24 +1799,91 @@ function renderHabits(){
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
   el.innerHTML=list.map(h=>{
     const done=isDone(h.id);
+    const note=getHabitNote(h.id,selectedHabitsDate);
     return`<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
       <div class="done-badge">✓</div>
       <button class="del-btn" onclick="deleteHabit('${h.id}',event)">✕</button>
       <div class="h-icon">${h.icon}</div>
       <div class="h-name">${h.name}</div>
       <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
+      ${done?`<div class="h-note-btn" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,18)+(note.length>18?'...':''):'+ ملاحظة'}</div>`:''}
     </div>`;
   }).join('');
 }
+let streakDays = 7;
+function setStreakPeriod(n, btn){
+  streakDays = n;
+  document.querySelectorAll('.streak-period-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderStreaks();
+}
 function renderStreaks(){
   const list=getHabits(); const doneMap=myData.done||{};
-  const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const n = streakDays || 7;
+  const days=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
+  const step = n<=14?1:n<=30?3:7;
+  const makeDateRow = () => `<div class="streak-date-row">${days.map((day,i)=>{
+    const d=new Date(day+'T00:00:00'); const isT=day===todayKey();
+    const show = isT||i===0||i%step===0;
+    return `<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?900:500}">${d.getDate()}/${d.getMonth()+1}</div>`;
+  }).join('')}</div>`;
   el.innerHTML=list.map(h=>{
-    const dots=days.map(day=>{const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();return`<div class="s-dot ${done?(isT?'today-d':'filled'):''}"></div>`;}).join('');
-    return`<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)">${h.icon} ${h.name}</div><div class="streak-row">${dots}</div></div>`;
+    const dots=days.map(day=>{
+      const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();
+      const hasNote=getHabitNote(h.id,day);
+      return done
+        ?`<div class="s-dot ${isT?'today-d':'filled'}${hasNote?' has-note':''}" onclick="viewHabitDay('${h.id}','${day}',event)" style="cursor:pointer;position:relative"></div>`
+        :`<div class="s-dot"></div>`;
+    }).join('');
+    return`<div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">${h.icon} ${h.name}</div>
+      ${makeDateRow()}
+      <div class="streak-row">${dots}</div>
+    </div>`;
   }).join('');
+}
+
+
+// ── HABIT NOTES ───────────────────────────────
+let hnHabitId=null, hnDate=null;
+function getHabitNote(habitId, date){ return (myData.habit_notes||{})[date+':'+habitId]||''; }
+function openHabitNote(habitId, e){
+  e.stopPropagation();
+  hnHabitId=habitId; hnDate=selectedHabitsDate;
+  const h=getHabits().find(h=>h.id===habitId);
+  document.getElementById('hn-title').textContent=(h?h.icon+' '+h.name:'ملاحظة');
+  document.getElementById('hn-date').textContent=hnDate;
+  document.getElementById('hn-text').value=getHabitNote(habitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
+}
+function closeHabitNote(){ document.getElementById('habit-note-modal').style.display='none'; }
+function saveHabitNote(){
+  const text=document.getElementById('hn-text').value.trim();
+  if(!myData.habit_notes) myData.habit_notes={};
+  if(text) myData.habit_notes[hnDate+':'+hnHabitId]=text;
+  else delete myData.habit_notes[hnDate+':'+hnHabitId];
+  saveMyData(); closeHabitNote(); renderHabits(); renderStreaks();
+}
+function viewHabitDay(habitId, date, e){
+  e.stopPropagation();
+  hnHabitId=habitId; hnDate=date;
+  const h=getHabits().find(h=>h.id===habitId);
+  document.getElementById('hd-title').textContent=h?h.icon+' '+h.name:'عادة';
+  document.getElementById('hd-date').textContent=date;
+  document.getElementById('hd-note').textContent=getHabitNote(habitId,date)||'لا توجد ملاحظة';
+  document.getElementById('habit-day-modal').style.display='flex';
+}
+function editHabitDayNote(){
+  closeModal('habit-day-modal');
+  const h=getHabits().find(h=>h.id===hnHabitId);
+  document.getElementById('hn-title').textContent=h?h.icon+' '+h.name:'ملاحظة';
+  document.getElementById('hn-date').textContent=hnDate;
+  document.getElementById('hn-text').value=getHabitNote(hnHabitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -2909,5 +2998,34 @@ function init(){
 }
 init();
 </script>
+
+<!-- HABIT NOTE MODAL -->
+<div class="modal-ov" id="habit-note-modal" onclick="if(event.target===this)closeHabitNote()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="flex-b" style="margin-bottom:14px">
+      <div style="font-size:16px;font-weight:900" id="hn-title">📝 ملاحظة</div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeHabitNote()">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="hn-date"></div>
+    <textarea class="fi" id="hn-text" placeholder="اكتب ملاحظتك عن هذه العادة اليوم..." rows="4" style="resize:none;width:100%;font-size:14px;line-height:1.6"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p" style="flex:1" onclick="saveHabitNote()">💾 حفظ</button>
+      <button class="btn btn-s" style="flex:1" onclick="closeHabitNote()">إلغاء</button>
+    </div>
+  </div>
+</div>
+<!-- HABIT DAY MODAL -->
+<div class="modal-ov" id="habit-day-modal" onclick="if(event.target===this)closeModal('habit-day-modal')">
+  <div class="modal-box" style="max-width:360px">
+    <div class="flex-b" style="margin-bottom:14px">
+      <div style="font-size:16px;font-weight:900" id="hd-title"></div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('habit-day-modal')">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="hd-date"></div>
+    <div id="hd-note" style="background:var(--surface2);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px"></div>
+    <button class="btn btn-s btn-sm" style="width:100%;margin-top:12px" onclick="editHabitDayNote()">✏️ تعديل</button>
+  </div>
+</div>
+
 </body>
 </html>
