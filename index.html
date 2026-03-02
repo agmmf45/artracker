@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="مساري">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQwIiBmaWxsPSIjQjQ1MzA5Ii8+CiAgPHRleHQgeD0iOTYiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZmlsbD0id2hpdGUiPtmFPC90ZXh0Pgo8L3N2Zz4=">
 <title>Artrk</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1444,11 +1444,11 @@ function formatDateBilingual(dateStr) {
 
 function updateDateDisplays() {
   const hd = formatDateBilingual(selectedHabitsDate);
-  document.getElementById('habits-date-ar').textContent = hd.ar;
-  document.getElementById('habits-date-en').textContent = hd.en;
+  const el1 = document.getElementById('habits-date-ar'); if(el1) el1.textContent = hd.ar;
+  const el2 = document.getElementById('habits-date-en'); if(el2) el2.textContent = hd.en;
   const ed = formatDateBilingual(selectedExpenseDate);
-  document.getElementById('exp-date-ar').textContent = ed.ar;
-  document.getElementById('exp-date-en').textContent = ed.en;
+  const el3 = document.getElementById('exp-date-ar'); if(el3) el3.textContent = ed.ar;
+  const el4 = document.getElementById('exp-date-en'); if(el4) el4.textContent = ed.en;
 }
 
 // ── HIJRI CALENDAR ────────────────────────────
