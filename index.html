@@ -1734,26 +1734,25 @@ function saveToCache(userId){
 }
 
 async function loadMyData(){
-  // 1. Load from cache instantly (so UI shows immediately)
+  // 1. Load from cache instantly
   const hadCache = loadFromCache(currentUser.id);
   if(hadCache) applyDefaults();
 
-  // 2. Load from DB (may be slower)
+  // 2. Load from DB with 5s timeout
   try{
-    const {data} = await sb.from('users')
-      .select('data')
-      .eq('id', currentUser.id)
-      .single();
-
+    const {data} = await Promise.race([
+      sb.from('users').select('data').eq('id', currentUser.id).single(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+    ]);
     if(data?.data){
       myData = data.data;
       applyDefaults();
-      saveToCache(currentUser.id); // update cache
+      saveToCache(currentUser.id);
     } else {
       applyDefaults();
     }
   } catch(e){
-    console.warn('⚠️ DB load failed, using cache:', e);
+    console.warn('⚠️ DB load failed, using cache:', e.message);
     if(!hadCache) applyDefaults();
   }
 }
@@ -3239,8 +3238,11 @@ function init(){
     }
   });
 
-  // Check session on load — don't wait for onAuthStateChange
-  sb.auth.getSession().then(({data:{session}})=>{
+  // Check session on load — with 5s timeout
+  Promise.race([
+    sb.auth.getSession(),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+  ]).then(({data:{session}})=>{
     if(session?.user){
       if(_hasPIN()){
         document.getElementById('auth-screen').style.display='flex';
