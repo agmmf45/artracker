@@ -292,6 +292,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.s-dot.has-note{position:relative;}
+.s-dot.has-note::after{content:'';position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
+.h-note-btn{font-size:10px;color:var(--muted);margin-top:4px;cursor:pointer;transition:color 0.15s;}
+.h-note-btn:hover{color:var(--accent);}
+
+.req-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--surface);display:none;}
+
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
@@ -830,6 +837,11 @@ setInterval(()=>{
         <div class="ph2">👥 أهداف الأصدقاء</div>
         <div class="psub2">شوف إنجازات الجميع اليوم</div>
       </div>
+      <!-- Incoming requests shown here -->
+      <div id="friends-req-card" style="display:none;background:var(--surface);border:1.5px solid var(--red);border-radius:var(--r);padding:16px;margin-bottom:18px;box-shadow:var(--shadow)">
+        <div style="font-size:13px;font-weight:900;margin-bottom:12px;color:var(--red)">🔔 طلبات صداقة جديدة</div>
+        <div id="friends-req-list"></div>
+      </div>
       <div class="friends-grid" id="friends-grid"></div>
     </div>
 
@@ -1179,7 +1191,7 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span class="tab-label">العادات</span>
     </div>
-    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">
+    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)" style="position:relative"><span class="req-dot" id="req-dot"></span>
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
       <span class="tab-label">الأصدقاء</span>
     </div>
@@ -1756,12 +1768,14 @@ function renderHabits(){
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
   el.innerHTML=list.map(h=>{
     const done=isDone(h.id);
+    const note=getHabitNote(h.id, selectedHabitsDate);
     return`<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
       <div class="done-badge">✓</div>
       <button class="del-btn" onclick="deleteHabit('${h.id}',event)">✕</button>
       <div class="h-icon">${h.icon}</div>
       <div class="h-name">${h.name}</div>
       <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
+      ${done?`<div class="h-note-btn" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,20)+(note.length>20?'...':''):'+ ملاحظة'}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -1771,9 +1785,79 @@ function renderStreaks(){
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
   el.innerHTML=list.map(h=>{
-    const dots=days.map(day=>{const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();return`<div class="s-dot ${done?(isT?'today-d':'filled'):''}"></div>`;}).join('');
+    const dots=days.map(day=>{
+      const done=doneMap[day]&&doneMap[day][h.id];
+      const isT=day===todayKey();
+      const hasNote=getHabitNote(h.id,day);
+      const cls=done?(isT?'today-d':'filled'):'';
+      return done
+        ? `<div class="s-dot ${cls}${hasNote?' has-note':''}" title="${day}" onclick="viewHabitDay('${h.id}','${day}',event)" style="cursor:pointer"></div>`
+        : `<div class="s-dot"></div>`;
+    }).join('');
     return`<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)">${h.icon} ${h.name}</div><div class="streak-row">${dots}</div></div>`;
   }).join('');
+}
+
+
+// ── HABIT NOTES ───────────────────────────────
+let hnHabitId=null, hnDate=null;
+
+function getHabitNote(habitId, date){
+  return (myData.habit_notes||{})[date+':'+habitId] || '';
+}
+
+function openHabitNote(habitId, e){
+  e.stopPropagation();
+  hnHabitId=habitId; hnDate=selectedHabitsDate;
+  const h=getHabits().find(h=>h.id===habitId);
+  document.getElementById('hn-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hn-date').textContent=formatDate(hnDate);
+  document.getElementById('hn-text').value=getHabitNote(habitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
+}
+
+function closeHabitNote(){
+  document.getElementById('habit-note-modal').style.display='none';
+}
+
+function saveHabitNote(){
+  const text=document.getElementById('hn-text').value.trim();
+  if(!myData.habit_notes) myData.habit_notes={};
+  if(text) myData.habit_notes[hnDate+':'+hnHabitId]=text;
+  else delete myData.habit_notes[hnDate+':'+hnHabitId];
+  saveMyData();
+  closeHabitNote();
+  renderHabits();
+  renderStreaks();
+}
+
+function viewHabitDay(habitId, date, e){
+  e.stopPropagation();
+  const h=getHabits().find(h=>h.id===habitId);
+  const note=getHabitNote(habitId,date);
+  document.getElementById('hd-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hd-date').textContent=formatDate(date);
+  document.getElementById('hd-note').textContent=note||'لا توجد ملاحظة لهذا اليوم';
+  // store for edit button
+  hnHabitId=habitId; hnDate=date;
+  document.getElementById('habit-day-modal').style.display='flex';
+}
+
+function editHabitNote(){
+  closeModal('habit-day-modal');
+  // reuse note modal
+  const h=getHabits().find(h=>h.id===hnHabitId);
+  document.getElementById('hn-title').textContent=`${h?h.icon:''} ${h?h.name:'عادة'}`;
+  document.getElementById('hn-date').textContent=formatDate(hnDate);
+  document.getElementById('hn-text').value=getHabitNote(hnHabitId,hnDate);
+  document.getElementById('habit-note-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('hn-text').focus(),100);
+}
+
+function formatDate(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -1836,55 +1920,35 @@ async function sendFriendRequest(){
   if(code.length!==6){ showMsg(msgEl,'الكود يجب أن يكون 6 أحرف','err'); return; }
   if(code===myData.friend_code){ showMsg(msgEl,'هذا كودك أنت! 😄','warn'); return; }
   if((myData.friends||[]).includes(code)){ showMsg(msgEl,'أنتم أصدقاء مسبقاً ✅','warn'); return; }
-  if((myData.sent_requests||[]).includes(code)){ showMsg(msgEl,'أرسلت طلباً مسبقاً ⏳','warn'); return; }
 
   const found = allUsers.find(u=>u.friend_code===code);
   if(!found){ showMsg(msgEl,'لم يُعثر على هذا الكود ❌','err'); return; }
 
-  // Check if they already sent me a request → auto accept = become friends!
-  const theyRequested = (found.sent_requests||[]).includes(myData.friend_code);
-  if(theyRequested){
-    // Mutual! Add as friends on both sides
-    if(!myData.friends) myData.friends=[];
-    if(!myData.incoming_requests) myData.incoming_requests=[];
-    myData.friends.push(code);
-    myData.incoming_requests = myData.incoming_requests.filter(c=>c!==code);
-    await saveMyData();
-    document.getElementById('friend-code-input').value='';
-    showMsg(msgEl,`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`,'ok');
-    showToast(`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`);
-    renderFriendsList(); renderFriends(); renderIncomingRequests();
-    return;
-  }
-
-  // Send request — add my code to their incoming_requests
-  if(!myData.sent_requests) myData.sent_requests=[];
-  myData.sent_requests.push(code);
-
-  // Push to their data too
-  const theirData = {...found};
-  if(!theirData.incoming_requests) theirData.incoming_requests=[];
-  if(!theirData.incoming_requests.includes(myData.friend_code)){
-    theirData.incoming_requests.push(myData.friend_code);
-    // Save to their record
-    const theirUser = allUsers.find(u=>u.friend_code===code);
-    if(theirUser){
-      const theirFullData = {...theirUser};
-      delete theirFullData.name; delete theirFullData.updated_at;
-      theirFullData.incoming_requests = theirData.incoming_requests;
-      await sb.from('users').update({data: theirFullData}).eq('id', await getUserIdByCode(code));
-    }
-  }
-
+  // Add to my friends
+  if(!myData.friends) myData.friends=[];
+  myData.friends.push(code);
   await saveMyData();
+
+  // Add me to their friends too
+  const uid = await getUserIdByCode(code);
+  if(uid){
+    const theirFullData = {...found};
+    delete theirFullData.name; delete theirFullData.updated_at;
+    if(!theirFullData.friends) theirFullData.friends=[];
+    if(!theirFullData.friends.includes(myData.friend_code)){
+      theirFullData.friends.push(myData.friend_code);
+    }
+    await sb.from('users').update({data: theirFullData}).eq('id', uid);
+  }
+
   document.getElementById('friend-code-input').value='';
-  showMsg(msgEl,`📨 تم إرسال الطلب إلى ${found.display_name||found.name}!`,'ok');
-  showToast(`📨 أُرسل الطلب!`);
-  renderFriendsList();
+  showMsg(msgEl,`🎉 تمت إضافة ${found.display_name||found.name} كصديق!`,'ok');
+  showToast(`🎉 ${found.display_name||found.name} صديق جديد!`);
+  renderFriendsList(); renderFriends();
 }
 
 async function getUserIdByCode(code){
-  const {data} = await sb.from('users').select('id, data').eq('data->>friend_code', code).single();
+  const {data} = await sb.from('users').select('id').filter('data->>friend_code', 'eq', code).single();
   return data?.id;
 }
 
@@ -1937,32 +2001,57 @@ function showMsg(el, msg, type){
 
 function renderIncomingRequests(){
   const incoming = (myData.incoming_requests||[]);
+
+  // Red dot on tab
+  const dot = document.getElementById('req-dot');
+  if(dot) dot.style.display = incoming.length ? 'block' : 'none';
+
+  // Profile page card
   const card = document.getElementById('requests-card');
   const list = document.getElementById('incoming-requests-list');
   const badge = document.getElementById('req-badge');
-  if(!incoming.length){ card.style.display='none'; return; }
-  card.style.display='block';
-  badge.textContent = incoming.length;
+
+  // Friends page card
+  const fCard = document.getElementById('friends-req-card');
+  const fList = document.getElementById('friends-req-list');
+
+  if(!incoming.length){
+    if(card) card.style.display='none';
+    if(fCard) fCard.style.display='none';
+    return;
+  }
+
+  if(badge) badge.textContent = incoming.length;
+  if(card) card.style.display='block';
+
   const senders = allUsers.filter(u=>incoming.includes(u.friend_code));
-  if(!senders.length){ list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">لا يوجد طلبات</p>'; return; }
-  list.innerHTML = senders.map(u=>{
+  if(!senders.length){
+    if(list) list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">جاري التحميل...</p>';
+    if(fCard) fCard.style.display='none';
+    return;
+  }
+
+  const html = senders.map(u=>{
     const av = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
-    return `<div class="friend-list-item">
-      <div style="display:flex;align-items:center;gap:10px;flex:1">
+      ? `<img src="${u.avatar_photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:44px;height:44px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
+    return `<div class="friend-list-item" style="padding:10px 0">
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
         ${av}
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
-          <div style="font-size:11px;color:var(--muted)">يريد إضافتك صديقاً</div>
+          <div style="font-size:15px;font-weight:800">${u.display_name||u.name}</div>
+          <div style="font-size:12px;color:var(--muted)">يريد إضافتك صديقاً 🤝</div>
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="btn btn-p btn-sm" style="padding:6px 12px;font-size:12px" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
-        <button class="btn btn-s btn-sm" style="padding:6px 12px;font-size:12px" onclick="rejectRequest('${u.friend_code}')">❌ رفض</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;margin-top:8px">
+        <button class="btn btn-p btn-sm" style="flex:1;padding:8px;font-size:13px;font-weight:800" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
+        <button class="btn btn-s btn-sm" style="padding:8px 12px;font-size:13px" onclick="rejectRequest('${u.friend_code}')">❌</button>
       </div>
     </div>`;
   }).join('');
+
+  if(list) list.innerHTML = html;
+  if(fCard){ fCard.style.display='block'; if(fList) fList.innerHTML=html; }
 }
 
 function renderFriendsList(){
@@ -2893,5 +2982,36 @@ async function init(){
 }
 init();
 </script>
+
+<!-- MODAL: Habit Note -->
+<div class="modal-ov" id="habit-note-modal" onclick="if(event.target===this)closeHabitNote()">
+  <div class="modal-box" style="max-width:380px">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:18px;font-weight:900" id="hn-title">📝 ملاحظة اليوم</div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeHabitNote()">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="hn-date"></div>
+    <textarea class="fi" id="hn-text" placeholder="اكتب ملاحظتك عن هذه العادة اليوم..." 
+      rows="4" style="resize:none;width:100%;font-size:14px;line-height:1.6"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p" style="flex:1" onclick="saveHabitNote()">💾 حفظ</button>
+      <button class="btn btn-s" style="flex:1" onclick="closeHabitNote()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: View Habit Day -->
+<div class="modal-ov" id="habit-day-modal" onclick="if(event.target===this)closeModal('habit-day-modal')">
+  <div class="modal-box" style="max-width:380px">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:18px;font-weight:900" id="hd-title"></div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('habit-day-modal')">✕</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px" id="hd-date"></div>
+    <div id="hd-note" style="background:var(--surface2);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px;color:var(--text)"></div>
+    <button class="btn btn-s btn-sm" style="width:100%;margin-top:12px" onclick="editHabitNote()">✏️ تعديل الملاحظة</button>
+  </div>
+</div>
+
 </body>
 </html>
