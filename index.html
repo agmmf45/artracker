@@ -292,54 +292,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1917;color:white;padding:10px 22px;border-radius:99px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-/* ── Privacy blur ── */
-.priv-blur{filter:blur(5px);user-select:none;pointer-events:none;opacity:0.5;}
-.priv-habits-blur{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px;filter:blur(6px);opacity:0.4;pointer-events:none;}
-/* ── Privacy toggles ── */
-.priv-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:12px;}
-.priv-label{font-size:13px;font-weight:700;}
-.priv-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0;}
-.toggle-sw input{opacity:0;width:0;height:0;}
-.toggle-sl{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:99px;transition:.3s;}
-.toggle-sl:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
-.toggle-sw input:checked+.toggle-sl{background:var(--accent);}
-.toggle-sw input:checked+.toggle-sl:before{transform:translateX(20px);}
-/* ── Shared todos ── */
-.std-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
-.std-item:last-child{border-bottom:none;}
-.std-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.15s;}
-.std-check.done{background:var(--accent);border-color:var(--accent);color:white;}
-.std-text{flex:1;font-size:14px;}
-.std-text.done{text-decoration:line-through;color:var(--muted);}
-.std-meta{font-size:10px;color:var(--muted);margin-top:2px;}
-.std-del{color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
-.std-del:hover{color:var(--red);}
-.shared-todo-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;margin-top:10px;color:var(--text);}
-.shared-todo-btn:hover{border-color:var(--accent);color:var(--accent);}
-/* ── Streak ── */
-.streak-row{display:flex;gap:3px;flex-wrap:nowrap;}
-.s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;}
-.s-dot.filled{background:var(--green);border-color:var(--green);}
-.s-dot.today-d{background:var(--accent);border-color:var(--accent);}
-.s-dot.has-note::after{content:'';position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;}
-.streak-date-row{display:flex;gap:3px;margin-bottom:3px;}
-.s-date-lbl{width:18px;font-size:8px;text-align:center;flex-shrink:0;line-height:1.2;overflow:hidden;}
-.streak-period-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s;}
-.streak-period-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
-.h-note-btn{font-size:10px;color:var(--muted);margin-top:4px;cursor:pointer;}
-.h-note-btn:hover{color:var(--accent);}
-/* ── Requests red dot ── */
-.req-dot{position:absolute;top:5px;right:5px;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--surface);display:none;}
-/* ── PIN ── */
-.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);transition:.15s;}
-.pin-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15);}
-.pin-dot.error{background:var(--red);border-color:var(--red);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:210px;margin:0 auto;}
-.pin-key{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:15px 10px;font-size:22px;font-weight:700;cursor:pointer;color:var(--text);transition:.12s;-webkit-tap-highlight-color:transparent;}
-.pin-key:active{transform:scale(0.9);background:var(--accent);color:white;border-color:var(--accent);}
-@keyframes pin-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-
 /* wallet stats */
 .ws-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .ws-cat-label{font-size:13px;font-weight:700;min-width:90px;color:var(--text);}
@@ -741,24 +693,6 @@ setInterval(()=>{
     <!-- AUTH FORM -->
 
     <!-- Step 1: Email -->
-
-    <!-- PIN SCREEN -->
-    <div id="pd-pin-screen" style="display:none;text-align:center">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="pin-user-name"></div>
-      <div style="font-size:15px;font-weight:800;margin-bottom:20px">أدخل الرقم السري</div>
-      <div style="display:flex;justify-content:center;gap:14px;margin-bottom:22px">
-        <div class="pin-dot" id="pind0"></div><div class="pin-dot" id="pind1"></div>
-        <div class="pin-dot" id="pind2"></div><div class="pin-dot" id="pind3"></div>
-      </div>
-      <div class="pin-pad">
-        <button class="pin-key" onclick="pinKey('1')">1</button><button class="pin-key" onclick="pinKey('2')">2</button><button class="pin-key" onclick="pinKey('3')">3</button>
-        <button class="pin-key" onclick="pinKey('4')">4</button><button class="pin-key" onclick="pinKey('5')">5</button><button class="pin-key" onclick="pinKey('6')">6</button>
-        <button class="pin-key" onclick="pinKey('7')">7</button><button class="pin-key" onclick="pinKey('8')">8</button><button class="pin-key" onclick="pinKey('9')">9</button>
-        <div></div><button class="pin-key" onclick="pinKey('0')">0</button><button class="pin-key" onclick="pinKey('del')" style="font-size:20px">⌫</button>
-      </div>
-      <div class="auth-err" id="pin-err" style="margin-top:14px"></div>
-      <div style="margin-top:14px"><span onclick="pinUsePassword()" style="font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline">استخدم كلمة السر</span></div>
-    </div>
     <div id="pd-step1">
       <p class="pd-hint">أدخل إيميلك للمتابعة</p>
       <div class="auth-input-wrap">
@@ -885,16 +819,8 @@ setInterval(()=>{
       </div>
       <div class="habits-grid" id="my-habits-grid"></div>
       <div class="card">
-        <div class="flex-b" style="margin-bottom:12px">
-          <div class="sec-title" style="margin:0">📊 سجل الإنجاز</div>
-          <div style="display:flex;gap:6px">
-            <button class="streak-period-btn active" onclick="setStreakPeriod(7,this)">7</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(14,this)">14</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(30,this)">30</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(90,this)">90</button>
-          </div>
-        </div>
-        <div id="my-streaks" style="overflow-x:auto"></div>
+        <div class="sec-title">سجل الإنجاز — آخر 30 يوم</div>
+        <div id="my-streaks"></div>
       </div>
     </div>
 
@@ -903,10 +829,6 @@ setInterval(()=>{
       <div class="page-header">
         <div class="ph2">👥 أهداف الأصدقاء</div>
         <div class="psub2">شوف إنجازات الجميع اليوم</div>
-      </div>
-      <div id="friends-req-card" style="display:none;background:var(--surface);border:1.5px solid var(--red);border-radius:var(--r);padding:16px;margin-bottom:18px;box-shadow:var(--shadow)">
-        <div style="font-size:13px;font-weight:900;margin-bottom:12px;color:var(--red)">🔔 طلبات صداقة</div>
-        <div id="friends-req-list"></div>
       </div>
       <div class="friends-grid" id="friends-grid"></div>
     </div>
@@ -1107,16 +1029,9 @@ setInterval(()=>{
             <div id="my-friends-list"><div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div></div>
           </div>
 
-          <!-- Privacy -->
-          <div class="card">
-            <div class="sec-title">🔒 ما يشوفه أصدقائي</div>
-            <div id="privacy-toggles" style="display:flex;flex-direction:column;gap:10px;margin-top:4px"></div>
-            <button class="btn btn-p btn-sm" style="width:100%;margin-top:14px" onclick="savePrivacy()">💾 حفظ</button>
-          </div>
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
             <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
-            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" id="pin-profile-btn" onclick="openPinFromProfile()">🔢 تفعيل الرقم السري</button>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -1264,7 +1179,7 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span class="tab-label">العادات</span>
     </div>
-    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)" style="position:relative"><span class="req-dot" id="req-dot"></span>
+    <div class="top-tab" id="tab-friends" onclick="showPage('friends',this)">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
       <span class="tab-label">الأصدقاء</span>
     </div>
@@ -1453,14 +1368,12 @@ function formatDateBilingual(dateStr) {
 }
 
 function updateDateDisplays() {
-  try{
-    const hd = formatDateBilingual(selectedHabitsDate);
-    const e1=document.getElementById('habits-date-ar'); if(e1) e1.textContent=hd.ar;
-    const e2=document.getElementById('habits-date-en'); if(e2) e2.textContent=hd.en;
-    const ed = formatDateBilingual(selectedExpenseDate);
-    const e3=document.getElementById('exp-date-ar'); if(e3) e3.textContent=ed.ar;
-    const e4=document.getElementById('exp-date-en'); if(e4) e4.textContent=ed.en;
-  }catch(e){}
+  const hd = formatDateBilingual(selectedHabitsDate);
+  document.getElementById('habits-date-ar').textContent = hd.ar;
+  document.getElementById('habits-date-en').textContent = hd.en;
+  const ed = formatDateBilingual(selectedExpenseDate);
+  document.getElementById('exp-date-ar').textContent = ed.ar;
+  document.getElementById('exp-date-en').textContent = ed.en;
 }
 
 // ── HIJRI CALENDAR ────────────────────────────
@@ -1687,8 +1600,6 @@ async function doLogin(){
   const {error} = await sb.auth.signInWithPassword({email, password:pass});
   if(btn){btn.textContent='دخول ←';btn.disabled=false;}
   if(error){ showErr('login-err','كلمة السر غلط، حاول مجدداً'); return; }
-  _saveCreds(email,pass);
-  if(!_hasPIN()) setTimeout(()=>openPinFromProfile(),1500);
 }
 async function doLogout(){
   if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
@@ -1734,25 +1645,26 @@ function saveToCache(userId){
 }
 
 async function loadMyData(){
-  // 1. Load from cache instantly
+  // 1. Load from cache instantly (so UI shows immediately)
   const hadCache = loadFromCache(currentUser.id);
   if(hadCache) applyDefaults();
 
-  // 2. Load from DB with 5s timeout
+  // 2. Load from DB (may be slower)
   try{
-    const {data} = await Promise.race([
-      sb.from('users').select('data').eq('id', currentUser.id).single(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-    ]);
+    const {data} = await sb.from('users')
+      .select('data')
+      .eq('id', currentUser.id)
+      .single();
+
     if(data?.data){
       myData = data.data;
       applyDefaults();
-      saveToCache(currentUser.id);
+      saveToCache(currentUser.id); // update cache
     } else {
       applyDefaults();
     }
   } catch(e){
-    console.warn('⚠️ DB load failed, using cache:', e.message);
+    console.warn('⚠️ DB load failed, using cache:', e);
     if(!hadCache) applyDefaults();
   }
 }
@@ -1865,259 +1777,24 @@ function renderHabits(){
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
   el.innerHTML=list.map(h=>{
     const done=isDone(h.id);
-    const note=getHabitNote(h.id,selectedHabitsDate);
     return`<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
       <div class="done-badge">✓</div>
       <button class="del-btn" onclick="deleteHabit('${h.id}',event)">✕</button>
       <div class="h-icon">${h.icon}</div>
       <div class="h-name">${h.name}</div>
       <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
-      ${done?`<div class="h-note-btn" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,18)+(note.length>18?'...':''):'+ ملاحظة'}</div>`:''}
     </div>`;
   }).join('');
 }
 function renderStreaks(){
-  const list=getHabits();const doneMap=myData.done||{};
-  const n=streakDays||7;
-  const days=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const list=getHabits(); const doneMap=myData.done||{};
+  const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
-  const step=n<=14?1:n<=30?3:7;
-  const makeDateRow=()=>`<div class="streak-date-row">${days.map((day,i)=>{
-    const d=new Date(day+'T00:00:00');const isT=day===todayKey();const show=isT||i===0||i%step===0;
-    return`<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?'900':'500'}">${d.getDate()}/${d.getMonth()+1}</div>`;
-  }).join('')}</div>`;
   el.innerHTML=list.map(h=>{
-    const dots=days.map(day=>{
-      const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();
-      const hasNote=getHabitNote(h.id,day);const cls=done?(isT?'today-d':'filled'):'';
-      return done
-        ?`<div class="s-dot ${cls}${hasNote?' has-note':''}" onclick="viewHabitDay('${h.id}','${day}',event)" style="cursor:pointer;position:relative"></div>`
-        :`<div class="s-dot"></div>`;
-    }).join('');
-    return`<div style="margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">${h.icon} ${h.name}</div>
-      ${makeDateRow()}
-      <div class="streak-row">${dots}</div>
-    </div>`;
+    const dots=days.map(day=>{const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();return`<div class="s-dot ${done?(isT?'today-d':'filled'):''}"></div>`;}).join('');
+    return`<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)">${h.icon} ${h.name}</div><div class="streak-row">${dots}</div></div>`;
   }).join('');
-}
-
-
-// ── PRIVACY ───────────────────────────────────
-const PRIVACY_OPTIONS=[
-  {key:'show_habits',label:'العادات',sub:'عادات اليوم وإنجازاتك'},
-  {key:'show_stats',label:'الإحصائيات',sub:'نسبة الإنجاز'},
-  {key:'show_expenses',label:'المصاريف',sub:'إجمالي الإنفاق'},
-  {key:'show_note',label:'النوت',sub:'رسالتك للأصدقاء'},
-];
-function getPrivacy(key){return (myData.privacy||{})[key]!==false;}
-function renderPrivacyToggles(){
-  const el=document.getElementById('privacy-toggles');if(!el)return;
-  el.innerHTML=PRIVACY_OPTIONS.map(o=>`
-    <div class="priv-row">
-      <div><div class="priv-label">${o.label}</div><div class="priv-sub">${o.sub}</div></div>
-      <label class="toggle-sw"><input type="checkbox" id="priv-${o.key}" ${getPrivacy(o.key)?'checked':''}><span class="toggle-sl"></span></label>
-    </div>`).join('');
-}
-function savePrivacy(){
-  if(!myData.privacy)myData.privacy={};
-  PRIVACY_OPTIONS.forEach(o=>{const el=document.getElementById('priv-'+o.key);if(el)myData.privacy[o.key]=el.checked;});
-  saveMyData();
-}
-
-// ── SHARED TODOS ──────────────────────────────
-let stdListId=null,stdPollTimer=null;
-function getListId(a,b){return [a,b].sort().join('_');}
-function openSharedTodo(friendCode,friendName){
-  stdListId=getListId(myData.friend_code,friendCode);
-  document.getElementById('std-title').textContent='قائمة مشتركة';
-  document.getElementById('std-subtitle').textContent='أنت و '+friendName;
-  document.getElementById('std-input').value='';
-  document.getElementById('shared-todo-modal').style.display='flex';
-  loadSharedTodos();
-  if(stdPollTimer)clearInterval(stdPollTimer);
-  stdPollTimer=setInterval(loadSharedTodos,5000);
-  setTimeout(()=>document.getElementById('std-input').focus(),100);
-}
-function closeSharedTodo(){
-  document.getElementById('shared-todo-modal').style.display='none';
-  if(stdPollTimer){clearInterval(stdPollTimer);stdPollTimer=null;}
-}
-async function loadSharedTodos(){
-  if(!stdListId)return;
-  try{const {data}=await sb.from('shared_todos').select('*').eq('list_id',stdListId).order('created_at',{ascending:true});renderSharedTodos(data||[]);}catch(e){}
-}
-function renderSharedTodos(todos){
-  const el=document.getElementById('std-list');
-  if(!todos.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">لا توجد مهام — أضف أول مهمة! 🎯</div>';return;}
-  el.innerHTML=todos.map(t=>`
-    <div class="std-item">
-      <div class="std-check ${t.done?'done':''}" onclick="toggleSharedTodo(${t.id},${t.done})">${t.done?'✓':''}</div>
-      <div style="flex:1;min-width:0">
-        <div class="std-text ${t.done?'done':''}">${t.text}</div>
-        <div class="std-meta">${t.created_by}${t.done&&t.done_by?' · ✅ '+t.done_by:''}</div>
-      </div>
-      <div class="std-del" onclick="deleteSharedTodo(${t.id})">🗑</div>
-    </div>`).join('');
-}
-async function addSharedTodo(){
-  const input=document.getElementById('std-input');const text=input.value.trim();if(!text)return;
-  input.value='';
-  try{await sb.from('shared_todos').insert({list_id:stdListId,text,created_by:myData.display_name||'أنا',done:false});loadSharedTodos();}catch(e){showToast('❌ تعذّرت الإضافة');}
-}
-async function toggleSharedTodo(id,done){
-  try{await sb.from('shared_todos').update({done:!done,done_by:!done?(myData.display_name||'أنا'):''}).eq('id',id);loadSharedTodos();}catch(e){}
-}
-async function deleteSharedTodo(id){
-  try{await sb.from('shared_todos').delete().eq('id',id);loadSharedTodos();}catch(e){}
-}
-
-// ── HABIT NOTES ───────────────────────────────
-let hnHabitId=null,hnDate=null;
-function getHabitNote(habitId,date){return (myData.habit_notes||{})[date+':'+habitId]||'';}
-function openHabitNote(habitId,e){
-  e.stopPropagation();
-  hnHabitId=habitId;hnDate=selectedHabitsDate;
-  const h=getHabits().find(h=>h.id===habitId);
-  document.getElementById('hn-title').textContent=(h?h.icon+' '+h.name:'ملاحظة');
-  document.getElementById('hn-date').textContent=hnDate;
-  document.getElementById('hn-text').value=getHabitNote(habitId,hnDate);
-  document.getElementById('habit-note-modal').style.display='flex';
-  setTimeout(()=>document.getElementById('hn-text').focus(),100);
-}
-function closeHabitNote(){document.getElementById('habit-note-modal').style.display='none';}
-function saveHabitNote(){
-  const text=document.getElementById('hn-text').value.trim();
-  if(!myData.habit_notes)myData.habit_notes={};
-  if(text)myData.habit_notes[hnDate+':'+hnHabitId]=text;
-  else delete myData.habit_notes[hnDate+':'+hnHabitId];
-  saveMyData();closeHabitNote();renderHabits();renderStreaks();
-}
-function viewHabitDay(habitId,date,e){
-  e.stopPropagation();
-  hnHabitId=habitId;hnDate=date;
-  const h=getHabits().find(h=>h.id===habitId);
-  const note=getHabitNote(habitId,date);
-  document.getElementById('hd-title').textContent=h?h.icon+' '+h.name:'عادة';
-  document.getElementById('hd-date').textContent=date;
-  document.getElementById('hd-note').textContent=note||'لا توجد ملاحظة';
-  document.getElementById('habit-day-modal').style.display='flex';
-}
-function editHabitDayNote(){
-  closeModal('habit-day-modal');
-  const h=getHabits().find(h=>h.id===hnHabitId);
-  document.getElementById('hn-title').textContent=h?h.icon+' '+h.name:'ملاحظة';
-  document.getElementById('hn-date').textContent=hnDate;
-  document.getElementById('hn-text').value=getHabitNote(hnHabitId,hnDate);
-  document.getElementById('habit-note-modal').style.display='flex';
-  setTimeout(()=>document.getElementById('hn-text').focus(),100);
-}
-
-// ── STREAK PERIOD ─────────────────────────────
-let streakDays=7;
-function setStreakPeriod(n,btn){
-  streakDays=n;
-  document.querySelectorAll('.streak-period-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  renderStreaks();
-}
-
-// ── PIN LOGIN ─────────────────────────────────
-const _PIN_KEY='artrk_pin2',_CRED_KEY='artrk_cred2';
-function _hashPin(p){let h=5381;for(let i=0;i<p.length;i++)h=((h<<5)+h)+p.charCodeAt(i);return (h>>>0).toString(36);}
-function _hasPIN(){return !!localStorage.getItem(_PIN_KEY);}
-function _saveCreds(e,p){localStorage.setItem(_CRED_KEY,btoa(unescape(encodeURIComponent(JSON.stringify({e,p})))));}
-function _getCreds(){try{return JSON.parse(decodeURIComponent(escape(atob(localStorage.getItem(_CRED_KEY)))));}catch(x){return null;}}
-function _clearPIN(){localStorage.removeItem(_PIN_KEY);localStorage.removeItem(_CRED_KEY);}
-
-let _pinBuf='';
-function showPinScreen(){
-  document.getElementById('pd-step1').style.display='none';
-  document.getElementById('pd-step-login').style.display='none';
-  document.getElementById('pd-step-register').style.display='none';
-  document.getElementById('pd-pin-screen').style.display='block';
-  _pinBuf='';_updPinDots();
-  document.getElementById('pin-err').textContent='';
-}
-function _updPinDots(){for(let i=0;i<4;i++){const d=document.getElementById('pind'+i);if(d)d.className='pin-dot'+(i<_pinBuf.length?' filled':'');}}
-function _shakePinDots(){
-  const dots=document.getElementById('pd-pin-screen').querySelector('div[style*="justify-content"]');
-  if(dots){dots.style.animation='none';dots.offsetHeight;dots.style.animation='pin-shake 0.35s ease';}
-  for(let i=0;i<4;i++){const d=document.getElementById('pind'+i);if(d){d.className='pin-dot error';setTimeout(()=>d.className='pin-dot',400);}}
-  _pinBuf='';
-}
-function pinKey(k){
-  if(k==='del'){_pinBuf=_pinBuf.slice(0,-1);_updPinDots();document.getElementById('pin-err').textContent='';return;}
-  if(_pinBuf.length>=4)return;
-  _pinBuf+=k;_updPinDots();
-  if(_pinBuf.length===4)setTimeout(_verifyPIN,120);
-}
-async function _verifyPIN(){
-  if(_hashPin(_pinBuf)!==localStorage.getItem(_PIN_KEY)){
-    _shakePinDots();document.getElementById('pin-err').textContent='❌ رقم سري خاطئ';return;
-  }
-  document.getElementById('pin-err').textContent='';
-  if(window._pendingUser){
-    document.getElementById('auth-screen').style.display='none';
-    await startApp(window._pendingUser);
-    window._pendingUser=null;return;
-  }
-  const creds=_getCreds();if(!creds){pinUsePassword();return;}
-  const {error}=await sb.auth.signInWithPassword({email:creds.e,password:creds.p});
-  if(error){_shakePinDots();document.getElementById('pin-err').textContent='انتهت الجلسة، استخدم كلمة السر';}
-}
-function pinUsePassword(){_clearPIN();document.getElementById('pd-pin-screen').style.display='none';document.getElementById('pd-step1').style.display='block';}
-
-function openPinFromProfile(){
-  if(_hasPIN()){if(!confirm('حذف الرقم الحالي وضبط رقم جديد؟'))return;_clearPIN();}
-  const m=document.createElement('div');
-  m.id='pin-prof-modal';
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  let buf='',first='';
-  m.innerHTML=`<div style="background:var(--surface);border-radius:20px;padding:26px 22px;max-width:290px;width:90%;text-align:center">
-    <div style="font-size:24px;margin-bottom:8px">🔢</div>
-    <div style="font-size:15px;font-weight:900;margin-bottom:4px" id="ppm-t">اختر رقم سري</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ppm-s">4 أرقام للدخول السريع</div>
-    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:16px">
-      <div class="pin-dot" id="ppd0"></div><div class="pin-dot" id="ppd1"></div>
-      <div class="pin-dot" id="ppd2"></div><div class="pin-dot" id="ppd3"></div>
-    </div>
-    <div class="pin-pad" style="max-width:200px;margin:0 auto 14px">
-      ${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(n=>`<button class="pin-key" onclick="ppmKey('${n}')" style="padding:12px">${n}</button>`).join('')}
-    </div>
-    <span onclick="document.getElementById('pin-prof-modal').remove()" style="font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline">إلغاء</span>
-  </div>`;
-  document.body.appendChild(m);
-  window._ppmBuf='';window._ppmFirst='';
-}
-function ppmKey(k){
-  if(k===''){return;}
-  if(k==='⌫'){window._ppmBuf=(window._ppmBuf||'').slice(0,-1);}
-  else if((window._ppmBuf||'').length<4){window._ppmBuf=(window._ppmBuf||'')+k;}
-  for(let i=0;i<4;i++){const d=document.getElementById('ppd'+i);if(d)d.className='pin-dot'+((window._ppmBuf||'').length>i?' filled':'');}
-  if((window._ppmBuf||'').length===4)setTimeout(()=>{
-    if(!window._ppmFirst){
-      window._ppmFirst=window._ppmBuf;window._ppmBuf='';
-      for(let i=0;i<4;i++){const d=document.getElementById('ppd'+i);if(d)d.className='pin-dot';}
-      const t=document.getElementById('ppm-t');const s=document.getElementById('ppm-s');
-      if(t)t.textContent='أعد الإدخال للتأكيد';if(s)s.textContent='';
-    } else {
-      if(window._ppmBuf===window._ppmFirst){
-        localStorage.setItem(_PIN_KEY,_hashPin(window._ppmBuf));
-        document.getElementById('pin-prof-modal')?.remove();
-        _updatePinBtn();showToast('✅ تم حفظ الرقم السري!');
-      } else {
-        window._ppmFirst='';window._ppmBuf='';
-        for(let i=0;i<4;i++){const d=document.getElementById('ppd'+i);if(d)d.className='pin-dot';}
-        const s=document.getElementById('ppm-s');if(s)s.textContent='⚠️ الرقمان مختلفان، حاول مجدداً';
-      }
-    }
-  },120);
-}
-function _updatePinBtn(){
-  const btn=document.getElementById('pin-profile-btn');
-  if(btn)btn.textContent=_hasPIN()?'🔢 تغيير الرقم السري':'🔢 تفعيل الرقم السري';
 }
 
 // ── FRIENDS VIEW ──────────────────────────────
@@ -2149,30 +1826,19 @@ function renderFriends(){
         <div class="h-icon" style="font-size:22px;margin-bottom:5px">${h.icon}</div>
         <div class="h-name" style="font-size:11px">${h.name}</div>
       </div>`).join('');
-    const priv=u.privacy||{};
-    const showHabits=isMe||priv.show_habits!==false;
-    const showStats=isMe||priv.show_stats!==false;
-    const showNote=isMe||priv.show_note!==false;
-    const showExp=isMe||priv.show_expenses!==false;
-    const expAmt=(()=>{const now=new Date();const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;return(u.expenses||[]).filter(e=>e.date&&e.date.startsWith(mk)).reduce((a,b)=>a+b.amount,0);})();
     return`<div class="friend-card">
       <div class="friend-header">
         ${avatarHTML}
-        <div style="flex:1;min-width:0">
+        <div>
           <div class="f-name">${u.display_name||u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
-          ${showStats?`<div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>`
-            :!isMe?`<div class="f-tag"><span class="priv-blur">0/0 عادة</span> 🔒</div>`:''}
+          <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
         </div>
       </div>
-      ${showNote&&u.status_note?`<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>`
-        :!showNote&&!isMe?`<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:10px;border-right:3px solid ${color}"><span class="priv-blur">نوت مخفي</span> 🔒</div>`:''}
-      ${showStats?`<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`
-        :!isMe?`<div style="position:relative;margin:10px 0"><div class="bar-wrap" style="filter:blur(2px);opacity:0.4"><div class="bar-fill" style="width:55%;background:${color}"></div></div><span style="position:absolute;top:-2px;right:46%;font-size:12px">🔒</span></div>`:''}
-      ${!isMe?(showExp&&expAmt>0?`<div style="font-size:12px;color:var(--muted);margin-top:6px">💸 ${expAmt.toLocaleString('ar')} ر</div>`
-        :!showExp?`<div style="font-size:12px;margin-top:6px"><span class="priv-blur">💸 مصاريف مخفية</span> 🔒</div>`:''):''}
-      ${showHabits?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}</div>`
-        :!isMe?`<div class="priv-habits-blur">${(habits.length?habits:[{},{},{}]).map(()=>`<div class="habit-card" style="padding:12px 10px"><div class="h-icon">🔒</div></div>`).join('')}</div>`:''}
-      ${!isMe?`<div onclick="openSharedTodo('${u.friend_code}','${u.display_name||u.name}')" class="shared-todo-btn">📋 قائمة مشتركة</div>`:''}
+      ${u.status_note ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>` : ''}
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
+        ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
+      </div>
     </div>`;
   }).join('');
 }
@@ -2191,6 +1857,7 @@ async function sendFriendRequest(){
   if(code.length!==6){ showMsg(msgEl,'الكود يجب أن يكون 6 أحرف','err'); return; }
   if(code===myData.friend_code){ showMsg(msgEl,'هذا كودك أنت! 😄','warn'); return; }
   if((myData.friends||[]).includes(code)){ showMsg(msgEl,'أنتم أصدقاء مسبقاً ✅','warn'); return; }
+  if((myData.sent_requests||[]).includes(code)){ showMsg(msgEl,'أرسلت طلباً مسبقاً ⏳','warn'); return; }
 
   const found = allUsers.find(u=>u.friend_code===code);
   if(!found){ showMsg(msgEl,'لم يُعثر على هذا الكود ❌','err'); return; }
@@ -2291,18 +1958,15 @@ function showMsg(el, msg, type){
 
 function renderIncomingRequests(){
   const incoming = (myData.incoming_requests||[]);
-  const dot=document.getElementById('req-dot');if(dot)dot.style.display=incoming.length?'block':'none';
   const card = document.getElementById('requests-card');
   const list = document.getElementById('incoming-requests-list');
   const badge = document.getElementById('req-badge');
-  const fCard=document.getElementById('friends-req-card');
-  const fList=document.getElementById('friends-req-list');
-  if(!incoming.length){ if(card)card.style.display='none'; if(fCard)fCard.style.display='none'; return; }
-  if(card)card.style.display='block';
-  if(badge)badge.textContent = incoming.length;
+  if(!incoming.length){ card.style.display='none'; return; }
+  card.style.display='block';
+  badge.textContent = incoming.length;
   const senders = allUsers.filter(u=>incoming.includes(u.friend_code));
   if(!senders.length){ list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">لا يوجد طلبات</p>'; return; }
-  const html_rir = senders.map(u=>{
+  list.innerHTML = senders.map(u=>{
     const av = u.avatar_photo
       ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
       : `<div style="width:38px;height:38px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
@@ -2320,8 +1984,6 @@ function renderIncomingRequests(){
       </div>
     </div>`;
   }).join('');
-  if(list)list.innerHTML=html_rir;
-  if(fCard){fCard.style.display='block';if(fList)fList.innerHTML=html_rir;}
 }
 
 function renderFriendsList(){
@@ -2428,8 +2090,6 @@ function updateAvatarDisplay() {
 
 // ── PROFILE ───────────────────────────────────
 function renderProfilePage(){
-  try{renderPrivacyToggles();}catch(e){}
-  try{_updatePinBtn();}catch(e){}
   const name=myData.display_name||'';
   document.getElementById('profile-name-display').textContent=name;
   document.getElementById('profile-email-display').textContent=currentUser.email;
@@ -3238,19 +2898,10 @@ function init(){
     }
   });
 
-  // Check session on load — with 5s timeout
-  Promise.race([
-    sb.auth.getSession(),
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-  ]).then(({data:{session}})=>{
+  // Check session on load — don't wait for onAuthStateChange
+  sb.auth.getSession().then(({data:{session}})=>{
     if(session?.user){
-      if(_hasPIN()){
-        document.getElementById('auth-screen').style.display='flex';
-        window._pendingUser=session.user;
-        showPinScreen();
-      } else {
-        startApp(session.user);
-      }
+      startApp(session.user);
     } else {
       showAuth();
     }
@@ -3258,49 +2909,5 @@ function init(){
 }
 init();
 </script>
-
-<!-- SHARED TODO MODAL -->
-<div class="modal-ov" id="shared-todo-modal" onclick="if(event.target===this)closeSharedTodo()">
-  <div class="modal-box" style="max-width:420px;max-height:85vh;display:flex;flex-direction:column">
-    <div class="flex-b" style="margin-bottom:14px">
-      <div class="modal-title" style="margin:0">📋 <span id="std-title">قائمة مشتركة</span></div>
-      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeSharedTodo()">✕</span>
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center" id="std-subtitle"></div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input type="text" class="fi" id="std-input" placeholder="أضف مهمة..." maxlength="80" onkeydown="if(event.key==='Enter')addSharedTodo()" style="flex:1;font-size:14px">
-      <button class="btn btn-p btn-sm" onclick="addSharedTodo()">+</button>
-    </div>
-    <div id="std-list" style="overflow-y:auto;flex:1;min-height:100px"></div>
-  </div>
-</div>
-<!-- HABIT NOTE MODAL -->
-<div class="modal-ov" id="habit-note-modal" onclick="if(event.target===this)closeHabitNote()">
-  <div class="modal-box" style="max-width:360px">
-    <div class="flex-b" style="margin-bottom:14px">
-      <div style="font-size:16px;font-weight:900" id="hn-title">📝 ملاحظة</div>
-      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeHabitNote()">✕</span>
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="hn-date"></div>
-    <textarea class="fi" id="hn-text" placeholder="اكتب ملاحظتك..." rows="4" style="resize:none;width:100%;font-size:14px;line-height:1.6"></textarea>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-p" style="flex:1" onclick="saveHabitNote()">💾 حفظ</button>
-      <button class="btn btn-s" style="flex:1" onclick="closeHabitNote()">إلغاء</button>
-    </div>
-  </div>
-</div>
-<!-- HABIT DAY VIEW MODAL -->
-<div class="modal-ov" id="habit-day-modal" onclick="if(event.target===this)closeModal('habit-day-modal')">
-  <div class="modal-box" style="max-width:360px">
-    <div class="flex-b" style="margin-bottom:14px">
-      <div style="font-size:16px;font-weight:900" id="hd-title"></div>
-      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('habit-day-modal')">✕</span>
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="hd-date"></div>
-    <div id="hd-note" style="background:var(--surface2);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px"></div>
-    <button class="btn btn-s btn-sm" style="width:100%;margin-top:12px" onclick="editHabitDayNote()">✏️ تعديل</button>
-  </div>
-</div>
-
 </body>
 </html>
