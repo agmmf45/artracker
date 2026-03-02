@@ -310,9 +310,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 .streak-period-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s;}
 .streak-period-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
-.streak-date-row{display:flex;gap:3px;margin-bottom:3px;}
+.streak-date-row{display:flex;gap:3px;margin-bottom:3px;direction:ltr;}
 .s-date-lbl{width:18px;font-size:8px;text-align:center;flex-shrink:0;line-height:1.2;}
-.streak-row{display:flex;gap:3px;flex-wrap:nowrap;}
+.streak-row{display:flex;gap:3px;flex-wrap:nowrap;direction:ltr;}
 .s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;}
 .s-dot.filled{background:var(--green);border-color:var(--green);}
 .s-dot.today-d{background:var(--accent);border-color:var(--accent);}
@@ -1837,15 +1837,24 @@ function setStreakPeriod(n, btn){
 function renderStreaks(){
   const list=getHabits(); const doneMap=myData.done||{};
   const n = streakDays || 7;
-  const days=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
-  const step = n<=14?1:n<=30?3:7;
+
+  // Build full period
+  const allDays=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);allDays.push(d.toISOString().slice(0,10));}
+
+  // Find earliest day with ANY completion within the period
+  const firstDoneIdx = allDays.findIndex(day => Object.keys(doneMap[day]||{}).some(k=>doneMap[day][k]));
+  // Start from first completion, or just today if none
+  const days = firstDoneIdx === -1 ? [todayKey()] : allDays.slice(firstDoneIdx);
+
+  const step = days.length<=14?1:days.length<=30?3:7;
   const makeDateRow = () => `<div class="streak-date-row">${days.map((day,i)=>{
     const d=new Date(day+'T00:00:00'); const isT=day===todayKey();
     const show = isT||i===0||i%step===0;
     return `<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?900:500}">${d.getDate()}/${d.getMonth()+1}</div>`;
   }).join('')}</div>`;
+
   el.innerHTML=list.map(h=>{
     const dots=days.map(day=>{
       const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();
