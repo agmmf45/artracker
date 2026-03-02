@@ -1129,7 +1129,19 @@ setInterval(()=>{
         </div>
 
         <div style="display:flex;flex-direction:column;gap:18px">
-          <!-- Themes -->
+          <!-- Account — top for easy access -->
+          <div class="card" style="background:var(--surface2);">
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
+            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" id="pin-profile-btn" onclick="openPinFromProfile()">🔢 إعداد الرقم السري</button>
+            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
+            <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+              <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
+                🗑 إعادة تعيين الحساب
+              </button>
+              <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">يحذف كل بياناتك ويبدأ من جديد</div>
+            </div>
+          </div>
           <div class="card">
             <div class="sec-title">🎨 ثيم التطبيق</div>
             <div class="theme-grid" id="theme-grid"></div>
@@ -1168,19 +1180,6 @@ setInterval(()=>{
             <div id="my-friends-list"><div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div></div>
           </div>
 
-          <!-- Logout -->
-          <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
-            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
-            <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" id="pin-profile-btn" onclick="openPinFromProfile()">🔢 إعداد الرقم السري</button>
-            <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
-            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
-              <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
-                🗑 إعادة تعيين الحساب
-              </button>
-              <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">يحذف كل بياناتك ويبدأ من جديد</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
