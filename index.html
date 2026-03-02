@@ -1638,6 +1638,8 @@ async function doLogin(){
 async function doLogout(){
   if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
   currentUser = null;
+  localStorage.removeItem('artrk_user_id');
+  localStorage.removeItem('artrk_user_email');
   document.getElementById('app').style.display='none';
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
@@ -1750,6 +1752,9 @@ async function loadAllUsers(){
 // ── START APP ──────────────────────────────────
 async function startApp(user){
   currentUser = user;
+  // Cache user info for instant next load
+  localStorage.setItem('artrk_user_id', user.id);
+  localStorage.setItem('artrk_user_email', user.email);
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading-screen').style.display='flex';
 
@@ -2999,14 +3004,36 @@ function init(){
     }
   });
 
-  // Check session on load — don't wait for onAuthStateChange
+  // Try to get cached user from localStorage immediately (no network needed)
+  const cachedUserId = localStorage.getItem('artrk_user_id');
+  const cachedUserEmail = localStorage.getItem('artrk_user_email');
+  if(cachedUserId && cachedUserEmail){
+    // Start app instantly from cache
+    startApp({id: cachedUserId, email: cachedUserEmail});
+    // Then verify session in background — if invalid, will SIGNED_OUT
+    sb.auth.getSession().then(({data:{session}})=>{
+      if(!session?.user){
+        // Session expired — force logout
+        if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
+        currentUser = null;
+        localStorage.removeItem('artrk_user_id');
+        localStorage.removeItem('artrk_user_email');
+        showAuth();
+      }
+    }).catch(()=>{}); // keep app open if network fails
+    return;
+  }
+
+  // No cache — wait for session with 5s timeout
+  const fallback = setTimeout(()=>showAuth(), 5000);
   sb.auth.getSession().then(({data:{session}})=>{
+    clearTimeout(fallback);
     if(session?.user){
       startApp(session.user);
     } else {
       showAuth();
     }
-  }).catch(()=> showAuth());
+  }).catch(()=>{ clearTimeout(fallback); showAuth(); });
 }
 init();
 </script>
