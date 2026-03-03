@@ -3109,13 +3109,9 @@ async function sendExpenseAI(){
 - إذا ذكر "استلمت" أو "راتب" أو "أضفت" → add`;
 
   try{
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+    const resp = await fetch('https://artrk-ai.agmmf45.workers.dev',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':AI_API_KEY,
-        'anthropic-version':'2023-06-01'
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
@@ -3245,13 +3241,9 @@ async function sendToAI(){
 - إذا ما في شيء لنوع معين اتركه array فاضي []`;
 
   try{
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+    const resp = await fetch('https://artrk-ai.agmmf45.workers.dev',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':AI_API_KEY,
-        'anthropic-version':'2023-06-01'
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
