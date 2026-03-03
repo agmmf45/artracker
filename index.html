@@ -849,6 +849,7 @@ setInterval(()=>{
             </div>
             <div class="date-pick-btn" onclick="openDatePicker('habits')">📅 تغيير التاريخ</div>
             <button class="btn btn-p btn-sm" onclick="openModal('habit-modal')">+ إضافة عادة</button>
+            <button type="button" class="btn btn-sm" onclick="openAIAssistant()" style="background:linear-gradient(135deg,#7C3AED,#B45309);color:white;display:flex;align-items:center;gap:5px">✨ مساعد ذكي</button>
           </div>
         </div>
       </div>
@@ -880,7 +881,7 @@ setInterval(()=>{
     <div class="page" id="page-expenses">
       <div class="page-header flex-b" style="margin-bottom:16px">
         <div><div class="ph2">💰 محافظي</div><div class="psub2">تتبع رصيدك وإنفاقك</div></div>
-        <button class="btn btn-p btn-sm" onclick="openWalletModal()">+ محفظة</button>
+        <div style="display:flex;gap:8px"><button class="btn btn-p btn-sm" onclick="openWalletModal()">+ محفظة</button><button type="button" class="btn btn-sm" onclick="openExpenseAI()" style="background:linear-gradient(135deg,#7C3AED,#B45309);color:white;display:flex;align-items:center;gap:5px">✨ ذكي</button></div>
       </div>
 
       <!-- Wallets grid -->
@@ -1863,6 +1864,10 @@ function renderHabits(){
   }).join('');
 }
 let streakDays=7;
+// ── HABIT NOTES ───────────────────────────────
+let hnHabitId=null,hnDate=null;
+function getHabitNote(habitId,date){return(myData.habit_notes||{})[date+':'+habitId]||'';}
+
 function setStreakPeriod(n,btn){
   streakDays=n;
   document.querySelectorAll('.streak-period-btn').forEach(b=>b.classList.remove('active'));
@@ -1870,38 +1875,53 @@ function setStreakPeriod(n,btn){
   renderStreaks();
 }
 function renderStreaks(){
-  const list=getHabits(); const doneMap=myData.done||{};
-  const n=streakDays||7;
-  const el=document.getElementById('my-streaks');
-  if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
-  const allDays=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);allDays.push(d.toISOString().slice(0,10));}
-  const firstDoneIdx=allDays.findIndex(day=>Object.keys(doneMap[day]||{}).some(k=>doneMap[day][k]));
-  const days=firstDoneIdx===-1?[todayKey()]:allDays.slice(firstDoneIdx);
-  const step=days.length<=14?1:days.length<=30?3:7;
-  const makeDateRow=()=>`<div class="streak-date-row">${days.map((day,i)=>{
-    const d=new Date(day+'T00:00:00');const isT=day===todayKey();
-    const show=isT||i===0||i%step===0;
-    return`<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?900:500}">${d.getDate()}/${d.getMonth()+1}</div>`;
-  }).join('')}</div>`;
-  el.innerHTML=list.map(h=>{
-    const dots=days.map(day=>{
-      const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();
-      const hasNote=getHabitNote(h.id,day);
-      return done
-        ?`<div class="s-dot ${isT?'today-d':'filled'}${hasNote?' has-note':''}" onclick="viewHabitDay('${h.id}','${day}',event)" style="cursor:pointer;position:relative"></div>`
-        :`<div class="s-dot"></div>`;
-    }).join('');
-    return`<div style="margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">${h.icon} ${h.name}</div>
-      ${makeDateRow()}
-      <div class="streak-row">${dots}</div>
-    </div>`;
-  }).join('');
+  try{
+    const list=getHabits();
+    const doneMap=myData.done||{};
+    const n=streakDays||7;
+    const el=document.getElementById('my-streaks');
+    if(!el)return;
+    if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
+    // Build days oldest→newest
+    const days=[];
+    for(let i=n-1;i>=0;i--){
+      const d=new Date();d.setDate(d.getDate()-i);
+      days.push(d.toISOString().slice(0,10));
+    }
+    const step=n<=14?1:n<=30?3:7;
+    let html='';
+    list.forEach(h=>{
+      // date labels row
+      let labelsHtml='';
+      days.forEach((day,i)=>{
+        const d=new Date(day+'T12:00:00');
+        const isT=day===todayKey();
+        const show=isT||i===0||(i%step===0);
+        const lbl=show?`${d.getDate()}/${d.getMonth()+1}`:'';
+        const col=isT?'var(--accent)':'var(--muted)';
+        labelsHtml+=`<div style="width:18px;font-size:8px;text-align:center;flex-shrink:0;color:${col};font-weight:${isT?900:500}">${lbl}</div>`;
+      });
+      // dots row
+      let dotsHtml='';
+      days.forEach(day=>{
+        const done=!!(doneMap[day]&&doneMap[day][h.id]);
+        const isT=day===todayKey();
+        const hasNote=!!getHabitNote(h.id,day);
+        let cls='s-dot';
+        if(done) cls+= isT?' today-d':' filled';
+        const click=done?`onclick="viewHabitDay('${h.id}','${day}',event)"` :'';
+        const pos=done&&hasNote?'position:relative':'';
+        dotsHtml+=`<div class="${cls}${done&&hasNote?' has-note':''}" ${click} style="${pos}${done?'cursor:pointer':''}"></div>`;
+      });
+      html+=`<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">${h.icon} ${h.name}</div>
+        <div style="display:flex;gap:3px;margin-bottom:3px">${labelsHtml}</div>
+        <div style="display:flex;gap:3px;flex-wrap:nowrap">${dotsHtml}</div>
+      </div>`;
+    });
+    el.innerHTML=html;
+  }catch(e){console.error('renderStreaks error:',e);}
 }
-
-// ── HABIT NOTES ───────────────────────────────
-let hnHabitId=null,hnDate=null;
-function getHabitNote(habitId,date){return(myData.habit_notes||{})[date+':'+habitId]||'';}
 function openHabitNote(habitId,e){
   e.stopPropagation();
   hnHabitId=habitId;hnDate=selectedHabitsDate;
@@ -3019,6 +3039,312 @@ async function confirmReset(){
   setTimeout(()=>location.reload(), 1200);
 }
 
+
+
+// ── AI EXPENSE ASSISTANT ──────────────────────
+function openExpenseAI(){
+  const wallets = myData.wallets||[];
+  const sel = document.getElementById('ai-exp-wallet-sel');
+  if(!wallets.length){
+    sel.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px;text-align:center">أضف محفظة أولاً</div>';
+  } else {
+    sel.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">اختر المحفظة</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${wallets.map((w,i)=>`<div class="chip ${i===0?'active':''}" onclick="selectAIWallet(this,'${w.id}')" data-wid="${w.id}">${w.icon} ${w.name}</div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('ai-expense-input').value='';
+  document.getElementById('ai-expense-result').style.display='none';
+  document.getElementById('ai-exp-send-btn').textContent='✨ حلل وسجل';
+  document.getElementById('ai-exp-send-btn').disabled=false;
+  document.getElementById('ai-expense-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('ai-expense-input').focus(),100);
+}
+function selectAIWallet(el, wid){
+  document.querySelectorAll('#ai-exp-wallet-sel .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+function closeExpenseAI(){
+  document.getElementById('ai-expense-modal').classList.remove('open');
+}
+
+async function sendExpenseAI(){
+  const text = document.getElementById('ai-expense-input').value.trim();
+  if(!text){showToast('اكتب مصاريفك أولاً');return;}
+  const walletEl = document.querySelector('#ai-exp-wallet-sel .chip.active');
+  const walletId = walletEl?.dataset?.wid || (myData.wallets||[])[0]?.id;
+  if(!walletId){showToast('اختر محفظة أولاً');return;}
+
+  const btn = document.getElementById('ai-exp-send-btn');
+  const result = document.getElementById('ai-expense-result');
+  btn.textContent='⏳ جاري التحليل...';
+  btn.disabled=true;
+  result.style.display='none';
+
+  const prompt = `أنت مساعد ذكي لتسجيل المصاريف.
+
+المستخدم كتب: "${text}"
+
+استخرج كل مصروف أو معاملة مالية وصنفها.
+
+أجب بـ JSON فقط بدون أي نص آخر:
+{
+  "transactions": [
+    {
+      "desc": "وصف المعاملة",
+      "amount": 50,
+      "type": "spend أو save أو add",
+      "cat": "🍔 أكل أو 🛒 تسوق أو 🎮 ترفيه أو 🚗 مواصلات أو 📋 فواتير أو 💊 صحة أو 📦 أخرى"
+    }
+  ],
+  "message": "رسالة قصيرة بالعربي تلخص ما سجلته"
+}
+
+قواعد:
+- type=spend للإنفاق، type=save للادخار، type=add للإيداع/الراتب
+- amount يجب أن يكون رقم موجب
+- إذا ذكر "صرفت" أو "دفعت" → spend
+- إذا ذكر "وفرت" أو "ادخرت" → save  
+- إذا ذكر "استلمت" أو "راتب" أو "أضفت" → add`;
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text||'{}';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    showExpenseAIResult(parsed, walletId);
+  }catch(e){
+    result.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ حدث خطأ، حاول مجدداً</div>';
+    result.style.display='block';
+  }
+  btn.textContent='✨ حلل وسجل';
+  btn.disabled=false;
+}
+
+function showExpenseAIResult(data, walletId){
+  const result = document.getElementById('ai-expense-result');
+  const txns = data.transactions||[];
+  const typeIcons={spend:'💸',save:'💰',add:'➕'};
+  const typeLabels={spend:'إنفاق',save:'ادخار',add:'إيداع'};
+
+  let html='';
+  if(data.message){
+    html+=`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ ${data.message}</div>`;
+  }
+
+  if(!txns.length){
+    html+='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">ما قدرت أستخرج مصاريف، حاول اكتب بشكل أوضح</div>';
+  } else {
+    const total=txns.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
+    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${txns.length} معاملة · إجمالي الإنفاق: ${total.toLocaleString('ar')} ر</div>`;
+    txns.forEach((t,i)=>{
+      const col=t.type==='spend'?'#FEE2E2':t.type==='save'?'var(--green-light)':'var(--blue-light)';
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${col};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:20px">${typeIcons[t.type]||'💸'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700">${t.desc}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.cat} · ${typeLabels[t.type]}</div>
+        </div>
+        <div style="font-size:15px;font-weight:900;color:${t.type==='spend'?'var(--red)':t.type==='save'?'var(--green)':'#2563EB'}">${t.amount.toLocaleString('ar')} ر</div>
+        <input type="checkbox" id="ai-exp-${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>`;
+    });
+    html+=`<button type="button" class="btn btn-p btn-full" style="margin-top:14px" onclick="applyExpenseAI(${JSON.stringify(txns).replace(/"/g,'&quot;')},'${walletId}')">✅ أضف المحدد</button>`;
+  }
+
+  result.innerHTML=html;
+  result.style.display='block';
+}
+
+function applyExpenseAI(txns, walletId){
+  let added=0;
+  txns.forEach((t,i)=>{
+    if(document.getElementById('ai-exp-'+i)?.checked){
+      if(!myData.transactions) myData.transactions=[];
+      const txn={id:Date.now()+i, walletId, type:t.type, amount:t.amount, desc:t.desc, cat:t.cat, date:todayKey()};
+      myData.transactions.unshift(txn);
+      if(t.type==='spend'){
+        if(!myData.expenses) myData.expenses=[];
+        myData.expenses.unshift({id:txn.id,name:t.desc,amount:t.amount,cat:t.cat,date:todayKey()});
+      }
+      added++;
+    }
+  });
+  if(added){
+    saveMyData();
+    renderWallets();
+    if(activeWalletId===walletId) renderTxnList();
+    showToast(`✅ أضفت ${added} معاملة`);
+    closeExpenseAI();
+  } else {
+    showToast('ما اخترت شيء!');
+  }
+}
+
+
+// ── AI ASSISTANT ──────────────────────────────
+function openAIAssistant(){
+  document.getElementById('ai-input').value='';
+  document.getElementById('ai-result').style.display='none';
+  document.getElementById('ai-send-btn').textContent='✨ رتب لي';
+  document.getElementById('ai-send-btn').disabled=false;
+  document.getElementById('ai-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('ai-input').focus(),100);
+}
+function closeAIAssistant(){
+  document.getElementById('ai-modal').classList.remove('open');
+}
+
+async function sendToAI(){
+  const text = document.getElementById('ai-input').value.trim();
+  if(!text){showToast('اكتب شيئاً أولاً');return;}
+  
+  const btn = document.getElementById('ai-send-btn');
+  const result = document.getElementById('ai-result');
+  btn.textContent='⏳ جاري التحليل...';
+  btn.disabled=true;
+  result.style.display='none';
+
+  const existingHabits = getHabits().map(h=>h.name).join('، ');
+  const prompt = `أنت مساعد ذكي لتطبيق تتبع العادات والمهام.
+
+المستخدم كتب: "${text}"
+
+العادات الموجودة حالياً: ${existingHabits||'لا يوجد'}
+
+مهمتك: استخرج من كلام المستخدم:
+1. العادات اليومية (أشياء يفعلها كل يوم أو بشكل منتظم)
+2. المهام المحددة (أشياء لها موعد أو مرة واحدة)
+
+أجب بـ JSON فقط بدون أي نص آخر، بهذا الشكل بالضبط:
+{
+  "habits": [{"name": "اسم العادة", "icon": "إيموجي مناسب"}],
+  "todos": [{"text": "نص المهمة", "priority": "normal أو high أو low", "due": "YYYY-MM-DD أو null"}],
+  "message": "رسالة قصيرة بالعربي تشجع المستخدم"
+}
+
+ملاحظات:
+- لا تكرر العادات الموجودة
+- اختر إيموجي مناسب لكل عادة
+- priority: high للمهام المهمة والعاجلة، low للأقل أهمية
+- إذا ذكر يوم محدد (الخميس، الأحد..) احسب التاريخ من اليوم ${new Date().toISOString().slice(0,10)}
+- إذا ما في شيء لنوع معين اتركه array فاضي []`;
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text||'{}';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    showAIResult(parsed);
+  }catch(e){
+    result.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ حدث خطأ، حاول مجدداً</div>';
+    result.style.display='block';
+    console.error('AI error:',e);
+  }
+  btn.textContent='✨ رتب لي';
+  btn.disabled=false;
+}
+
+function showAIResult(data){
+  const result = document.getElementById('ai-result');
+  const habits = data.habits||[];
+  const todos = data.todos||[];
+  
+  let html = '';
+  if(data.message){
+    html+=`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ ${data.message}</div>`;
+  }
+  
+  if(habits.length){
+    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">عادات جديدة (${habits.length})</div>`;
+    habits.forEach((h,i)=>{
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:22px">${h.icon}</span>
+        <span style="flex:1;font-size:14px;font-weight:700">${h.name}</span>
+        <input type="checkbox" id="ai-h-${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>`;
+    });
+  }
+  
+  if(todos.length){
+    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:${habits.length?12:0}px">مهام جديدة (${todos.length})</div>`;
+    const pColors={high:'#FEE2E2',normal:'var(--surface2)',low:'var(--blue-light)'};
+    const pLabels={high:'مهمة 🔴',normal:'عادية',low:'منخفضة'};
+    todos.forEach((t,i)=>{
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${pColors[t.priority]||pColors.normal};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:18px">📝</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700">${t.text}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${pLabels[t.priority]||'عادية'}${t.due?' · 📅 '+t.due:''}</div>
+        </div>
+        <input type="checkbox" id="ai-t-${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>`;
+    });
+  }
+  
+  if(!habits.length && !todos.length){
+    html='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">ما قدرت أستخرج عادات أو مهام، حاول اكتب بشكل أوضح</div>';
+  } else {
+    html+=`<button type="button" class="btn btn-p btn-full" style="margin-top:14px" onclick="applyAIResult(${JSON.stringify(habits).replace(/"/g,'&quot;')},${JSON.stringify(todos).replace(/"/g,'&quot;')})">✅ أضف المحدد</button>`;
+  }
+  
+  result.innerHTML=html;
+  result.style.display='block';
+}
+
+function applyAIResult(habits,todos){
+  let addedH=0, addedT=0;
+  
+  habits.forEach((h,i)=>{
+    if(document.getElementById('ai-h-'+i)?.checked){
+      if(!myData.habits_list) myData.habits_list=[];
+      const exists=myData.habits_list.some(x=>x.name===h.name);
+      if(!exists){
+        myData.habits_list.push({id:'h_'+Date.now()+'_'+i, name:h.name, icon:h.icon});
+        addedH++;
+      }
+    }
+  });
+  
+  todos.forEach((t,i)=>{
+    if(document.getElementById('ai-t-'+i)?.checked){
+      if(!myData.todos) myData.todos=[];
+      myData.todos.unshift({id:Date.now()+i, text:t.text, priority:t.priority||'normal', cat:'عام', due:t.due||'', done:false, createdAt:new Date().toISOString()});
+      addedT++;
+    }
+  });
+  
+  if(addedH||addedT){
+    saveMyData();
+    renderHabits();
+    renderStreaks();
+    renderTodos();
+    showToast(`✅ أضفت ${addedH} عادة و${addedT} مهمة`);
+    closeAIAssistant();
+  } else {
+    showToast('ما اخترت شيء!');
+  }
+}
+
+
 // ── INIT ──────────────────────────────────────
 function init(){
   const showAuth = () => {
@@ -3090,6 +3416,43 @@ init();
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="hd-date"></div>
     <div id="hd-note" style="background:var(--surface2);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px"></div>
     <button class="btn btn-s btn-sm" style="width:100%;margin-top:12px" onclick="editHabitDayNote()">✏️ تعديل</button>
+  </div>
+</div>
+
+
+<!-- AI ASSISTANT MODAL -->
+<div class="modal-ov" id="ai-modal" onclick="if(event.target===this)closeAIAssistant()">
+  <div class="modal-box" style="max-width:480px;width:95vw">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:17px;font-weight:900">✨ المساعد الذكي</div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeAIAssistant()">✕</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;background:var(--surface2);padding:10px 14px;border-radius:10px">
+      💡 اكتب بشكل طبيعي ايش تبغى تسوي وأنا أرتب لك العادات والمهام
+      <br><span style="font-size:11px;opacity:0.8">مثال: أبغى أصلي الفجر وأقرأ يومياً، وعندي مهمة أسلم تقرير الخميس</span>
+    </div>
+    <textarea class="fi" id="ai-input" rows="4" placeholder="اكتب هنا..." style="resize:none;width:100%;font-size:14px;line-height:1.7;margin-bottom:12px"></textarea>
+    <button type="button" class="btn btn-p btn-full" id="ai-send-btn" onclick="sendToAI()">✨ رتب لي</button>
+    <div id="ai-result" style="display:none;margin-top:16px"></div>
+  </div>
+</div>
+
+
+<!-- AI EXPENSE MODAL -->
+<div class="modal-ov" id="ai-expense-modal" onclick="if(event.target===this)closeExpenseAI()">
+  <div class="modal-box" style="max-width:480px;width:95vw">
+    <div class="flex-b" style="margin-bottom:16px">
+      <div style="font-size:17px;font-weight:900">✨ تسجيل ذكي للمصاريف</div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeExpenseAI()">✕</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;background:var(--surface2);padding:10px 14px;border-radius:10px">
+      💡 اكتب مصاريفك بشكل طبيعي وأنا أرتبها لك
+      <br><span style="font-size:11px;opacity:0.8">مثال: صرفت 50 على أكل وعشرين على قهوة، ودفعت 200 فاتورة نت</span>
+    </div>
+    <div id="ai-exp-wallet-sel" style="margin-bottom:12px"></div>
+    <textarea class="fi" id="ai-expense-input" rows="4" placeholder="اكتب مصاريفك هنا..." style="resize:none;width:100%;font-size:14px;line-height:1.7;margin-bottom:12px"></textarea>
+    <button type="button" class="btn btn-p btn-full" id="ai-exp-send-btn" onclick="sendExpenseAI()">✨ حلل وسجل</button>
+    <div id="ai-expense-result" style="display:none;margin-top:16px"></div>
   </div>
 </div>
 
