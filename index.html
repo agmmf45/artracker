@@ -3,14 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <script>
-// مسح كل الكاش القديم فوراً
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>r.unregister());
-  });
-  caches.keys().then(keys=>{
-    keys.forEach(k=>caches.delete(k));
-  });
+  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+  caches.keys().then(keys=>{keys.forEach(k=>caches.delete(k));});
 }
 </script>
 
@@ -216,7 +211,26 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .date-pick-btn:hover{border-color:var(--accent);color:var(--accent);}
 
 /* HABITS */
-.habits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px;margin-bottom:20px;}
+.habits-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+
+.habit-row{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+.habit-row:hover{border-color:var(--accent);box-shadow:var(--shadow);}
+.habit-row.done{border-color:var(--green);background:var(--green-light);}
+.habit-row.readonly{cursor:default;}
+.hr-check{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all 0.18s;background:var(--surface2);}
+.habit-row.done .hr-check{background:var(--green);border-color:var(--green);color:white;}
+.hr-icon{font-size:26px;flex-shrink:0;line-height:1;}
+.hr-info{flex:1;min-width:0;}
+.hr-name{font-size:15px;font-weight:800;color:var(--text);}
+.habit-row.done .hr-name{color:var(--green);}
+.hr-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:8px;}
+.hr-streak{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--accent);}
+.hr-streak.hot{color:#EF4444;}
+.hr-note{font-size:11px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:2px 8px;cursor:pointer;transition:color 0.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
+.hr-note:hover{color:var(--accent);}
+.hr-del{background:none;border:none;cursor:pointer;font-size:13px;color:#ccc;padding:4px 7px;border-radius:6px;transition:color 0.15s;flex-shrink:0;}
+.hr-del:hover{color:var(--red);}
+
 .habit-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);padding:18px 14px;cursor:pointer;transition:all 0.18s;text-align:center;position:relative;}
 .habit-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
 .habit-card.done{border-color:var(--green);background:var(--green-light);}
@@ -233,7 +247,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);}
 .s-dot.filled{background:var(--green);border-color:var(--green);}
 .s-dot.today-d{background:var(--accent);border-color:var(--accent);}
-.s-dot.has-note::after{content:"";position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
 
 /* FRIENDS */
 .friends-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -307,15 +320,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .toast.show{opacity:1;}
 .h-note-btn{font-size:10px;color:var(--muted);margin-top:4px;cursor:pointer;}
 .h-note-btn:hover{color:var(--accent);}
-
 .streak-period-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s;}
 .streak-period-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
 .streak-date-row{display:flex;gap:3px;margin-bottom:3px;direction:rtl;}
 .s-date-lbl{width:18px;font-size:8px;text-align:center;flex-shrink:0;line-height:1.2;}
 .streak-row{display:flex;gap:3px;flex-wrap:nowrap;direction:rtl;}
-.s-dot{width:18px;height:18px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;}
-.s-dot.filled{background:var(--green);border-color:var(--green);}
-.s-dot.today-d{background:var(--accent);border-color:var(--accent);}
 .s-dot.has-note::after{content:"";position:absolute;bottom:-2px;right:-2px;width:5px;height:5px;background:var(--accent);border-radius:50%;border:1px solid var(--surface);}
 
 /* wallet stats */
@@ -1752,7 +1761,6 @@ async function loadAllUsers(){
 // ── START APP ──────────────────────────────────
 async function startApp(user){
   currentUser = user;
-  // Cache user info for instant next load
   localStorage.setItem('artrk_user_id', user.id);
   localStorage.setItem('artrk_user_email', user.email);
   document.getElementById('auth-screen').style.display='none';
@@ -1810,53 +1818,71 @@ function deleteHabit(id,e){
   myData.habits_list=getHabits().filter(h=>h.id!==id);
   saveMyData(); renderHabits(); renderStreaks();
 }
+function getHabitStreak(habitId){
+  const doneMap=myData.done||{};
+  let streak=0;
+  const d=new Date();
+  // start from today or yesterday (if today not done yet)
+  while(true){
+    const k=d.toISOString().slice(0,10);
+    if(doneMap[k]&&doneMap[k][habitId]) streak++;
+    else if(streak===0&&k===todayKey()){d.setDate(d.getDate()-1);continue;} // skip today if not done
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
 function renderHabits(){
   const list=getHabits();
   const el=document.getElementById('my-habits-grid');
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
-  el.innerHTML=list.map(h=>{
+  const doneToday=list.filter(h=>isDone(h.id)).length;
+  const total=list.length;
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding:0 2px">
+    <div style="font-size:13px;color:var(--muted);font-weight:600">${doneToday}/${total} منجز اليوم</div>
+    <div style="font-size:12px;font-weight:800;color:${doneToday===total&&total>0?'var(--green)':'var(--muted)'}">${total>0?Math.round(doneToday/total*100):0}%</div>
+  </div>
+  <div style="height:5px;background:var(--surface2);border-radius:99px;margin-bottom:14px;overflow:hidden">
+    <div style="height:100%;width:${total>0?Math.round(doneToday/total*100):0}%;background:var(--green);border-radius:99px;transition:width 0.4s"></div>
+  </div>`+
+  list.map(h=>{
     const done=isDone(h.id);
+    const streak=getHabitStreak(h.id);
     const note=getHabitNote(h.id,selectedHabitsDate);
-    return`<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
-      <div class="done-badge">✓</div>
-      <button class="del-btn" onclick="deleteHabit('${h.id}',event)">✕</button>
-      <div class="h-icon">${h.icon}</div>
-      <div class="h-name">${h.name}</div>
-      <div class="h-status">${done?'✅ منجز':'اضغط للتسجيل'}</div>
-      ${done?`<div class="h-note-btn" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,18)+(note.length>18?'...':''):'+ ملاحظة'}</div>`:''}
+    const streakHTML=streak>0?`<span class="hr-streak ${streak>=7?'hot':''}">🔥 ${streak} يوم</span>`:'';
+    const noteHTML=done?`<span class="hr-note" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,20):'+ ملاحظة'}</span>`:'';
+    return`<div class="habit-row ${done?'done':''}" onclick="toggleHabit('${h.id}')">
+      <div class="hr-check">${done?'✓':''}</div>
+      <div class="hr-icon">${h.icon}</div>
+      <div class="hr-info">
+        <div class="hr-name">${h.name}</div>
+        <div class="hr-meta">${streakHTML}${noteHTML}</div>
+      </div>
+      <button class="hr-del" onclick="deleteHabit('${h.id}',event)">✕</button>
     </div>`;
   }).join('');
 }
-let streakDays = 7;
-function setStreakPeriod(n, btn){
-  streakDays = n;
+let streakDays=7;
+function setStreakPeriod(n,btn){
+  streakDays=n;
   document.querySelectorAll('.streak-period-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  if(btn)btn.classList.add('active');
   renderStreaks();
 }
 function renderStreaks(){
   const list=getHabits(); const doneMap=myData.done||{};
-  const n = streakDays || 7;
+  const n=streakDays||7;
   const el=document.getElementById('my-streaks');
   if(!list.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">لا توجد عادات بعد</p>';return;}
-
-  // Build full period
   const allDays=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);allDays.push(d.toISOString().slice(0,10));}
-
-  // Find earliest day with ANY completion within the period
-  const firstDoneIdx = allDays.findIndex(day => Object.keys(doneMap[day]||{}).some(k=>doneMap[day][k]));
-  // Start from first completion, or just today if none
-  const daysLTR = firstDoneIdx === -1 ? [todayKey()] : allDays.slice(firstDoneIdx);
-  // Reverse for RTL display: today on left, oldest on right
-  const days = [...daysLTR].reverse();
-
-  const step = days.length<=14?1:days.length<=30?3:7;
-  const makeDateRow = () => `<div class="streak-date-row">${days.map((day,i)=>{
-    const d=new Date(day+'T00:00:00'); const isT=day===todayKey();
-    const show = isT||i===0||i%step===0;
-    return `<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?900:500}">${d.getDate()}/${d.getMonth()+1}</div>`;
+  const firstDoneIdx=allDays.findIndex(day=>Object.keys(doneMap[day]||{}).some(k=>doneMap[day][k]));
+  const days=firstDoneIdx===-1?[todayKey()]:allDays.slice(firstDoneIdx);
+  const step=days.length<=14?1:days.length<=30?3:7;
+  const makeDateRow=()=>`<div class="streak-date-row">${days.map((day,i)=>{
+    const d=new Date(day+'T00:00:00');const isT=day===todayKey();
+    const show=isT||i===0||i%step===0;
+    return`<div class="s-date-lbl" style="color:${isT?'var(--accent)':'var(--muted)'};opacity:${show?1:0};font-weight:${isT?900:500}">${d.getDate()}/${d.getMonth()+1}</div>`;
   }).join('')}</div>`;
-
   el.innerHTML=list.map(h=>{
     const dots=days.map(day=>{
       const done=doneMap[day]&&doneMap[day][h.id];const isT=day===todayKey();
@@ -1873,13 +1899,12 @@ function renderStreaks(){
   }).join('');
 }
 
-
 // ── HABIT NOTES ───────────────────────────────
-let hnHabitId=null, hnDate=null;
-function getHabitNote(habitId, date){ return (myData.habit_notes||{})[date+':'+habitId]||''; }
-function openHabitNote(habitId, e){
+let hnHabitId=null,hnDate=null;
+function getHabitNote(habitId,date){return(myData.habit_notes||{})[date+':'+habitId]||'';}
+function openHabitNote(habitId,e){
   e.stopPropagation();
-  hnHabitId=habitId; hnDate=selectedHabitsDate;
+  hnHabitId=habitId;hnDate=selectedHabitsDate;
   const h=getHabits().find(h=>h.id===habitId);
   document.getElementById('hn-title').textContent=(h?h.icon+' '+h.name:'ملاحظة');
   document.getElementById('hn-date').textContent=hnDate;
@@ -1887,17 +1912,17 @@ function openHabitNote(habitId, e){
   document.getElementById('habit-note-modal').style.display='flex';
   setTimeout(()=>document.getElementById('hn-text').focus(),100);
 }
-function closeHabitNote(){ document.getElementById('habit-note-modal').style.display='none'; }
+function closeHabitNote(){document.getElementById('habit-note-modal').style.display='none';}
 function saveHabitNote(){
   const text=document.getElementById('hn-text').value.trim();
-  if(!myData.habit_notes) myData.habit_notes={};
-  if(text) myData.habit_notes[hnDate+':'+hnHabitId]=text;
+  if(!myData.habit_notes)myData.habit_notes={};
+  if(text)myData.habit_notes[hnDate+':'+hnHabitId]=text;
   else delete myData.habit_notes[hnDate+':'+hnHabitId];
-  saveMyData(); closeHabitNote(); renderHabits(); renderStreaks();
+  saveMyData();closeHabitNote();renderHabits();renderStreaks();
 }
-function viewHabitDay(habitId, date, e){
+function viewHabitDay(habitId,date,e){
   e.stopPropagation();
-  hnHabitId=habitId; hnDate=date;
+  hnHabitId=habitId;hnDate=date;
   const h=getHabits().find(h=>h.id===habitId);
   document.getElementById('hd-title').textContent=h?h.icon+' '+h.name:'عادة';
   document.getElementById('hd-date').textContent=date;
@@ -3015,36 +3040,27 @@ function init(){
     }
   });
 
-  // Try to get cached user from localStorage immediately (no network needed)
-  const cachedUserId = localStorage.getItem('artrk_user_id');
-  const cachedUserEmail = localStorage.getItem('artrk_user_email');
-  if(cachedUserId && cachedUserEmail){
-    // Start app instantly from cache
-    startApp({id: cachedUserId, email: cachedUserEmail});
-    // Then verify session in background — if invalid, will SIGNED_OUT
+  // Try cached user for instant load
+  const cachedUserId=localStorage.getItem('artrk_user_id');
+  const cachedUserEmail=localStorage.getItem('artrk_user_email');
+  if(cachedUserId&&cachedUserEmail){
+    startApp({id:cachedUserId,email:cachedUserEmail});
     sb.auth.getSession().then(({data:{session}})=>{
       if(!session?.user){
-        // Session expired — force logout
         if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
-        currentUser = null;
+        currentUser=null;
         localStorage.removeItem('artrk_user_id');
         localStorage.removeItem('artrk_user_email');
         showAuth();
       }
-    }).catch(()=>{}); // keep app open if network fails
+    }).catch(()=>{});
     return;
   }
-
-  // No cache — wait for session with 5s timeout
-  const fallback = setTimeout(()=>showAuth(), 5000);
+  const fallback=setTimeout(()=>showAuth(),5000);
   sb.auth.getSession().then(({data:{session}})=>{
     clearTimeout(fallback);
-    if(session?.user){
-      startApp(session.user);
-    } else {
-      showAuth();
-    }
-  }).catch(()=>{ clearTimeout(fallback); showAuth(); });
+    if(session?.user){startApp(session.user);}else{showAuth();}
+  }).catch(()=>{clearTimeout(fallback);showAuth();});
 }
 init();
 </script>
