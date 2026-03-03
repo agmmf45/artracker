@@ -1120,7 +1120,8 @@ setInterval(()=>{
           style="width:100%;resize:none;font-size:14px;line-height:1.8;direction:rtl"></textarea>
 
         <!-- Saved notes list -->
-        <div id="notes-history" style="margin-top:12px"></div>
+        <!-- Notes History -->
+        <div id="notes-history" style="margin-top:4px"></div>
       </div>
 
       <div class="grid-3 mb-20">
@@ -3646,37 +3647,59 @@ function renderNotesHistory() {
   const notes = myData.daily_notes || {};
   const el = document.getElementById('notes-history');
   if(!el) return;
-  // All dates sorted newest first, exclude currently editing
-  const dates = Object.keys(notes).sort((a,b)=>b.localeCompare(a)).filter(d=>d!==currentNoteDate).slice(0,8);
-  if(!dates.length){ el.innerHTML=''; return; }
+
+  const allDates = Object.keys(notes).sort((a,b)=>b.localeCompare(a));
+  if(!allDates.length){ el.innerHTML=''; return; }
 
   const GM2 = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  function fmtDate(d){
-    const p=d.split('-'); return `${parseInt(p[2])} ${GM2[parseInt(p[1])-1]} ${p[0]}`;
-  }
-  function isToday(d){ return d===todayKey(); }
 
-  el.innerHTML = '<div style="font-size:11px;font-weight:800;color:var(--muted);margin:12px 0 8px;padding-top:12px;border-top:1px solid var(--border)">📋 الملاحظات السابقة</div>'
-    + dates.map(date=>{
-      const note = notes[date]||'';
-      const preview = note.replace(/[━\n#*\-]/g,' ').replace(/[ \t\r]+/g,' ').trim().slice(0,60);
-      const isT = isToday(date);
-      return `<div onclick="loadPastNote('${date}')"
-        style="padding:10px 14px;background:${isT?'var(--accent-light)':'var(--surface2)'};border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid ${isT?'var(--accent)':'transparent'};transition:.15s;position:relative"
-        onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isT?'var(--accent)':'transparent'}'">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:13px">${isT?'📅':'📝'}</span>
-            <span style="font-size:12px;font-weight:800;color:var(--text)">${fmtDate(date)}</span>
-            ${isT?'<span style="font-size:10px;background:var(--accent);color:white;padding:1px 6px;border-radius:99px;font-weight:700">اليوم</span>':''}
-          </div>
-          <button type="button" onclick="event.stopPropagation();deleteNote('${date}')"
-            style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 6px;border-radius:6px;line-height:1"
-            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
-        </div>
-        <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${preview||'(فارغة)'}${preview.length>=60?'...':''}</div>
-      </div>`;
-    }).join('');
+  function fmtDate(d){
+    const p=d.split('-');
+    const dayNames=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    const dt=new Date(d+'T12:00:00');
+    const dayName=dayNames[dt.getDay()];
+    return `${dayName} ${parseInt(p[2])} ${GM2[parseInt(p[1])-1]}`;
+  }
+
+  const today=todayKey();
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yKey=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+
+  function getLabel(d){
+    if(d===today) return '<span style="background:var(--accent);color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700;margin-right:4px">اليوم</span>';
+    if(d===yKey) return '<span style="background:#8B5CF6;color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700;margin-right:4px">أمس</span>';
+    return '';
+  }
+
+  el.innerHTML = `
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted)">📋 ملاحظاتك (${allDates.length})</div>
+        ${currentNoteDate!==today?`<button type="button" onclick="loadPastNote('${today}');document.getElementById('daily-note-input').focus()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700">+ اليوم</button>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${allDates.map(date=>{
+          const note=notes[date]||'';
+          const preview=note.replace(/━+/g,'').replace(/\n+/g,' ').replace(/[ \t\r]+/g,' ').trim();
+          const short=preview.slice(0,55);
+          const isActive=date===currentNoteDate;
+          return `<div onclick="loadPastNote('${date}')"
+            style="padding:11px 14px;background:${isActive?'var(--accent-light)':'var(--surface2)'};border-radius:12px;cursor:pointer;border:2px solid ${isActive?'var(--accent)':'transparent'};transition:all .15s"
+            onmouseover="if('${date}'!=='${currentNoteDate}')this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='${isActive?'var(--accent)':'transparent'}'">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${short?'5':'0'}px">
+              <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+                <span style="font-size:13px;font-weight:800;color:${isActive?'var(--accent)':'var(--text)'}">${fmtDate(date)}</span>
+                ${getLabel(date)}
+              </div>
+              <button type="button" onclick="event.stopPropagation();deleteNote('${date}')"
+                style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:0 2px;flex-shrink:0"
+                onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+            </div>
+            ${short?`<div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${short}${preview.length>55?'...':''}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
 }
 
 function loadPastNote(date) {
