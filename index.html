@@ -1764,26 +1764,24 @@ function saveToCache(userId){
 }
 
 async function loadMyData(){
-  // 1. Load from cache instantly (so UI shows immediately)
+  // 1. Load from cache instantly
   const hadCache = loadFromCache(currentUser.id);
   if(hadCache) applyDefaults();
 
-  // 2. Load from DB (may be slower)
+  // 2. Load from DB with 5s timeout
   try{
-    const {data} = await sb.from('users')
-      .select('data')
-      .eq('id', currentUser.id)
-      .single();
-
+    const dbPromise = sb.from('users').select('data').eq('id', currentUser.id).single();
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000));
+    const {data} = await Promise.race([dbPromise, timeout]);
     if(data?.data){
       myData = data.data;
       applyDefaults();
-      saveToCache(currentUser.id); // update cache
+      saveToCache(currentUser.id);
     } else {
       applyDefaults();
     }
   } catch(e){
-    console.warn('⚠️ DB load failed, using cache:', e);
+    console.warn('DB load failed/timeout:', e.message);
     if(!hadCache) applyDefaults();
   }
 }
@@ -1850,6 +1848,9 @@ async function startApp(user){
   // Show app immediately
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
+
+  // Show default page
+  try{ showPage('stats', document.getElementById('tab-stats')); }catch(e){}
 
   // Render
   try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
