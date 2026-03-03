@@ -453,6 +453,18 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   .main{margin-right:0;padding:76px 16px 120px;}
   .grid-2,.grid-3,.friends-grid{grid-template-columns:1fr;}
 }
+
+.cal-day{width:100%;aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:13px;font-weight:700;transition:.15s;}
+.cal-day:hover{background:var(--surface2);}
+.cal-day.today{background:var(--accent);color:white;box-shadow:0 2px 8px rgba(99,102,241,0.4);}
+.cal-day.has-event::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--green);}
+.cal-day.today.has-event::after{background:white;}
+.cal-day.has-todo::before{content:'';position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#F59E0B;}
+.cal-day.other-month{opacity:0.3;}
+.cal-day.islamic-event{color:#10B981;font-weight:900;}
+.cal-day.today.islamic-event{color:white;}
+.cal-event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:700;margin:3px 3px 0 0;}
+
 </style>
 </head>
 <body>
@@ -812,10 +824,10 @@ setInterval(()=>{
       <div class="who">مرحبا، <strong id="sidebar-name"></strong> 👋</div>
       <div class="online-pill"><div class="dot-live"></div> <span id="online-count">1</span> متصل</div>
     </div>
-    <div class="nav-item active" data-p="habits" onclick="showPage('habits',document.getElementById('tab-habits'))"><span>✅</span> العادات</div>
+    <div class="nav-item" data-p="habits" onclick="showPage('habits',document.getElementById('tab-habits'))"><span>✅</span> العادات</div>
     <div class="nav-item" data-p="friends" onclick="showPage('friends',document.getElementById('tab-friends'))"><span>👥</span> الأصدقاء</div>
     <div class="nav-item" data-p="expenses" onclick="showPage('expenses',document.getElementById('tab-expenses'))"><span>💸</span> المصاريف</div>
-    <div class="nav-item" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>📊</span> إحصائيات</div>
+    <div class="nav-item active" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>🌟</span> لوحتي</div>
     <div class="nav-item" data-p="todo" onclick="showPage('todo',document.getElementById('tab-todo'))"><span>📝</span> قائمة المهام</div>
     <div class="nav-item" data-p="trophies" onclick="showPage('trophies',document.getElementById('tab-trophies'))"><span>🏆</span> التروفيات</div>
     <div class="nav-item" data-p="profile" onclick="showPage('profile',document.getElementById('tab-profile'))"><span>🪪</span> ملفي الشخصي</div>
@@ -985,7 +997,60 @@ setInterval(()=>{
 
     <!-- STATS -->
     <div class="page" id="page-stats">
-      <div class="page-header"><div class="ph2">📊 الإحصائيات</div><div class="psub2">نظرة شاملة على أدائك</div></div>
+      <div class="page-header"><div class="ph2">🌟 لوحتي</div><div class="psub2">يومياتك ومتابعتك</div></div>
+      <!-- CALENDAR -->
+      <div class="card" style="margin-bottom:18px;padding:0;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:16px 18px;color:white">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <button type="button" onclick="calPrev()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">‹</button>
+            <div style="text-align:center">
+              <div id="cal-title-m" style="font-size:17px;font-weight:900"></div>
+              <div id="cal-title-h" style="font-size:11px;opacity:0.8;margin-top:2px"></div>
+            </div>
+            <button type="button" onclick="calNext()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">›</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;font-weight:700;opacity:0.8">
+            <div>أح</div><div>إث</div><div>ث</div><div>أر</div><div>خ</div><div>ج</div><div>س</div>
+          </div>
+        </div>
+        <div id="cal-grid" style="padding:10px 12px"></div>
+        <div id="cal-events-bar" style="padding:0 14px 12px"></div>
+      </div>
+
+      <!-- DAILY NOTES -->
+      <div class="card" style="margin-bottom:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="sec-title" style="margin-bottom:0">📝 ملاحظة اليوم</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="notes-date-lbl" style="font-size:11px;color:var(--muted)"></span>
+            <button type="button" id="notes-save-btn" onclick="saveDailyNote()" class="btn btn-p btn-sm" style="padding:5px 12px;font-size:12px">حفظ</button>
+          </div>
+        </div>
+
+        <!-- Templates bar -->
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">قوالب سريعة</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="templates-bar">
+            <button type="button" class="chip" onclick="insertTemplate('workout')">🏋️ رياضة</button>
+            <button type="button" class="chip" onclick="insertTemplate('nutrition')">🍽️ تغذية</button>
+            <button type="button" class="chip" onclick="insertTemplate('sleep')">😴 نوم</button>
+            <button type="button" class="chip" onclick="insertTemplate('reflect')">💡 تأمل</button>
+            <button type="button" class="chip" onclick="insertTemplate('free')">✍️ حر</button>
+          </div>
+        </div>
+
+        <!-- Quick inserts -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="quick-inserts"></div>
+
+        <!-- Textarea -->
+        <textarea id="daily-note-input" class="fi" rows="7"
+          placeholder="اكتب ملاحظتك اليومية هنا..."
+          style="width:100%;resize:none;font-size:14px;line-height:1.8;direction:rtl"></textarea>
+
+        <!-- Saved notes list -->
+        <div id="notes-history" style="margin-top:12px"></div>
+      </div>
+
       <div class="grid-3 mb-20">
         <div class="stat-card"><div class="plabel">🔥 أطول سلسلة</div><div class="bph" id="stat-streak">0</div><div class="psub">يوم متواصل</div></div>
         <div class="stat-card"><div class="plabel">✅ إنجاز الأسبوع</div><div class="bph" id="stat-week">0%</div><div class="psub">نسبة الإنجاز</div></div>
@@ -1071,6 +1136,13 @@ setInterval(()=>{
           <div class="card">
             <div class="sec-title">👥 أصدقائي</div>
             <div id="my-friends-list"><div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div></div>
+          </div>
+
+          <!-- Export PDF -->
+          <div class="card" style="background:var(--surface2);margin-bottom:14px">
+            <div class="sec-title" style="margin-bottom:10px">📄 تصدير التقرير</div>
+            <button type="button" class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#7C3AED,#2563EB);color:white;font-weight:800;padding:11px" onclick="exportPDF()">📥 تحميل تقرير PDF</button>
+            <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">يحتوي على كل بياناتك وإحصائياتك</div>
           </div>
 
           <!-- Logout -->
@@ -1219,7 +1291,7 @@ setInterval(()=>{
 
   <!-- BOTTOM NAV -->
   <div class="top-tabs">
-    <div class="top-tab active" id="tab-habits" onclick="showPage('habits',this)">
+    <div class="top-tab" id="tab-habits" onclick="showPage('habits',this)">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span class="tab-label">العادات</span>
     </div>
@@ -1231,9 +1303,9 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       <span class="tab-label">المصاريف</span>
     </div>
-    <div class="top-tab" id="tab-stats" onclick="showPage('stats',this)">
-      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span class="tab-label">إحصائيات</span>
+    <div class="top-tab active" id="tab-stats" onclick="showPage('stats',this)">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="tab-label">لوحتي</span>
     </div>
     <div class="top-tab" id="tab-todo" onclick="showPage('todo',this)">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -1422,7 +1494,7 @@ function updateDateDisplays() {
 }
 
 // ── HIJRI CALENDAR ────────────────────────────
-function toHijri(date) {
+function toHijriFromDate(date) {
   // Algorithmic conversion (approximate)
   const JD = Math.floor((date.getTime() / 86400000) + 2440587.5);
   let l = JD - 1948440 + 10632;
@@ -1471,7 +1543,7 @@ const GREGORIAN_EVENTS = {
 
 function getDateInfo(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  const hijri = toHijri(d);
+  const hijri = toHijriFromDate(d);
   const hijriStr = `${hijri.day} ${HIJRI_MONTHS[hijri.month-1]} ${hijri.year} هـ`;
   const gregorianStr = d.toLocaleDateString('ar-SA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   const gregorianEn = d.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
@@ -1692,26 +1764,24 @@ function saveToCache(userId){
 }
 
 async function loadMyData(){
-  // 1. Load from cache instantly (so UI shows immediately)
+  // 1. Load from cache instantly
   const hadCache = loadFromCache(currentUser.id);
   if(hadCache) applyDefaults();
 
-  // 2. Load from DB (may be slower)
+  // 2. Load from DB with 5s timeout
   try{
-    const {data} = await sb.from('users')
-      .select('data')
-      .eq('id', currentUser.id)
-      .single();
-
+    const dbPromise = sb.from('users').select('data').eq('id', currentUser.id).single();
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000));
+    const {data} = await Promise.race([dbPromise, timeout]);
     if(data?.data){
       myData = data.data;
       applyDefaults();
-      saveToCache(currentUser.id); // update cache
+      saveToCache(currentUser.id);
     } else {
       applyDefaults();
     }
   } catch(e){
-    console.warn('⚠️ DB load failed, using cache:', e);
+    console.warn('DB load failed/timeout:', e.message);
     if(!hadCache) applyDefaults();
   }
 }
@@ -1778,6 +1848,9 @@ async function startApp(user){
   // Show app immediately
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app').style.display='flex';
+
+  // Show default page
+  try{ showPage('stats', document.getElementById('tab-stats')); }catch(e){}
 
   // Render
   try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
@@ -2641,7 +2714,7 @@ function showPage(name,tabEl,dir){
   else if(dir==='right') next.classList.add('slide-in-right');
   if(tabEl)tabEl.classList.add('active');
   const si=document.querySelector(`.nav-item[data-p="${name}"]`);if(si)si.classList.add('active');
-  if(name==='stats')renderStats();
+  if(name==='stats'){renderStats();try{renderCalendar();}catch(e){}try{initNotes();}catch(e){}}
   if(name==='friends')refreshAll();
   if(name==='profile'){renderProfilePage();renderFriendsList();}
   if(name==='todo')renderTodos();
@@ -3164,7 +3237,7 @@ function showExpenseAIResult(data, walletId){
         <input type="checkbox" id="ai-exp-${i}" checked style="width:18px;height:18px;cursor:pointer">
       </div>`;
     });
-    html+=`<button type="button" class="btn btn-p btn-full" style="margin-top:14px" onclick="applyExpenseAI(${JSON.stringify(txns).replace(/"/g,'&quot;')},'${walletId}')">✅ أضف المحدد</button>`;
+    html+=`<div style="position:sticky;bottom:0;padding:10px 0 0;background:var(--surface)"><button type="button" class="btn btn-p btn-full" onclick="applyExpenseAI(${JSON.stringify(txns).replace(/"/g,'&quot;')},'${walletId}')">✅ أضف المحدد</button></div>`;
   }
 
   result.innerHTML=html;
@@ -3357,6 +3430,546 @@ function applyAIResult(habits,todos){
 }
 
 
+
+
+
+// ── DAILY NOTES ───────────────────────────────
+const NOTE_TEMPLATES = {
+  workout: {
+    label: '🏋️ رياضة وبناء جسم',
+    quickInserts: ['💪 التمرين','⚖️ الوزن','📏 القياسات','🔥 السعرات','💧 الماء','😤 الجهد'],
+    text: `🏋️ تمرين اليوم
+━━━━━━━━━━━━━━━
+💪 التمارين:
+• 
+
+⚖️ الوزن: ___ كغ
+💧 الماء: ___ لتر
+🔥 السعرات المحروقة: ___
+
+😤 مستوى الجهد (1-10): ___
+📝 ملاحظات:
+`
+  },
+  nutrition: {
+    label: '🍽️ تغذية',
+    quickInserts: ['🌅 الفطور','☀️ الغداء','🌙 العشاء','🍎 وجبة خفيفة','💧 الماء','🔢 السعرات'],
+    text: `🍽️ تغذية اليوم
+━━━━━━━━━━━━━━━
+🌅 الفطور:
+• 
+
+☀️ الغداء:
+• 
+
+🌙 العشاء:
+• 
+
+💧 الماء: ___ لتر
+🔢 إجمالي السعرات: ___
+`
+  },
+  sleep: {
+    label: '😴 نوم وراحة',
+    quickInserts: ['🌙 وقت النوم','🌅 وقت الاستيقاظ','⏱️ ساعات النوم','⭐ جودة النوم','😪 التعب','🧘 الراحة'],
+    text: `😴 نوم اليوم
+━━━━━━━━━━━━━━━
+🌙 وقت النوم: ___
+🌅 وقت الاستيقاظ: ___
+⏱️ ساعات النوم: ___
+⭐ جودة النوم (1-10): ___
+
+🧘 كيف أشعر اليوم:
+`
+  },
+  reflect: {
+    label: '💡 تأمل وأفكار',
+    quickInserts: ['🙏 أشكر على','🎯 هدف اليوم','✅ أنجزت','😔 أتحسن في','💭 فكرة','🌟 لحظة مميزة'],
+    text: `💡 تأملي اليوم
+━━━━━━━━━━━━━━━
+🙏 أشكر الله على:
+• 
+
+🎯 هدفي اليوم:
+
+✅ ما أنجزته:
+
+💭 فكرة أو شيء تعلمته:
+
+🌟 أفضل لحظة اليوم:
+`
+  },
+  free: {
+    label: '✍️ كتابة حرة',
+    quickInserts: ['📅 التاريخ','🌤️ الطقس','😊 المزاج','💬 أفكار','📌 مهم','⭐ مميز'],
+    text: ''
+  }
+};
+
+let currentNoteDate = todayKey();
+let currentTemplate = null;
+
+function initNotes() {
+  document.getElementById('notes-date-lbl').textContent = currentNoteDate;
+  loadNoteForDate(currentNoteDate);
+  renderNotesHistory();
+}
+
+function loadNoteForDate(date) {
+  const notes = myData.daily_notes || {};
+  document.getElementById('daily-note-input').value = notes[date] || '';
+}
+
+function saveDailyNote() {
+  const text = document.getElementById('daily-note-input').value;
+  if (!myData.daily_notes) myData.daily_notes = {};
+  if (text.trim()) myData.daily_notes[currentNoteDate] = text;
+  else delete myData.daily_notes[currentNoteDate];
+  saveMyData();
+  renderNotesHistory();
+  showToast('✅ تم حفظ الملاحظة');
+}
+
+function insertTemplate(type) {
+  const tpl = NOTE_TEMPLATES[type];
+  if (!tpl) return;
+  currentTemplate = type;
+
+  // Update quick inserts
+  const qi = document.getElementById('quick-inserts');
+  qi.innerHTML = tpl.quickInserts.map(q =>
+    `<button type="button" onclick="insertQuick('${q}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--text)">${q}</button>`
+  ).join('');
+
+  // Set template text if empty or confirm
+  const ta = document.getElementById('daily-note-input');
+  if (!ta.value.trim() || confirm('تبغى تستبدل النص الحالي بالقالب؟')) {
+    ta.value = tpl.text;
+    ta.focus();
+  }
+}
+
+function insertQuick(text) {
+  const ta = document.getElementById('daily-note-input');
+  const pos = ta.selectionStart;
+  const before = ta.value.substring(0, pos);
+  const after = ta.value.substring(pos);
+  ta.value = before + text + ': ' + after;
+  ta.selectionStart = ta.selectionEnd = pos + text.length + 2;
+  ta.focus();
+}
+
+function renderNotesHistory() {
+  const notes = myData.daily_notes || {};
+  const dates = Object.keys(notes).sort((a,b) => b.localeCompare(a)).slice(0, 5);
+  const el = document.getElementById('notes-history');
+  if (!dates.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;border-top:1px solid var(--border);padding-top:10px">السابقة</div>` +
+    dates.filter(d => d !== currentNoteDate).slice(0, 4).map(date => {
+      const note = notes[date];
+      const preview = note.replace(/[━━━━━━━━━━━━━━━
+]/g,' ').trim().slice(0, 50);
+      return `<div onclick="loadPastNote('${date}')" style="padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:6px;cursor:pointer;border:1.5px solid transparent;transition:.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:12px;font-weight:800">${date}</span>
+          <button type="button" onclick="event.stopPropagation();deleteNote('${date}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px">✕</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${preview}...</div>
+      </div>`;
+    }).join('');
+}
+
+function loadPastNote(date) {
+  currentNoteDate = date;
+  document.getElementById('notes-date-lbl').textContent = date;
+  loadNoteForDate(date);
+  document.getElementById('daily-note-input').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteNote(date) {
+  if (!confirm('تحذف هذه الملاحظة؟')) return;
+  delete myData.daily_notes[date];
+  saveMyData();
+  renderNotesHistory();
+}
+
+
+// ── CALENDAR ──────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelectedDate = null;
+
+// Islamic events (Gregorian approximate dates for 2025-2026)
+const ISLAMIC_EVENTS = {
+  '2025-03-01': 'بداية رمضان 🌙',
+  '2025-03-30': 'ليلة القدر ✨',
+  '2025-03-31': 'عيد الفطر 🌙',
+  '2025-04-01': 'عيد الفطر 🌙',
+  '2025-04-02': 'عيد الفطر 🌙',
+  '2025-06-05': 'يوم عرفة 🕋',
+  '2025-06-06': 'عيد الأضحى 🐑',
+  '2025-06-07': 'عيد الأضحى 🐑',
+  '2025-06-08': 'عيد الأضحى 🐑',
+  '2025-06-26': 'رأس السنة الهجرية 🌙',
+  '2025-09-04': 'المولد النبوي 🌟',
+  '2026-02-18': 'بداية رمضان 🌙',
+  '2026-03-19': 'عيد الفطر 🌙',
+  '2026-03-20': 'عيد الفطر 🌙',
+  '2026-03-21': 'عيد الفطر 🌙',
+  '2026-05-26': 'يوم عرفة 🕋',
+  '2026-05-27': 'عيد الأضحى 🐑',
+  '2026-05-28': 'عيد الأضحى 🐑',
+  '2026-05-29': 'عيد الأضحى 🐑',
+  '2025-09-23': 'اليوم الوطني 🇸🇦',
+  '2026-09-23': 'اليوم الوطني 🇸🇦',
+};
+
+const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الثاني','جمادى الأولى','جمادى الثانية','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const GREGORIAN_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function toHijri(year, month, day) {
+  // Approximate conversion
+  const jd = Math.floor((14 + (month + 1) + Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) - Math.floor(3 * (Math.floor((year + (month - 9) / 7) / 100) + 1) / 4) + day + 1721119.5) - 0.5);
+  let l = jd - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor(50 * l / 17719) + Math.floor(l / 5670) * Math.floor(43 * l / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor(17719 * j / 50) - Math.floor(j / 16) * Math.floor(15238 * j / 43) + 29;
+  const hMonth = Math.floor(24 * l / 709);
+  const hDay = l - Math.floor(709 * hMonth / 24);
+  const hYear = 30 * n + j - 30;
+  return { y: hYear, m: hMonth, d: hDay };
+}
+
+function getHijriLabel(date) {
+  const h = toHijri(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  return `${h.d} ${HIJRI_MONTHS[h.m - 1]} ${h.y} هـ`;
+}
+
+function renderCalendar() {
+  const today = new Date();
+  const todayKey2 = today.toISOString().slice(0, 10);
+  const firstDay = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  let startDow = firstDay.getDay(); // 0=Sun
+
+  // Header
+  const hijriFirst = toHijri(calYear, calMonth + 1, 1);
+  const hijriLast = toHijri(calYear, calMonth + 1, daysInMonth);
+  document.getElementById('cal-title-m').textContent = GREGORIAN_MONTHS[calMonth] + ' ' + calYear;
+  document.getElementById('cal-title-h').textContent = `${HIJRI_MONTHS[hijriFirst.m-1]}${hijriFirst.m!==hijriLast.m?' - '+HIJRI_MONTHS[hijriLast.m-1]:''} ${hijriFirst.y} هـ`;
+
+  const doneMap = myData.done || {};
+  const todos = myData.todos || [];
+  const reminders = myData.cal_reminders || {};
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+
+  // Empty cells before start
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-day other-month"></div>';
+
+  // Days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const key = date.toISOString().slice(0, 10);
+    const isToday = key === todayKey2;
+    const islamicEv = ISLAMIC_EVENTS[key];
+    const hasTodo = todos.some(t => t.due === key && !t.done);
+    const hasReminder = !!(reminders[key] && reminders[key].length);
+    const hasHabit = doneMap[key] && Object.values(doneMap[key]).some(v => v);
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (islamicEv) cls += ' islamic-event';
+    if (hasHabit || hasReminder) cls += ' has-event';
+    if (hasTodo) cls += ' has-todo';
+
+    html += `<div class="${cls}" onclick="openCalDay('${key}')">
+      <span>${d}</span>
+      ${islamicEv ? `<span style="font-size:8px;text-align:center;line-height:1.1;margin-top:1px">${islamicEv.split(' ')[0]}</span>` : ''}
+    </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('cal-grid').innerHTML = html;
+
+  // Events bar - show this month's events
+  const monthEvents = Object.entries(ISLAMIC_EVENTS)
+    .filter(([k]) => k.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`));
+  
+  let evBar = '';
+  if (monthEvents.length) {
+    evBar = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
+    monthEvents.forEach(([k, name]) => {
+      const d = new Date(k + 'T12:00:00');
+      evBar += `<div class="cal-event-chip" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#065f46">
+        ${name} · ${d.getDate()} ${GREGORIAN_MONTHS[d.getMonth()]}
+      </div>`;
+    });
+    evBar += '</div>';
+  }
+  document.getElementById('cal-events-bar').innerHTML = evBar;
+}
+
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function calNext() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function openCalDay(dateKey) {
+  calSelectedDate = dateKey;
+  const date = new Date(dateKey + 'T12:00:00');
+  document.getElementById('cal-day-title').textContent = 
+    `${date.getDate()} ${GREGORIAN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  document.getElementById('cal-day-hijri').textContent = getHijriLabel(date);
+  document.getElementById('cal-reminder-input').value = '';
+
+  const todos = myData.todos || [];
+  const reminders = (myData.cal_reminders || {})[dateKey] || [];
+  const islamicEv = ISLAMIC_EVENTS[dateKey];
+  const doneMap = myData.done || {};
+  const habits = getHabits();
+
+  let html = '';
+
+  // Islamic event
+  if (islamicEv) {
+    html += `<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:14px;font-weight:700;color:#065f46">🌙 ${islamicEv}</div>`;
+  }
+
+  // Habits done that day
+  const doneThatDay = habits.filter(h => doneMap[dateKey] && doneMap[dateKey][h.id]);
+  if (doneThatDay.length) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">العادات المنجزة</div>`;
+    doneThatDay.forEach(h => {
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--green-light);border-radius:8px;margin-bottom:4px;font-size:13px">✅ ${h.icon} ${h.name}</div>`;
+    });
+  }
+
+  // Todos due that day
+  const todayTodos = todos.filter(t => t.due === dateKey);
+  if (todayTodos.length) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">المهام</div>`;
+    todayTodos.forEach(t => {
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:4px;font-size:13px">
+        ${t.done?'✅':'📝'} ${t.text}
+      </div>`;
+    });
+  }
+
+  // Reminders
+  if (reminders.length) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">التذكيرات</div>`;
+    reminders.forEach((r, i) => {
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#FEF3C7;border-radius:8px;margin-bottom:4px;font-size:13px">
+        <span style="flex:1">🔔 ${r}</span>
+        <span onclick="deleteCalReminder('${dateKey}',${i})" style="cursor:pointer;color:var(--muted);font-size:16px">✕</span>
+      </div>`;
+    });
+  }
+
+  if (!html) html = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">لا يوجد شيء في هذا اليوم</div>';
+
+  document.getElementById('cal-day-events').innerHTML = html;
+  document.getElementById('cal-day-modal').classList.add('open');
+}
+
+function closeCalDay() {
+  document.getElementById('cal-day-modal').classList.remove('open');
+}
+
+function saveCalReminder() {
+  const text = document.getElementById('cal-reminder-input').value.trim();
+  if (!text || !calSelectedDate) { showToast('اكتب التذكير أولاً'); return; }
+  if (!myData.cal_reminders) myData.cal_reminders = {};
+  if (!myData.cal_reminders[calSelectedDate]) myData.cal_reminders[calSelectedDate] = [];
+  myData.cal_reminders[calSelectedDate].push(text);
+  saveMyData();
+  renderCalendar();
+  openCalDay(calSelectedDate); // refresh modal
+  showToast('✅ تم حفظ التذكير');
+}
+
+function deleteCalReminder(dateKey, idx) {
+  myData.cal_reminders[dateKey].splice(idx, 1);
+  if (!myData.cal_reminders[dateKey].length) delete myData.cal_reminders[dateKey];
+  saveMyData();
+  renderCalendar();
+  openCalDay(dateKey);
+}
+
+
+// ── PDF EXPORT ────────────────────────────────
+function exportPDF(){
+  const name = myData.display_name || 'المستخدم';
+  const habits = getHabits();
+  const doneMap = myData.done || {};
+  const todos = myData.todos || [];
+  const expenses = myData.expenses || [];
+  const wallets = myData.wallets || [];
+  const today = todayKey();
+
+  // --- Stats ---
+  const totalDays = Object.keys(doneMap).length;
+  const doneTodayCount = habits.filter(h => isDone(h.id)).length;
+
+  // Best streaks
+  function calcStreak(hid){
+    let s=0; const d=new Date();
+    while(true){
+      const k=d.toISOString().slice(0,10);
+      if(doneMap[k]&&doneMap[k][hid]) s++;
+      else if(s===0&&k===today){d.setDate(d.getDate()-1);continue;}
+      else break;
+      d.setDate(d.getDate()-1);
+    }
+    return s;
+  }
+
+  const habitsWithStreak = habits.map(h=>({...h, streak:calcStreak(h.id)}));
+  const topHabit = habitsWithStreak.sort((a,b)=>b.streak-a.streak)[0];
+
+  // Todos stats
+  const doneTodos = todos.filter(t=>t.done).length;
+  const pendingTodos = todos.filter(t=>!t.done).length;
+
+  // Expenses stats
+  const totalSpend = expenses.reduce((a,b)=>a+(b.amount||0),0);
+  const walletBalance = wallets.reduce((a,b)=>a+(b.balance||0),0);
+
+  // Category breakdown
+  const catMap = {};
+  expenses.forEach(e=>{
+    const cat = e.cat||'أخرى';
+    catMap[cat] = (catMap[cat]||0) + (e.amount||0);
+  });
+  const catRows = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6)
+    .map(([cat,amt])=>`<tr><td>${cat}</td><td style="text-align:left;font-weight:700">${amt.toLocaleString('ar')} ر.س</td></tr>`).join('');
+
+  // Recent todos
+  const recentTodos = todos.slice(0,10).map(t=>
+    `<tr><td>${t.done?'✅':'⬜'}</td><td>${t.text}</td><td style="text-align:left">${t.priority==='high'?'🔴 عالية':t.priority==='low'?'🟢 منخفضة':'🟡 عادية'}</td></tr>`
+  ).join('');
+
+  // Habits table
+  const habitsRows = habitsWithStreak.map(h=>{
+    const total = Object.keys(doneMap).filter(d=>doneMap[d][h.id]).length;
+    return `<tr><td>${h.icon} ${h.name}</td><td style="text-align:center">${h.streak} 🔥</td><td style="text-align:center">${total}</td></tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>تقرير ${name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Cairo',sans-serif;background:#f8f9fa;color:#1a1a2e;padding:30px;direction:rtl}
+  .header{background:linear-gradient(135deg,#7C3AED,#2563EB);color:white;border-radius:16px;padding:30px;margin-bottom:24px;text-align:center}
+  .header h1{font-size:28px;font-weight:900;margin-bottom:6px}
+  .header p{font-size:14px;opacity:0.85}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .card{background:white;border-radius:12px;padding:18px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+  .card .num{font-size:28px;font-weight:900;color:#7C3AED}
+  .card .lbl{font-size:12px;color:#666;margin-top:4px}
+  .section{background:white;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+  .section h2{font-size:16px;font-weight:900;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;color:#1a1a2e}
+  table{width:100%;border-collapse:collapse}
+  th{background:#f8f9fa;padding:10px;font-size:13px;font-weight:700;text-align:right}
+  td{padding:9px 10px;font-size:13px;border-bottom:1px solid #f0f0f0}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+  .footer{text-align:center;color:#aaa;font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="font-size:48px;margin-bottom:8px">${myData.avatar_emoji||'👤'}</div>
+  <h1>${name}</h1>
+  <p>تقرير شامل · ${new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})}</p>
+</div>
+
+<div class="cards">
+  <div class="card"><div class="num">${habits.length}</div><div class="lbl">عدد العادات</div></div>
+  <div class="card"><div class="num">${doneTodayCount}/${habits.length}</div><div class="lbl">منجز اليوم</div></div>
+  <div class="card"><div class="num">${topHabit?topHabit.streak:0}🔥</div><div class="lbl">أطول streak</div></div>
+  <div class="card"><div class="num">${doneTodos}</div><div class="lbl">مهام منجزة</div></div>
+</div>
+
+${habits.length?`
+<div class="section">
+  <h2>🔥 العادات والإنجازات</h2>
+  <table>
+    <tr><th>العادة</th><th style="text-align:center">Streak الحالي</th><th style="text-align:center">إجمالي الأيام</th></tr>
+    ${habitsRows}
+  </table>
+</div>`:''}
+
+${todos.length?`
+<div class="section">
+  <h2>✅ المهام</h2>
+  <div style="display:flex;gap:20px;margin-bottom:14px;font-size:13px">
+    <span>✅ منجزة: <strong>${doneTodos}</strong></span>
+    <span>⏳ معلقة: <strong>${pendingTodos}</strong></span>
+  </div>
+  <table>
+    <tr><th></th><th>المهمة</th><th style="text-align:left">الأولوية</th></tr>
+    ${recentTodos}
+  </table>
+</div>`:''}
+
+${wallets.length||expenses.length?`
+<div class="section">
+  <h2>💰 ملخص المصاريف</h2>
+  <div style="display:flex;gap:20px;margin-bottom:14px;font-size:13px">
+    <span>💳 الرصيد الكلي: <strong>${walletBalance.toLocaleString('ar')} ر.س</strong></span>
+    <span>💸 إجمالي الإنفاق: <strong>${totalSpend.toLocaleString('ar')} ر.س</strong></span>
+  </div>
+  ${catRows?`<table>
+    <tr><th>التصنيف</th><th style="text-align:left">المبلغ</th></tr>
+    ${catRows}
+  </table>`:''}
+</div>`:''}
+
+<div class="footer">تم التصدير من تطبيق Artracker · ${new Date().toLocaleString('ar-SA')}</div>
+
+<!-- CALENDAR DAY MODAL -->
+<div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
+  <div class="modal-box" style="max-width:400px;width:95vw">
+    <div class="flex-b" style="margin-bottom:14px">
+      <div>
+        <div id="cal-day-title" style="font-size:16px;font-weight:900"></div>
+        <div id="cal-day-hijri" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+      </div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeCalDay()">✕</span>
+    </div>
+    <div id="cal-day-events" style="margin-bottom:14px"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">+ إضافة تذكير</div>
+    <div style="display:flex;gap:8px">
+      <input class="fi" id="cal-reminder-input" placeholder="اكتب تذكيرك..." style="flex:1;font-size:13px">
+      <button type="button" class="btn btn-p btn-sm" onclick="saveCalReminder()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(), 800);
+}
+
 // ── INIT ──────────────────────────────────────
 function init(){
   const showAuth = () => {
@@ -3434,7 +4047,8 @@ init();
 
 <!-- AI ASSISTANT MODAL -->
 <div class="modal-ov" id="ai-modal" onclick="if(event.target===this)closeAIAssistant()">
-  <div class="modal-box" style="max-width:480px;width:95vw">
+  <div class="modal-box" style="max-width:480px;width:95vw;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div style="padding:16px 18px;flex-shrink:0;border-bottom:1px solid var(--border)">
     <div class="flex-b" style="margin-bottom:16px">
       <div style="font-size:17px;font-weight:900">✨ المساعد الذكي</div>
       <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeAIAssistant()">✕</span>
@@ -3445,26 +4059,48 @@ init();
     </div>
     <textarea class="fi" id="ai-input" rows="4" placeholder="اكتب هنا..." style="resize:none;width:100%;font-size:14px;line-height:1.7;margin-bottom:12px"></textarea>
     <button type="button" class="btn btn-p btn-full" id="ai-send-btn" onclick="sendToAI()">✨ رتب لي</button>
-    <div id="ai-result" style="display:none;margin-top:16px"></div>
+    </div><div id="ai-result" style="display:none;overflow-y:auto;padding:14px 18px;flex:1;-webkit-overflow-scrolling:touch"></div>
   </div>
 </div>
 
 
 <!-- AI EXPENSE MODAL -->
 <div class="modal-ov" id="ai-expense-modal" onclick="if(event.target===this)closeExpenseAI()">
-  <div class="modal-box" style="max-width:480px;width:95vw">
-    <div class="flex-b" style="margin-bottom:16px">
-      <div style="font-size:17px;font-weight:900">✨ تسجيل ذكي للمصاريف</div>
-      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeExpenseAI()">✕</span>
+  <div class="modal-box" style="max-width:480px;width:95vw;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div style="padding:16px 18px;flex-shrink:0;border-bottom:1px solid var(--border)">
+      <div class="flex-b" style="margin-bottom:12px">
+        <div style="font-size:17px;font-weight:900">✨ تسجيل ذكي للمصاريف</div>
+        <span style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px" onclick="closeExpenseAI()">✕</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.7;background:var(--surface2);padding:10px 14px;border-radius:10px">
+        💡 اكتب مصاريفك بشكل طبيعي وأنا أرتبها لك
+        <br><span style="font-size:11px;opacity:0.8">مثال: صرفت 50 على أكل وعشرين على قهوة، ودفعت 200 فاتورة نت</span>
+      </div>
+      <div id="ai-exp-wallet-sel" style="margin-bottom:10px"></div>
+      <textarea class="fi" id="ai-expense-input" rows="3" placeholder="اكتب مصاريفك هنا..." style="resize:none;width:100%;font-size:14px;line-height:1.7;margin-bottom:10px"></textarea>
+      <button type="button" class="btn btn-p btn-full" id="ai-exp-send-btn" onclick="sendExpenseAI()">✨ حلل وسجل</button>
     </div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;background:var(--surface2);padding:10px 14px;border-radius:10px">
-      💡 اكتب مصاريفك بشكل طبيعي وأنا أرتبها لك
-      <br><span style="font-size:11px;opacity:0.8">مثال: صرفت 50 على أكل وعشرين على قهوة، ودفعت 200 فاتورة نت</span>
+    <div id="ai-expense-result" style="display:none;overflow-y:auto;padding:14px 18px;flex:1;-webkit-overflow-scrolling:touch"></div>
+  </div>
+</div>
+
+
+<!-- CALENDAR DAY MODAL -->
+<div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
+  <div class="modal-box" style="max-width:400px;width:95vw">
+    <div class="flex-b" style="margin-bottom:14px">
+      <div>
+        <div id="cal-day-title" style="font-size:16px;font-weight:900"></div>
+        <div id="cal-day-hijri" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+      </div>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeCalDay()">✕</span>
     </div>
-    <div id="ai-exp-wallet-sel" style="margin-bottom:12px"></div>
-    <textarea class="fi" id="ai-expense-input" rows="4" placeholder="اكتب مصاريفك هنا..." style="resize:none;width:100%;font-size:14px;line-height:1.7;margin-bottom:12px"></textarea>
-    <button type="button" class="btn btn-p btn-full" id="ai-exp-send-btn" onclick="sendExpenseAI()">✨ حلل وسجل</button>
-    <div id="ai-expense-result" style="display:none;margin-top:16px"></div>
+    <div id="cal-day-events" style="margin-bottom:14px"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">+ إضافة تذكير</div>
+    <div style="display:flex;gap:8px">
+      <input class="fi" id="cal-reminder-input" placeholder="اكتب تذكيرك..." style="flex:1;font-size:13px">
+      <button type="button" class="btn btn-p btn-sm" onclick="saveCalReminder()">حفظ</button>
+    </div>
   </div>
 </div>
 
