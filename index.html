@@ -1544,7 +1544,7 @@ let selectedExpenseDate = todayKey();
 let datePickerTarget = 'habits';
 
 // ── UTILS ──────────────────────────────────────
-function todayKey(){ return new Date().toISOString().slice(0,10); }
+function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
 function showErr(id,msg){ const el=document.getElementById(id);el.textContent=msg;el.style.display='block'; }
 function hideErr(id){ document.getElementById(id).style.display='none'; }
@@ -3709,17 +3709,20 @@ const ISLAMIC_EVENTS = {
 const GREGORIAN_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
 function toHijri(year, month, day) {
-  // Approximate conversion
-  const jd = Math.floor((14 + (month + 1) + Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) - Math.floor(3 * (Math.floor((year + (month - 9) / 7) / 100) + 1) / 4) + day + 1721119.5) - 0.5);
-  let l = jd - 1948440 + 10632;
-  const n = Math.floor((l - 1) / 10631);
-  l = l - 10631 * n + 354;
-  const j = Math.floor((10985 - l) / 5316) * Math.floor(50 * l / 17719) + Math.floor(l / 5670) * Math.floor(43 * l / 15238);
-  l = l - Math.floor((30 - j) / 15) * Math.floor(17719 * j / 50) - Math.floor(j / 16) * Math.floor(15238 * j / 43) + 29;
-  const hMonth = Math.floor(24 * l / 709);
-  const hDay = l - Math.floor(709 * hMonth / 24);
-  const hYear = 30 * n + j - 30;
-  return { y: hYear, m: hMonth, d: hDay };
+  // Accurate JDN-based Gregorian → Hijri conversion
+  const a = Math.floor((14 - month) / 12);
+  const y = year + 4800 - a;
+  const m = month + 12 * a - 3;
+  const jdn = day + Math.floor((153*m+2)/5) + 365*y
+    + Math.floor(y/4) - Math.floor(y/100) + Math.floor(y/400) - 32045;
+  let l = jdn - 1948440 + 10632;
+  const n = Math.floor((l-1)/10631);
+  l = l - 10631*n + 354;
+  const j = Math.floor((10985-l)/5316)*Math.floor(50*l/17719)
+    + Math.floor(l/5670)*Math.floor(43*l/15238);
+  l = l - Math.floor((30-j)/15)*Math.floor(17719*j/50)
+    - Math.floor(j/16)*Math.floor(15238*j/43) + 29;
+  return { y: 30*n+j-30, m: Math.floor(24*l/709), d: l-Math.floor(709*Math.floor(24*l/709)/24) };
 }
 
 function getHijriLabel(date) {
@@ -3729,7 +3732,8 @@ function getHijriLabel(date) {
 
 function renderCalendar() {
   const today = new Date();
-  const todayKey2 = today.toISOString().slice(0, 10);
+  // Use LOCAL date (not UTC) to avoid timezone offset bugs
+  const todayKey2 = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const firstDay = new Date(calYear, calMonth, 1);
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   let startDow = firstDay.getDay(); // 0=Sun
@@ -3752,7 +3756,8 @@ function renderCalendar() {
   // Days
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(calYear, calMonth, d);
-    const key = date.toISOString().slice(0, 10);
+    // Local date key (avoids UTC timezone shift)
+    const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = key === todayKey2;
     const islamicEv = ISLAMIC_EVENTS[key];
     const hasTodo = todos.some(t => t.due === key && !t.done);
