@@ -1376,6 +1376,7 @@ setInterval(()=>{
 </style>
 
 <script>
+const AI_API_KEY = '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';
 const SUPABASE_URL = 'https://vbubelofnmbizoatyajr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZidWJlbG9mbm1iaXpvYXR5YWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMzU0MDQsImV4cCI6MjA4NzkxMTQwNH0.mm79U80ZJ4mBdad0lqXB_cX6KbkiLup-tLH-7w01yuw';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -3110,9 +3111,13 @@ async function sendExpenseAI(){
   try{
     const resp = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':AI_API_KEY,
+        'anthropic-version':'2023-06-01'
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
         messages:[{role:'user',content:prompt}]
       })
@@ -3242,9 +3247,13 @@ async function sendToAI(){
   try{
     const resp = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':AI_API_KEY,
+        'anthropic-version':'2023-06-01'
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
         messages:[{role:'user',content:prompt}]
       })
