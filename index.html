@@ -857,10 +857,10 @@ setInterval(()=>{
         <div class="flex-b" style="margin-bottom:12px">
           <div class="sec-title" style="margin:0">📊 سجل الإنجاز</div>
           <div style="display:flex;gap:6px">
-            <button class="streak-period-btn active" onclick="setStreakPeriod(7,this)">7</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(14,this)">14</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(30,this)">30</button>
-            <button class="streak-period-btn" onclick="setStreakPeriod(90,this)">90</button>
+            <button type="button" class="streak-period-btn active" onclick="setStreakPeriod(7,this)">7</button>
+            <button type="button" class="streak-period-btn" onclick="setStreakPeriod(14,this)">14</button>
+            <button type="button" class="streak-period-btn" onclick="setStreakPeriod(30,this)">30</button>
+            <button type="button" class="streak-period-btn" onclick="setStreakPeriod(90,this)">90</button>
           </div>
         </div>
         <div id="my-streaks" style="overflow-x:auto"></div>
@@ -1927,7 +1927,7 @@ function viewHabitDay(habitId,date,e){
   document.getElementById('hd-title').textContent=h?h.icon+' '+h.name:'عادة';
   document.getElementById('hd-date').textContent=date;
   document.getElementById('hd-note').textContent=getHabitNote(habitId,date)||'لا توجد ملاحظة';
-  document.getElementById('habit-day-modal').style.display='flex';
+  document.getElementById('habit-day-modal').classList.add('open');
 }
 function editHabitDayNote(){
   closeModal('habit-day-modal');
