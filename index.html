@@ -1820,6 +1820,8 @@ function applyDefaults(){
   if(!myData.avatar_emoji) myData.avatar_emoji = '😊';
   if(!myData.avatar_color) myData.avatar_color = AVATAR_COLORS[0];
   if(!myData.display_name) myData.display_name = currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || '';
+  if(!myData.daily_notes) myData.daily_notes = {};
+  if(!myData.cal_reminders) myData.cal_reminders = {};
 }
 
 function loadFromCache(userId){
@@ -3642,20 +3644,37 @@ function insertQuick(text) {
 
 function renderNotesHistory() {
   const notes = myData.daily_notes || {};
-  const dates = Object.keys(notes).sort((a,b) => b.localeCompare(a)).slice(0, 5);
   const el = document.getElementById('notes-history');
-  if (!dates.length) { el.innerHTML = ''; return; }
+  if(!el) return;
+  // All dates sorted newest first, exclude currently editing
+  const dates = Object.keys(notes).sort((a,b)=>b.localeCompare(a)).filter(d=>d!==currentNoteDate).slice(0,8);
+  if(!dates.length){ el.innerHTML=''; return; }
 
-  el.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;border-top:1px solid var(--border);padding-top:10px">السابقة</div>` +
-    dates.filter(d => d !== currentNoteDate).slice(0, 4).map(date => {
-      const note = notes[date];
-      const preview = note.replace(/[━\n]/g,' ').trim().slice(0, 50);
-      return `<div onclick="loadPastNote('${date}')" style="padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:6px;cursor:pointer;border:1.5px solid transparent;transition:.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-          <span style="font-size:12px;font-weight:800">${date}</span>
-          <button type="button" onclick="event.stopPropagation();deleteNote('${date}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px">✕</button>
+  const GM2 = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  function fmtDate(d){
+    const p=d.split('-'); return `${parseInt(p[2])} ${GM2[parseInt(p[1])-1]} ${p[0]}`;
+  }
+  function isToday(d){ return d===todayKey(); }
+
+  el.innerHTML = '<div style="font-size:11px;font-weight:800;color:var(--muted);margin:12px 0 8px;padding-top:12px;border-top:1px solid var(--border)">📋 الملاحظات السابقة</div>'
+    + dates.map(date=>{
+      const note = notes[date]||'';
+      const preview = note.replace(/[━\n#*\-]/g,' ').replace(/[ \t\r]+/g,' ').trim().slice(0,60);
+      const isT = isToday(date);
+      return `<div onclick="loadPastNote('${date}')"
+        style="padding:10px 14px;background:${isT?'var(--accent-light)':'var(--surface2)'};border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid ${isT?'var(--accent)':'transparent'};transition:.15s;position:relative"
+        onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isT?'var(--accent)':'transparent'}'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px">${isT?'📅':'📝'}</span>
+            <span style="font-size:12px;font-weight:800;color:var(--text)">${fmtDate(date)}</span>
+            ${isT?'<span style="font-size:10px;background:var(--accent);color:white;padding:1px 6px;border-radius:99px;font-weight:700">اليوم</span>':''}
+          </div>
+          <button type="button" onclick="event.stopPropagation();deleteNote('${date}')"
+            style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 6px;border-radius:6px;line-height:1"
+            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
         </div>
-        <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${preview}...</div>
+        <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${preview||'(فارغة)'}${preview.length>=60?'...':''}</div>
       </div>`;
     }).join('');
 }
