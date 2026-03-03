@@ -3115,16 +3115,21 @@ async function sendExpenseAI(){
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
+        system:'أنت مساعد يجيب بـ JSON فقط بدون أي نص إضافي أو backticks.',
         messages:[{role:'user',content:prompt}]
       })
     });
     const data = await resp.json();
-    const raw = data.content?.[0]?.text||'{}';
-    const clean = raw.replace(/```json|```/g,'').trim();
+    console.log('Expense AI raw:', JSON.stringify(data));
+    if(data.error){throw new Error(data.error.message||JSON.stringify(data.error));}
+    const raw = data.content?.[0]?.text||'';
+    if(!raw){throw new Error('empty response');}
+    const match = raw.match(/\{[\s\S]*\}/);
+    const clean = match ? match[0] : raw;
     const parsed = JSON.parse(clean);
     showExpenseAIResult(parsed, walletId);
   }catch(e){
-    result.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ حدث خطأ، حاول مجدداً</div>';
+    result.innerHTML=`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ ${e.message||'خطأ غير معروف'}</div>`;
     result.style.display='block';
   }
   btn.textContent='✨ حلل وسجل';
@@ -3247,16 +3252,22 @@ async function sendToAI(){
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:1000,
+        system:'أنت مساعد يجيب بـ JSON فقط بدون أي نص إضافي أو backticks.',
         messages:[{role:'user',content:prompt}]
       })
     });
     const data = await resp.json();
-    const raw = data.content?.[0]?.text||'{}';
-    const clean = raw.replace(/```json|```/g,'').trim();
+    console.log('AI raw response:', JSON.stringify(data));
+    if(data.error){throw new Error(data.error.message||JSON.stringify(data.error));}
+    const raw = data.content?.[0]?.text||'';
+    if(!raw){throw new Error('empty response');}
+    // Extract JSON from response
+    const match = raw.match(/\{[\s\S]*\}/);
+    const clean = match ? match[0] : raw;
     const parsed = JSON.parse(clean);
     showAIResult(parsed);
   }catch(e){
-    result.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ حدث خطأ، حاول مجدداً</div>';
+    result.innerHTML=`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ ${e.message||'خطأ غير معروف'}</div>`;
     result.style.display='block';
     console.error('AI error:',e);
   }
