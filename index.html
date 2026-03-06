@@ -1951,7 +1951,33 @@ async function startApp(user){
   refreshAll().catch(()=>{});
   if(refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 30000);
+
+  // استيراد رسالة البنك من Tasker عبر ?sms=
+  try{ handleSMSParam(); }catch(e){}
 }
+
+function handleSMSParam(){
+  const params = new URLSearchParams(window.location.search);
+  const sms = params.get('sms');
+  if(!sms) return;
+  window.history.replaceState({},'', window.location.pathname);
+  const auto = params.get('auto') === '1';
+  setTimeout(()=>{
+    showPage('expenses', document.getElementById('tab-expenses'));
+    setTimeout(()=>{
+      openExpenseAI();
+      const inp = document.getElementById('ai-expense-input');
+      if(inp) inp.value = decodeURIComponent(sms);
+      if(auto){
+        showToast('📩 جاري تحليل رسالة البنك...');
+        setTimeout(()=>{ sendExpenseAI(); }, 600);
+      } else {
+        showToast('📩 تم استيراد رسالة البنك');
+      }
+    }, 500);
+  }, 400);
+}
+
 async function refreshAll(){
   try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
   const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
