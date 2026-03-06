@@ -1095,6 +1095,7 @@ setInterval(()=>{
           <div class="sec-title" style="margin-bottom:0">📝 ملاحظة اليوم</div>
           <div style="display:flex;align-items:center;gap:6px">
             <span id="notes-date-lbl" style="font-size:11px;color:var(--muted)"></span>
+            <button type="button" onclick="initNotes()" class="btn btn-s btn-sm" style="padding:5px 10px;font-size:12px">+ جديدة</button>
             <button type="button" id="notes-save-btn" onclick="saveDailyNote()" class="btn btn-p btn-sm" style="padding:5px 12px;font-size:12px">حفظ</button>
           </div>
         </div>
@@ -3590,12 +3591,20 @@ const NOTE_TEMPLATES = {
   }
 };
 
-let currentNoteDate = todayKey();
+let currentNoteDate = null; // null = new note mode
 let currentTemplate = null;
 
+function noteTimestamp() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}_${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
 function initNotes() {
-  document.getElementById('notes-date-lbl').textContent = currentNoteDate;
-  loadNoteForDate(currentNoteDate);
+  // Always start fresh — new blank note
+  currentNoteDate = null;
+  const today = todayKey();
+  document.getElementById('notes-date-lbl').textContent = today + ' — جديدة';
+  document.getElementById('daily-note-input').value = '';
   renderNotesHistory();
 }
 
@@ -3605,13 +3614,24 @@ function loadNoteForDate(date) {
 }
 
 function saveDailyNote() {
-  const text = document.getElementById('daily-note-input').value;
+  const text = document.getElementById('daily-note-input').value.trim();
+  if (!text) { showToast('⚠️ الملاحظة فارغة'); return; }
   if (!myData.daily_notes) myData.daily_notes = {};
-  if (text.trim()) myData.daily_notes[currentNoteDate] = text;
-  else delete myData.daily_notes[currentNoteDate];
+  if (currentNoteDate && myData.daily_notes[currentNoteDate] !== undefined) {
+    // Editing existing note — update in place
+    myData.daily_notes[currentNoteDate] = text;
+    showToast('✅ تم تحديث الملاحظة');
+  } else {
+    // New note — save with unique timestamp key
+    const key = noteTimestamp();
+    myData.daily_notes[key] = text;
+    currentNoteDate = key;
+    const today = todayKey();
+    document.getElementById('notes-date-lbl').textContent = today;
+    showToast('✅ تم حفظ الملاحظة');
+  }
   saveMyData();
   renderNotesHistory();
-  showToast('✅ تم حفظ الملاحظة');
 }
 
 function insertTemplate(type) {
@@ -3653,21 +3673,23 @@ function renderNotesHistory() {
 
   const GM2 = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
-  function fmtDate(d){
-    const p=d.split('-');
+  function fmtDate(key){
+    const datePart=key.split('_')[0], timePart=key.includes('_')?key.split('_')[1]:null;
+    const p=datePart.split('-');
     const dayNames=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-    const dt=new Date(d+'T12:00:00');
-    const dayName=dayNames[dt.getDay()];
-    return `${dayName} ${parseInt(p[2])} ${GM2[parseInt(p[1])-1]}`;
+    const dt=new Date(datePart+'T12:00:00');
+    const lbl=`${dayNames[dt.getDay()]} ${parseInt(p[2])} ${GM2[parseInt(p[1])-1]}`;
+    return timePart?lbl+` <span style="color:var(--muted);font-size:11px">${timePart}</span>`:lbl;
   }
 
   const today=todayKey();
   const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
   const yKey=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
 
-  function getLabel(d){
-    if(d===today) return '<span style="background:var(--accent);color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700;margin-right:4px">اليوم</span>';
-    if(d===yKey) return '<span style="background:#8B5CF6;color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700;margin-right:4px">أمس</span>';
+  function getLabel(key){
+    const d=key.split('_')[0];
+    if(d===today) return '<span style="background:var(--accent);color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700">اليوم</span>';
+    if(d===yKey) return '<span style="background:#8B5CF6;color:white;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:700">أمس</span>';
     return '';
   }
 
@@ -3702,11 +3724,14 @@ function renderNotesHistory() {
     </div>`;
 }
 
-function loadPastNote(date) {
-  currentNoteDate = date;
-  document.getElementById('notes-date-lbl').textContent = date;
-  loadNoteForDate(date);
+function loadPastNote(key) {
+  currentNoteDate = key;
+  const datePart = key.split('_')[0];
+  const timePart = key.includes('_') ? ' — ' + key.split('_')[1] : '';
+  document.getElementById('notes-date-lbl').textContent = datePart + timePart;
+  loadNoteForDate(key);
   document.getElementById('daily-note-input').scrollIntoView({behavior:'smooth'});
+  document.getElementById('daily-note-input').focus();
 }
 
 function deleteNote(date) {
