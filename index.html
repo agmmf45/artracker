@@ -527,6 +527,18 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
+// حفظ SMS فوراً قبل أي redirect
+(function(){
+  try{
+    const p = new URLSearchParams(window.location.search);
+    const sms = p.get('sms');
+    const auto = p.get('auto');
+    if(sms){ 
+      sessionStorage.setItem('_pendingSMS', decodeURIComponent(sms));
+      sessionStorage.setItem('_pendingAuto', auto||'0');
+    }
+  }catch(e){}
+})();
 window._emergencyTimer = setTimeout(function(){
   var ls=document.getElementById('loading-screen');
   var as=document.getElementById('auth-screen');
@@ -896,6 +908,7 @@ setInterval(()=>{
     <div class="nav-item" data-p="friends" onclick="showPage('friends',document.getElementById('tab-friends'))"><span>👥</span> الأصدقاء</div>
     <div class="nav-item" data-p="expenses" onclick="showPage('expenses',document.getElementById('tab-expenses'))"><span>💸</span> المصاريف</div>
     <div class="nav-item active" data-p="stats" onclick="showPage('stats',document.getElementById('tab-stats'))"><span>🌟</span> لوحتي</div>
+    <div class="nav-item" data-p="fitness" onclick="showPage('fitness',document.getElementById('tab-fitness'))" id="tab-fitness"><span>🏋️</span> التمارين</div>
     <div class="nav-item" data-p="todo" onclick="showPage('todo',document.getElementById('tab-todo'))"><span>📝</span> قائمة المهام</div>
     <div class="nav-item" data-p="trophies" onclick="showPage('trophies',document.getElementById('tab-trophies'))"><span>🏆</span> التروفيات</div>
     <div class="nav-item" data-p="profile" onclick="showPage('profile',document.getElementById('tab-profile'))"><span>🪪</span> ملفي الشخصي</div>
@@ -932,7 +945,7 @@ setInterval(()=>{
               <div class="date-en" id="habits-date-en"></div>
             </div>
             <div class="date-pick-btn" onclick="openDatePicker('habits')">📅 تغيير التاريخ</div>
-            <button class="btn btn-p btn-sm" onclick="openModal('habit-modal')">+ إضافة عادة</button>
+            <button class="btn btn-p btn-sm" onclick="openHabitModal()">+ إضافة عادة</button>
             <button type="button" class="btn btn-sm" onclick="openAIAssistant()" style="background:linear-gradient(135deg,#7C3AED,#B45309);color:white;display:flex;align-items:center;gap:5px">✨ مساعد ذكي</button>
           </div>
         </div>
@@ -1428,6 +1441,20 @@ setInterval(()=>{
     <div class="fg"><label class="fl">اسم المحفظة</label>
       <input type="text" class="fi" id="wallet-name-inp" placeholder="مثال: راتب، ادخار، مصروف يومي" maxlength="20">
     </div>
+    <!-- Wallet Type -->
+    <div class="fg">
+      <label class="fl">نوع المحفظة</label>
+      <div style="display:flex;gap:8px">
+        <div class="txn-type-btn active" id="wtype-regular" onclick="setWalletType('regular',this)" style="--tc:#B45309">💳 عادية</div>
+        <div class="txn-type-btn" id="wtype-savings" onclick="setWalletType('savings',this)" style="--tc:#16A34A">🏦 ادخار</div>
+      </div>
+      <input type="hidden" id="wallet-type-inp" value="regular">
+    </div>
+    <!-- Savings Goal (shown only for savings wallets) -->
+    <div class="fg" id="wallet-goal-row" style="display:none">
+      <label class="fl">هدف الادخار (ريال) <span style="color:var(--muted);font-weight:400">اختياري</span></label>
+      <input type="number" class="fi" id="wallet-goal-inp" placeholder="مثال: 10000">
+    </div>
     <div class="fg"><label class="fl">الرصيد الابتدائي (ريال)</label>
       <input type="number" class="fi" id="wallet-balance-inp" placeholder="0">
     </div>
@@ -1447,6 +1474,100 @@ setInterval(()=>{
       <button class="btn btn-s" style="flex:1" onclick="closeModal('wallet-modal')">إلغاء</button>
       <button class="btn btn-p" style="flex:1" onclick="saveWallet()">حفظ</button>
     </div>
+  </div>
+</div>
+
+<!-- PAGE: FITNESS -->
+<div class="page" id="page-fitness">
+  <div class="page-header">
+    <div class="ph2">🏋️ التمارين</div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="fit-dashboard">
+    <!-- Today's Workout Card -->
+    <div class="card mb-16" id="fit-today-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="sec-title" style="margin:0">💪 تمرين اليوم</div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn btn-s btn-sm" onclick="openFitHistory()">📋 السجل</button>
+          <button type="button" class="btn btn-p btn-sm" onclick="startWorkout()">+ تمرين جديد</button>
+        </div>
+      </div>
+      <div id="fit-today-content"></div>
+    </div>
+
+    <!-- Stats Row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
+
+    <!-- Programs -->
+    <div class="card mb-16">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="sec-title" style="margin:0">📅 البرامج</div>
+        <button type="button" class="btn btn-s btn-sm" onclick="openProgramModal()">+ برنامج</button>
+      </div>
+      <div id="fit-programs-list"></div>
+    </div>
+
+    <!-- Body Weight -->
+    <div class="card mb-16">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec-title" style="margin:0">⚖️ وزن الجسم</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" id="fit-bw-inp" class="fi" placeholder="كجم" style="width:70px;font-size:13px;padding:5px 8px">
+          <button type="button" class="btn btn-p btn-sm" onclick="saveBW()">حفظ</button>
+        </div>
+      </div>
+      <div id="fit-bw-chart" style="height:60px;display:flex;align-items:flex-end;gap:4px"></div>
+    </div>
+  </div>
+
+  <!-- Active Workout View (hidden by default) -->
+  <div id="fit-active-workout" style="display:none">
+    <div class="card mb-16" style="background:linear-gradient(135deg,var(--accent),#92400E);color:white">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;opacity:0.8;margin-bottom:2px">تمرين جارٍ</div>
+          <div style="font-size:18px;font-weight:800" id="fit-active-name">-</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:22px;font-weight:900;font-family:monospace" id="fit-timer-display">00:00</div>
+          <div style="font-size:10px;opacity:0.7">مدة التمرين</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rest Timer -->
+    <div id="fit-rest-timer" style="display:none" class="card mb-16" style="text-align:center">
+      <div style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">⏱ راحة بين الجلسات</div>
+        <div style="font-size:36px;font-weight:900;font-family:monospace;color:var(--accent)" id="fit-rest-display">60</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(30)">30ث</button>
+          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(60)">60ث</button>
+          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(90)">90ث</button>
+          <button type="button" class="btn btn-p btn-sm" onclick="skipRest()">تخطي</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exercises in active workout -->
+    <div id="fit-exercises-list" style="margin-bottom:12px"></div>
+
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button type="button" class="btn btn-s" style="flex:1" onclick="addExerciseToWorkout()">+ تمرين</button>
+      <button type="button" class="btn btn-p" style="flex:1" onclick="finishWorkout()">✅ إنهاء التمرين</button>
+    </div>
+    <button type="button" class="btn" style="width:100%;color:var(--red);background:none;border:1px solid var(--red);font-size:13px" onclick="cancelWorkout()">إلغاء التمرين</button>
+  </div>
+
+  <!-- History View -->
+  <div id="fit-history-view" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button type="button" class="btn btn-s btn-sm" onclick="closeFitHistory()">← رجوع</button>
+      <div class="sec-title" style="margin:0">📋 سجل التمارين</div>
+    </div>
+    <div id="fit-history-list"></div>
   </div>
 </div>
 
@@ -1951,7 +2072,42 @@ async function startApp(user){
   refreshAll().catch(()=>{});
   if(refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(()=>{ refreshAll().catch(()=>{}); }, 30000);
+
+  // استيراد رسالة البنك من Tasker عبر ?sms=
+  try{ handleSMSParam(); }catch(e){}
 }
+
+function handleSMSParam(){
+  let sms = sessionStorage.getItem('_pendingSMS');
+  let auto = sessionStorage.getItem('_pendingAuto') === '1';
+  if(!sms){
+    const params = new URLSearchParams(window.location.search);
+    sms = params.get('sms');
+    if(sms) sms = decodeURIComponent(sms);
+    auto = params.get('auto') === '1';
+  }
+  if(!sms || sms==='undefined' || sms==='null') return;
+  sessionStorage.removeItem('_pendingSMS');
+  sessionStorage.removeItem('_pendingAuto');
+  window.history.replaceState({},'', window.location.pathname);
+  setTimeout(()=>{
+    showPage('expenses', document.getElementById('tab-expenses'));
+    setTimeout(()=>{
+      openExpenseAI();
+      setTimeout(()=>{
+        const inp = document.getElementById('ai-expense-input');
+        if(inp){ inp.value = sms; inp.dispatchEvent(new Event('input')); }
+        if(auto){
+          showToast('📩 جاري تحليل رسالة البنك...');
+          setTimeout(()=>{ sendExpenseAI(); }, 1000);
+        } else {
+          showToast('📩 تم استيراد الرسالة');
+        }
+      }, 400);
+    }, 600);
+  }, 500);
+}
+
 async function refreshAll(){
   try{ await Promise.race([loadAllUsers(), new Promise((_,rej)=>setTimeout(()=>rej(),3000))]); }catch(e){return;}
   const recent = allUsers.filter(u=>{ try{ return Date.now()-new Date(u.updated_at)<10*60*1000; }catch(e){return true;} });
@@ -2011,12 +2167,40 @@ function renderHabits(){
     const note=getHabitNote(h.id,selectedHabitsDate);
     const streakHTML=streak>0?`<span class="hr-streak ${streak>=7?'hot':''}">🔥 ${streak} يوم</span>`:'';
     const noteHTML=done?`<span class="hr-note" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,20):'+ ملاحظة'}</span>`:'';
-    return`<div class="habit-row ${done?'done':''}" onclick="toggleHabit('${h.id}')">
-      <div class="hr-check">${done?'✓':''}</div>
+    // Subtasks progress
+    const subs = h.subtasks||[];
+    const {done:subsDone, total:subsTotal} = getSubtasksDone(h.id);
+    const pct = subsTotal>0 ? subsDone/subsTotal : (done?1:0);
+    // Gradient color based on progress
+    const bgColor = done
+      ? 'var(--accent-light)'
+      : subsTotal>0 && subsDone>0
+        ? `rgba(var(--accent-rgb,180,83,9),${0.05+pct*0.12})`
+        : 'var(--surface2)';
+    const borderColor = done ? 'var(--accent)' : subsTotal>0 && subsDone>0 ? `rgba(var(--accent-rgb,180,83,9),${0.2+pct*0.6})` : 'transparent';
+    const subtasksHTML = subs.length ? `
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px" onclick="event.stopPropagation()">
+        ${subs.map(s=>{
+          const k=selectedHabitsDate;
+          const sd=!!(myData.done[k]&&myData.done[k][h.id+'_sub_'+s.id]);
+          return `<div onclick="toggleSubtask('${h.id}','${s.id}',event)" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border-radius:8px;background:${sd?'var(--accent-light)':'var(--surface2)'}">
+            <div style="width:16px;height:16px;border-radius:50%;border:2px solid ${sd?'var(--accent)':'var(--muted)'};background:${sd?'var(--accent)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
+              ${sd?'<span style="color:white;font-size:10px;line-height:1">✓</span>':''}
+            </div>
+            <span style="font-size:12px;color:${sd?'var(--muted)':'var(--text)'};text-decoration:${sd?'line-through':'none'};transition:all .2s">${s.name}</span>
+          </div>`;
+        }).join('')}
+        ${subsTotal>0?`<div style="height:3px;background:var(--surface2);border-radius:99px;margin-top:2px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(pct*100)}%;background:${pct===1?'var(--green)':'var(--accent)'};border-radius:99px;transition:width 0.4s"></div>
+        </div>`:''}
+      </div>` : '';
+    return`<div class="habit-row ${done?'done':''}" onclick="toggleHabit('${h.id}')" style="background:${bgColor};border:1.5px solid ${borderColor};transition:all 0.3s">
+      <div class="hr-check">${done?'✓':subsTotal>0?`<span style="font-size:10px;font-weight:800;color:${pct>0?'var(--accent)':'var(--muted)'}">${subsDone}/${subsTotal}</span>`:''}</div>
       <div class="hr-icon">${h.icon}</div>
-      <div class="hr-info">
+      <div class="hr-info" style="flex:1">
         <div class="hr-name">${h.name}</div>
         <div class="hr-meta">${streakHTML}${noteHTML}</div>
+        ${subtasksHTML}
       </div>
       <button class="hr-del" onclick="deleteHabit('${h.id}',event)">✕</button>
     </div>`;
@@ -2580,15 +2764,35 @@ function renderWallets(){
     const added = txns.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
     const balance = (w.balance||0) + added - spent - saved;
     const isSelected = activeWalletId===w.id;
-    return`<div class="wallet-card ${isSelected?'selected':''}" onclick="selectWallet('${w.id}')">
+    const isSavings = w.type==='savings';
+    const totalSaved = (w.balance||0) + saved + added;
+    const goal = w.goal||0;
+    const pct = goal>0 ? Math.min(100,Math.round(totalSaved/goal*100)) : 0;
+
+    const savingsBar = isSavings ? `
+      <div style="margin-top:8px">
+        ${goal>0?`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:10px;color:var(--muted)">الهدف: ${goal.toLocaleString('ar')} ر</span>
+          <span style="font-size:11px;font-weight:800;color:${pct>=100?'var(--green)':'var(--accent)'}">${pct}%</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,0.15);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct>=100?'#22C55E':'#FCD34D'};border-radius:99px;transition:width 0.5s"></div>
+        </div>
+        `:`<div style="font-size:10px;color:rgba(255,255,255,0.6)">💰 ${totalSaved.toLocaleString('ar')} ر مدخر</div>`}
+      </div>` : '';
+
+    return`<div class="wallet-card ${isSelected?'selected':''} ${isSavings?'savings-wallet':''}" onclick="selectWallet('${w.id}')"
+      style="${isSavings?'background:linear-gradient(135deg,#065F46,#059669);border-color:#34D399':''}"
+    >
       <div class="wallet-actions">
         <div class="wallet-act-btn" onclick="event.stopPropagation();editWallet('${w.id}')">✏️</div>
         <div class="wallet-act-btn" onclick="event.stopPropagation();deleteWallet('${w.id}')">🗑</div>
       </div>
       <div class="wallet-icon">${w.icon||'💰'}</div>
-      <div class="wallet-name">${w.name}</div>
-      <div class="wallet-balance ${balance<0?'negative':''}">${balance.toLocaleString('ar')} ر</div>
-      <div class="wallet-sub">خصم: ${spent.toLocaleString('ar')} · ادخار: ${saved.toLocaleString('ar')}</div>
+      <div class="wallet-name">${w.name}${isSavings?'<span style="font-size:10px;background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:99px;margin-right:4px">ادخار</span>':''}</div>
+      <div class="wallet-balance ${balance<0?'negative':''}">${isSavings?totalSaved.toLocaleString('ar'):balance.toLocaleString('ar')} ر</div>
+      ${isSavings ? savingsBar : `<div class="wallet-sub">خصم: ${spent.toLocaleString('ar')} · ادخار: ${saved.toLocaleString('ar')}</div>`}
     </div>`;
   }).join('');
 }
@@ -2605,6 +2809,16 @@ function selectWallet(id){
   document.getElementById('txn-list-title').textContent = w.name;
   updateTxnDateLabel();
   renderTxnList();
+  // For savings wallet: auto-select save type, hide spend
+  if(w.type==='savings'){
+    setTxnType('save', document.getElementById('txn-type-save'));
+    document.getElementById('txn-type-spend').style.display='none';
+    document.getElementById('txn-cat-row').style.display='none';
+  } else {
+    setTxnType('spend', document.getElementById('txn-type-spend'));
+    document.getElementById('txn-type-spend').style.display='';
+    document.getElementById('txn-cat-row').style.display='';
+  }
   document.getElementById('txn-desc').focus();
 }
 
@@ -2699,12 +2913,30 @@ function renderTxnList(){
 }
 
 // ── WALLET CRUD ──
+function setWalletType(type, btn){
+  document.getElementById('wallet-type-inp').value = type;
+  document.querySelectorAll('#wtype-regular,#wtype-savings').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('wallet-goal-row').style.display = type==='savings'?'block':'none';
+  // Auto-set emoji for savings
+  if(type==='savings'){
+    document.querySelectorAll('.w-emoji').forEach(el=>el.classList.toggle('active', el.dataset.e==='🏦'));
+  }
+}
+
 function openWalletModal(id=null){
   document.getElementById('wallet-edit-id').value = id||'';
   document.getElementById('wallet-modal-title').textContent = id ? '✏️ تعديل المحفظة' : '➕ محفظة جديدة';
   const w = id ? myData.wallets.find(x=>x.id===id) : null;
   document.getElementById('wallet-name-inp').value = w?.name||'';
   document.getElementById('wallet-balance-inp').value = w?.balance||'';
+  document.getElementById('wallet-goal-inp').value = w?.goal||'';
+  // Set type
+  const type = w?.type||'regular';
+  document.getElementById('wallet-type-inp').value = type;
+  document.getElementById('wtype-regular').classList.toggle('active', type==='regular');
+  document.getElementById('wtype-savings').classList.toggle('active', type==='savings');
+  document.getElementById('wallet-goal-row').style.display = type==='savings'?'block':'none';
   document.querySelectorAll('.w-emoji').forEach(el=>{
     el.classList.toggle('active', el.dataset.e===(w?.icon||'💰'));
   });
@@ -2720,14 +2952,16 @@ function saveWallet(){
   const name=document.getElementById('wallet-name-inp').value.trim();
   const balance=parseFloat(document.getElementById('wallet-balance-inp').value)||0;
   const icon=document.querySelector('.w-emoji.active')?.dataset.e||'💰';
+  const type=document.getElementById('wallet-type-inp').value||'regular';
+  const goal=parseFloat(document.getElementById('wallet-goal-inp').value)||0;
   const editId=document.getElementById('wallet-edit-id').value;
   if(!name){ showToast('أدخل اسم المحفظة'); return; }
   if(!myData.wallets) myData.wallets=[];
   if(editId){
     const idx=myData.wallets.findIndex(w=>w.id===editId);
-    if(idx!==-1) myData.wallets[idx]={...myData.wallets[idx],name,balance,icon};
+    if(idx!==-1) myData.wallets[idx]={...myData.wallets[idx],name,balance,icon,type,goal};
   } else {
-    myData.wallets.push({id:'w_'+Date.now(),name,balance,icon});
+    myData.wallets.push({id:'w_'+Date.now(),name,balance,icon,type,goal});
   }
   saveMyData(); closeModal('wallet-modal'); renderWallets(); showToast('✅ تم الحفظ');
 }
@@ -2778,10 +3012,59 @@ function saveNewHabit(){
   const name=document.getElementById('new-habit-name').value.trim();
   const icon=document.getElementById('new-habit-icon').value.trim()||'⭐';
   if(!name){document.getElementById('new-habit-name').focus();return;}
-  myData.habits_list=[...getHabits(),{id:'h_'+Date.now(),name,icon}];
+  // Collect subtasks
+  const inputs = document.querySelectorAll('#new-habit-subtasks .subtask-input');
+  const subtasks = [];
+  inputs.forEach(inp => {
+    const v = inp.value.trim();
+    if(v) subtasks.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2), name:v});
+  });
+  myData.habits_list=[...getHabits(),{id:'h_'+Date.now(),name,icon,subtasks}];
   saveMyData();closeModal('habit-modal');renderHabits();renderStreaks();showToast('✅ تمت إضافة العادة');
 }
-const PAGE_ORDER=['habits','friends','expenses','stats','todo','trophies','profile'];
+
+function addSubtaskField(val=''){
+  const cont = document.getElementById('new-habit-subtasks');
+  if(!cont) return;
+  const div = document.createElement('div');
+  div.style.cssText='display:flex;gap:6px;align-items:center';
+  div.innerHTML=`<input type="text" class="fi subtask-input" placeholder="مثل: اقرأ 5 دقائق" value="${val}" style="flex:1;font-size:13px;padding:7px 10px">
+    <button type="button" onclick="this.parentNode.remove()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0">✕</button>`;
+  cont.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function openHabitModal(){
+  document.getElementById('new-habit-name').value='';
+  document.getElementById('new-habit-icon').value='';
+  document.getElementById('new-habit-subtasks').innerHTML='';
+  openModal('habit-modal');
+}
+
+function getSubtasksDone(habitId, dateKey){
+  const k = dateKey || selectedHabitsDate;
+  const h = getHabits().find(x=>x.id===habitId);
+  if(!h || !h.subtasks || !h.subtasks.length) return {done:0, total:0};
+  const dayDone = (myData.done[k]||{});
+  const done = h.subtasks.filter(s=>dayDone[habitId+'_sub_'+s.id]).length;
+  return {done, total:h.subtasks.length};
+}
+
+function toggleSubtask(habitId, subId, e){
+  e.stopPropagation();
+  const k = selectedHabitsDate;
+  if(!myData.done[k]) myData.done[k]={};
+  const key = habitId+'_sub_'+subId;
+  myData.done[k][key] = !myData.done[k][key];
+  // If all subtasks done → auto-complete habit
+  const h = getHabits().find(x=>x.id===habitId);
+  if(h && h.subtasks && h.subtasks.length){
+    const allDone = h.subtasks.every(s=>myData.done[k][habitId+'_sub_'+s.id]);
+    myData.done[k][habitId] = allDone;
+  }
+  saveMyData(); renderHabits(); renderStreaks();
+}
+const PAGE_ORDER=['habits','friends','expenses','stats','todo','trophies','fitness','profile'];
 function showPage(name,tabEl,dir){
   const prev=document.querySelector('.page.active');
   const prevName=prev?prev.id.replace('page-',''):null;
@@ -2804,6 +3087,7 @@ function showPage(name,tabEl,dir){
   if(name==='profile'){renderProfilePage();renderFriendsList();}
   if(name==='todo')renderTodos();
   if(name==='expenses'){renderWallets();renderWalletStats();}
+  if(name==='fitness'){initFitness();}
   if(name==='trophies')renderTrophies();
 }
 
@@ -4160,6 +4444,471 @@ function init(){
   }).catch(()=>{clearTimeout(fallback);showAuth();});
 }
 init();
+
+// ══════════════════════════════════════════════
+// 🏋️  FITNESS MODULE
+// ══════════════════════════════════════════════
+
+const FIT_MUSCLES = {
+  'صدر':['🏋️ بنش برس','🔺 إنكلاين بنش','🔻 ديكلاين بنش','🤸 تمريرة عرضية','💪 دمبل فلاي'],
+  'ظهر':['🏋️ ديدليفت','🚣 بار رو','💪 لات بول داون','🔄 كيبل رو','🤸 بول اب'],
+  'كتف':['🏋️ أوفرهيد برس','↕️ لاترال ريز','⬆️ فرونت ريز','🔄 فيس بول','🔃 ريفيرس فلاي'],
+  'بايسبس':['💪 بار كيرل','🔄 هامر كيرل','📐 إنكلاين كيرل','🔀 كونسنتريشن كيرل'],
+  'ترايسبس':['⬇️ تراي بوش داون','🏠 سكال كراشر','💎 دايموند بوش اب','🔄 أوفرهيد إكستنشن'],
+  'رجل':['🦵 سكوات','🏋️ ليج برس','⬆️ لانج','🔄 ليج كيرل','🦶 كالف ريز'],
+  'بطن':['🔄 كرنش','🏋️ بلانك','🔃 رشيان تويست','⬆️ ليج ريز','🔄 ماونتن كلايمبر'],
+  'كارديو':['🏃 ركض','🚴 دراجة','🎿 إليبتيكال','🏊 سباحة','🪂 جامبينغ جاك'],
+};
+
+// State
+let fitActiveWorkout = null; // {id, name, programId, startTime, exercises:[{id,name,muscle,sets:[{reps,weight,rpe,done}],notes}]}
+let fitTimerInterval = null;
+let fitRestInterval = null;
+let fitRestRemaining = 0;
+let fitCurrentExIdx = null; // which exercise rest is for
+
+function getFitData(){ return myData.fitness || {}; }
+function saveFitData(d){ myData.fitness=d; saveMyData(); }
+
+function initFitness(){
+  if(!myData.fitness) myData.fitness={workouts:[],programs:[],bodyweight:[],prs:{}};
+  renderFitDashboard();
+}
+
+function renderFitDashboard(){
+  const fd = getFitData();
+  // Today card
+  const today = todayKey();
+  const todayWO = (fd.workouts||[]).filter(w=>w.date===today);
+  const el = document.getElementById('fit-today-content');
+  if(fitActiveWorkout){
+    el.innerHTML=`<div style="color:var(--accent);font-weight:700;font-size:14px">🟢 تمرين جارٍ: ${fitActiveWorkout.name}</div>
+      <button type="button" class="btn btn-p" style="width:100%;margin-top:8px" onclick="resumeWorkout()">العودة للتمرين →</button>`;
+  } else if(todayWO.length){
+    el.innerHTML = todayWO.map(w=>`
+      <div style="background:var(--surface2);border-radius:10px;padding:10px 14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700;font-size:14px">${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${w.duration||0} دقيقة</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${w.exercises?.length||0} تمارين · ${w.exercises?.reduce((a,e)=>a+(e.sets?.filter(s=>s.done).length||0),0)||0} جلسة</div>
+      </div>`).join('');
+  } else {
+    el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:8px">🏋️</div>
+      <div style="font-size:13px">لا يوجد تمرين اليوم</div>
+    </div>`;
+  }
+
+  // Stats row
+  const allWO = fd.workouts||[];
+  const thisWeek = allWO.filter(w=>{ const d=new Date(w.date); const now=new Date(); const diff=(now-d)/(1000*60*60*24); return diff<7; });
+  const totalVol = allWO.reduce((a,w)=>a+calcVolume(w),0);
+  const stats = [
+    {label:'هذا الأسبوع',val:thisWeek.length,unit:'تمرين',icon:'📅'},
+    {label:'مجموع الحجم',val:Math.round(totalVol/1000),unit:'طن',icon:'⚡'},
+    {label:'إجمالي',val:allWO.length,unit:'تمرين',icon:'🏆'},
+  ];
+  document.getElementById('fit-stats-row').innerHTML = stats.map(s=>`
+    <div style="background:var(--surface2);border-radius:12px;padding:12px 10px;text-align:center">
+      <div style="font-size:20px">${s.icon}</div>
+      <div style="font-size:18px;font-weight:900;color:var(--accent)">${s.val}</div>
+      <div style="font-size:10px;color:var(--muted)">${s.unit}</div>
+      <div style="font-size:10px;color:var(--muted)">${s.label}</div>
+    </div>`).join('');
+
+  // Programs
+  const progs = fd.programs||[];
+  const el2 = document.getElementById('fit-programs-list');
+  if(!progs.length){
+    el2.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">لا يوجد برامج — ابدأ بإنشاء برنامج!</div>`;
+  } else {
+    el2.innerHTML = progs.map(p=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:700;font-size:14px">${p.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.days?.length||0} يوم</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn btn-p btn-sm" onclick="startProgramWorkout('${p.id}')">ابدأ</button>
+          <button type="button" class="btn btn-s btn-sm" onclick="deleteFitProgram('${p.id}')">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Body weight chart
+  const bw = (fd.bodyweight||[]).slice(-14);
+  const bwEl = document.getElementById('fit-bw-chart');
+  if(!bw.length){
+    bwEl.innerHTML='<div style="color:var(--muted);font-size:12px;width:100%;text-align:center">لا توجد بيانات</div>';
+  } else {
+    const max=Math.max(...bw.map(x=>x.w)), min=Math.min(...bw.map(x=>x.w));
+    const range=max-min||1;
+    bwEl.innerHTML=bw.map((b,i)=>{
+      const h=Math.max(20,Math.round(((b.w-min)/range)*50+10));
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="font-size:9px;color:var(--muted)">${b.w}</div>
+        <div style="width:100%;height:${h}px;background:var(--accent);border-radius:4px 4px 0 0;opacity:${0.5+i/bw.length*0.5}"></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function calcVolume(workout){
+  return (workout.exercises||[]).reduce((a,e)=>{
+    return a+(e.sets||[]).filter(s=>s.done).reduce((b,s)=>b+(s.reps||0)*(s.weight||0),0);
+  },0);
+}
+
+function saveBW(){
+  const v=parseFloat(document.getElementById('fit-bw-inp').value);
+  if(!v||v<30||v>300){showToast('أدخل وزناً صحيحاً');return;}
+  const fd=getFitData();
+  if(!fd.bodyweight) fd.bodyweight=[];
+  fd.bodyweight.push({date:todayKey(),w:v});
+  saveFitData(fd);
+  document.getElementById('fit-bw-inp').value='';
+  renderFitDashboard();
+  showToast('✅ تم حفظ الوزن');
+}
+
+// ── WORKOUT START ──
+function startWorkout(programId=null, dayName=null){
+  const name = dayName || (programId ? 'تمرين' : prompt('اسم التمرين (مثال: Push / Pull / Legs):') || 'تمرين');
+  if(!name && !programId) return;
+  fitActiveWorkout = {
+    id:'wo_'+Date.now(),
+    name,
+    programId,
+    date:todayKey(),
+    startTime:Date.now(),
+    exercises:[],
+    duration:0
+  };
+  showActiveWorkout();
+  startWorkoutTimer();
+  renderActiveExercises();
+}
+
+function startProgramWorkout(progId){
+  const fd=getFitData();
+  const prog=fd.programs.find(p=>p.id===progId);
+  if(!prog) return;
+  // Show day picker if multiple days
+  if(prog.days && prog.days.length>1){
+    const daysList = prog.days.map((d,i)=>`${i+1}. ${d.name}`).join('\n');
+    const day = prompt('اختر اليوم:\n'+daysList);
+    if(!day) return;
+    const idx=parseInt(day)-1;
+    const d=prog.days[idx];
+    if(!d) return;
+    startWorkout(progId, d.name);
+    // Pre-load exercises
+    if(d.exercises){
+      d.exercises.forEach(ex=>{
+        fitActiveWorkout.exercises.push({
+          id:'ex_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+          name:ex.name, muscle:ex.muscle,
+          sets:[{reps:'',weight:'',rpe:'',done:false}],
+          notes:''
+        });
+      });
+      renderActiveExercises();
+    }
+  } else if(prog.days && prog.days.length===1){
+    startWorkout(progId, prog.days[0].name);
+  } else {
+    startWorkout(progId, prog.name);
+  }
+}
+
+function resumeWorkout(){
+  showActiveWorkout();
+}
+
+function showActiveWorkout(){
+  document.getElementById('fit-dashboard').style.display='none';
+  document.getElementById('fit-history-view').style.display='none';
+  document.getElementById('fit-active-workout').style.display='block';
+  document.getElementById('fit-active-name').textContent=fitActiveWorkout?.name||'';
+  renderActiveExercises();
+}
+
+function startWorkoutTimer(){
+  if(fitTimerInterval) clearInterval(fitTimerInterval);
+  fitTimerInterval=setInterval(()=>{
+    if(!fitActiveWorkout) return;
+    const elapsed=Math.floor((Date.now()-fitActiveWorkout.startTime)/1000);
+    const m=Math.floor(elapsed/60).toString().padStart(2,'0');
+    const s=(elapsed%60).toString().padStart(2,'0');
+    const el=document.getElementById('fit-timer-display');
+    if(el) el.textContent=m+':'+s;
+  },1000);
+}
+
+function addExerciseToWorkout(){
+  // Show muscle group picker
+  const muscles=Object.keys(FIT_MUSCLES);
+  const mList=muscles.map((m,i)=>`${i+1}. ${m}`).join('\n');
+  const mIdx=parseInt(prompt('اختر المجموعة العضلية:\n'+mList))-1;
+  if(isNaN(mIdx)||mIdx<0||mIdx>=muscles.length) return;
+  const muscle=muscles[mIdx];
+  const exList=FIT_MUSCLES[muscle];
+  const exListStr=exList.map((e,i)=>`${i+1}. ${e}`).join('\n');
+  const eIdx=parseInt(prompt('اختر التمرين أو 0 لإضافة مخصص:\n'+exListStr))-1;
+  let exName;
+  if(eIdx===-1 || isNaN(eIdx)){
+    exName=prompt('اسم التمرين المخصص:');
+    if(!exName) return;
+  } else {
+    if(eIdx<0||eIdx>=exList.length) return;
+    exName=exList[eIdx];
+  }
+  fitActiveWorkout.exercises.push({
+    id:'ex_'+Date.now(),
+    name:exName, muscle,
+    sets:[{reps:'',weight:'',rpe:'',done:false}],
+    notes:''
+  });
+  renderActiveExercises();
+}
+
+function renderActiveExercises(){
+  const el=document.getElementById('fit-exercises-list');
+  if(!el||!fitActiveWorkout) return;
+  if(!fitActiveWorkout.exercises.length){
+    el.innerHTML=`<div class="card" style="text-align:center;padding:20px;color:var(--muted)">
+      <div style="font-size:28px;margin-bottom:8px">💪</div>
+      <div>اضغط "+ تمرين" لإضافة تمرين</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=fitActiveWorkout.exercises.map((ex,ei)=>{
+    const doneSets=ex.sets.filter(s=>s.done).length;
+    return`<div class="card mb-10">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-weight:800;font-size:15px">${ex.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${ex.muscle} · ${doneSets}/${ex.sets.length} جلسة</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn btn-s btn-sm" onclick="addSetToExercise(${ei})">+ جلسة</button>
+          <button type="button" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" onclick="removeExercise(${ei})">✕</button>
+        </div>
+      </div>
+      <!-- Sets header -->
+      <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px">
+        <div style="font-size:10px;color:var(--muted);text-align:center">#</div>
+        <div style="font-size:10px;color:var(--muted);text-align:center">التكرار</div>
+        <div style="font-size:10px;color:var(--muted);text-align:center">الوزن (كجم)</div>
+        <div style="font-size:10px;color:var(--muted);text-align:center">RPE</div>
+        <div></div>
+      </div>
+      ${ex.sets.map((s,si)=>`
+        <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px;align-items:center;opacity:${s.done?0.6:1}">
+          <div style="text-align:center;font-size:13px;font-weight:700;color:${s.done?'var(--green)':'var(--muted)'}">${si+1}</div>
+          <input type="number" class="fi" value="${s.reps}" placeholder="12" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
+            onchange="updateSet(${ei},${si},'reps',this.value)">
+          <input type="number" class="fi" value="${s.weight}" placeholder="0" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
+            onchange="updateSet(${ei},${si},'weight',this.value)">
+          <select class="fi" style="padding:6px;font-size:12px" onchange="updateSet(${ei},${si},'rpe',this.value)">
+            <option value="">-</option>
+            ${[6,7,7.5,8,8.5,9,9.5,10].map(r=>`<option value="${r}" ${s.rpe==r?'selected':''}>${r}</option>`).join('')}
+          </select>
+          <button type="button" onclick="doneSet(${ei},${si})" style="width:36px;height:36px;border-radius:50%;border:2px solid ${s.done?'var(--green)':'var(--border)'};background:${s.done?'var(--green)':'transparent'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:${s.done?'white':'var(--muted)'}">
+            ${s.done?'✓':'○'}
+          </button>
+        </div>`).join('')}
+      <!-- Notes -->
+      <input type="text" class="fi" value="${ex.notes||''}" placeholder="ملاحظات..." style="width:100%;font-size:12px;margin-top:6px"
+        onchange="updateExNotes(${ei},this.value)">
+    </div>`;
+  }).join('');
+}
+
+function updateSet(ei,si,field,val){
+  if(!fitActiveWorkout) return;
+  fitActiveWorkout.exercises[ei].sets[si][field]=field==='reps'||field==='weight'?parseFloat(val)||0:val;
+}
+
+function updateExNotes(ei,val){
+  if(!fitActiveWorkout) return;
+  fitActiveWorkout.exercises[ei].notes=val;
+}
+
+function doneSet(ei,si){
+  if(!fitActiveWorkout) return;
+  const set=fitActiveWorkout.exercises[ei].sets[si];
+  set.done=!set.done;
+  renderActiveExercises();
+  if(set.done) startRestTimer(60);
+  // Check PR
+  checkPR(fitActiveWorkout.exercises[ei], set);
+}
+
+function checkPR(ex, set){
+  if(!set.weight||!set.reps) return;
+  const fd=getFitData();
+  if(!fd.prs) fd.prs={};
+  const key=ex.name;
+  const old=fd.prs[key]||{weight:0,reps:0};
+  if(set.weight>old.weight||(set.weight===old.weight&&set.reps>old.reps)){
+    fd.prs[key]={weight:set.weight,reps:set.reps,date:todayKey()};
+    saveFitData(fd);
+    showToast('🎉 رقم قياسي جديد! '+ex.name+' '+set.weight+'كجم x'+set.reps);
+  }
+}
+
+function addSetToExercise(ei){
+  if(!fitActiveWorkout) return;
+  const prev=fitActiveWorkout.exercises[ei].sets.slice(-1)[0];
+  fitActiveWorkout.exercises[ei].sets.push({
+    reps:prev?.reps||'', weight:prev?.weight||'', rpe:prev?.rpe||'', done:false
+  });
+  renderActiveExercises();
+}
+
+function removeExercise(ei){
+  if(!fitActiveWorkout) return;
+  if(!confirm('حذف هذا التمرين؟')) return;
+  fitActiveWorkout.exercises.splice(ei,1);
+  renderActiveExercises();
+}
+
+// ── REST TIMER ──
+function startRestTimer(sec){
+  fitRestRemaining=sec;
+  const el=document.getElementById('fit-rest-timer');
+  const disp=document.getElementById('fit-rest-display');
+  if(!el||!disp) return;
+  el.style.display='block';
+  disp.textContent=sec;
+  if(fitRestInterval) clearInterval(fitRestInterval);
+  fitRestInterval=setInterval(()=>{
+    fitRestRemaining--;
+    if(disp) disp.textContent=fitRestRemaining;
+    if(fitRestRemaining<=0){
+      clearInterval(fitRestInterval);
+      if(el) el.style.display='none';
+      showToast('✅ انتهت فترة الراحة!');
+    }
+  },1000);
+}
+
+function setRestTime(sec){
+  clearInterval(fitRestInterval);
+  startRestTimer(sec);
+}
+
+function skipRest(){
+  clearInterval(fitRestInterval);
+  const el=document.getElementById('fit-rest-timer');
+  if(el) el.style.display='none';
+}
+
+// ── FINISH WORKOUT ──
+function finishWorkout(){
+  if(!fitActiveWorkout) return;
+  const duration=Math.round((Date.now()-fitActiveWorkout.startTime)/60000);
+  fitActiveWorkout.duration=duration;
+  fitActiveWorkout.date=todayKey();
+  const fd=getFitData();
+  if(!fd.workouts) fd.workouts=[];
+  fd.workouts.push({...fitActiveWorkout});
+  saveFitData(fd);
+  clearInterval(fitTimerInterval);
+  clearInterval(fitRestInterval);
+  fitActiveWorkout=null;
+  document.getElementById('fit-active-workout').style.display='none';
+  document.getElementById('fit-dashboard').style.display='block';
+  renderFitDashboard();
+  showToast('🎉 تمرين مكتمل! مدة: '+duration+' دقيقة');
+}
+
+function cancelWorkout(){
+  if(!confirm('تأكيد إلغاء التمرين؟')) return;
+  clearInterval(fitTimerInterval);
+  clearInterval(fitRestInterval);
+  fitActiveWorkout=null;
+  document.getElementById('fit-active-workout').style.display='none';
+  document.getElementById('fit-dashboard').style.display='block';
+  renderFitDashboard();
+}
+
+// ── HISTORY ──
+function openFitHistory(){
+  document.getElementById('fit-dashboard').style.display='none';
+  document.getElementById('fit-active-workout').style.display='none';
+  document.getElementById('fit-history-view').style.display='block';
+  renderFitHistory();
+}
+
+function closeFitHistory(){
+  document.getElementById('fit-history-view').style.display='none';
+  document.getElementById('fit-dashboard').style.display='block';
+}
+
+function renderFitHistory(){
+  const fd=getFitData();
+  const workouts=(fd.workouts||[]).slice().reverse();
+  const el=document.getElementById('fit-history-list');
+  if(!workouts.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">لا يوجد تمارين محفوظة</div>';
+    return;
+  }
+  const GM=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  function fmtD(d){const p=d.split('-');return parseInt(p[2])+' '+GM[parseInt(p[1])-1];}
+  el.innerHTML=workouts.map(w=>{
+    const vol=calcVolume(w);
+    const sets=w.exercises?.reduce((a,e)=>a+(e.sets?.filter(s=>s.done).length||0),0)||0;
+    return`<div class="card mb-10">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div style="font-weight:800;font-size:15px">${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${fmtD(w.date)} · ${w.duration||0} دقيقة</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:800;color:var(--accent)">${vol.toLocaleString('ar')} كجم</div>
+          <div style="font-size:10px;color:var(--muted)">حجم كلي</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${w.exercises?.map(e=>`<span style="font-size:11px;background:var(--surface2);padding:3px 8px;border-radius:99px">${e.name}</span>`).join('')||''}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">${w.exercises?.length||0} تمارين · ${sets} جلسة</div>
+    </div>`;
+  }).join('');
+}
+
+// ── PROGRAMS ──
+function openProgramModal(){
+  const name=prompt('اسم البرنامج (مثال: PPL، 5/3/1، Arnold):');
+  if(!name) return;
+  const daysCount=parseInt(prompt('كم يوم في الأسبوع؟ (مثال: 3 أو 6):'))||3;
+  const fd=getFitData();
+  if(!fd.programs) fd.programs=[];
+  const days=[];
+  for(let i=0;i<daysCount;i++){
+    const dayName=prompt(`اسم اليوم ${i+1} (مثال: Push / Pull / Legs):`)||`يوم ${i+1}`;
+    days.push({name:dayName, exercises:[]});
+  }
+  fd.programs.push({id:'prog_'+Date.now(), name, days});
+  saveFitData(fd);
+  renderFitDashboard();
+  showToast('✅ تم إنشاء البرنامج');
+}
+
+function deleteFitProgram(id){
+  if(!confirm('حذف هذا البرنامج؟')) return;
+  const fd=getFitData();
+  fd.programs=fd.programs.filter(p=>p.id!==id);
+  saveFitData(fd);
+  renderFitDashboard();
+}
+
+// ── FITNESS DATA in applyDefaults ──
+// (handled via getFitData check above)
+
 </script>
 
 <!-- HABIT NOTE MODAL -->
