@@ -1373,7 +1373,104 @@ setInterval(()=>{
         </div>
       </div>
     </div>
-    </div><!-- /pages-wrapper -->
+
+
+    <!-- FITNESS -->
+    <!-- PAGE: FITNESS -->
+    <div class="page" id="page-fitness">
+      <div class="page-header">
+        <div class="ph2">🏋️ التمارين</div>
+      </div>
+    
+      <!-- Dashboard -->
+      <div id="fit-dashboard">
+        <!-- Today's Workout Card -->
+        <div class="card mb-16" id="fit-today-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="sec-title" style="margin:0">💪 تمرين اليوم</div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-s btn-sm" onclick="openFitHistory()">📋 السجل</button>
+              <button type="button" class="btn btn-p btn-sm" onclick="startWorkout()">+ تمرين جديد</button>
+            </div>
+          </div>
+          <div id="fit-today-content"></div>
+        </div>
+    
+        <!-- Stats Row -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
+    
+        <!-- Programs -->
+        <div class="card mb-16">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="sec-title" style="margin:0">📅 البرامج</div>
+            <button type="button" class="btn btn-s btn-sm" onclick="openProgramModal()">+ برنامج</button>
+          </div>
+          <div id="fit-programs-list"></div>
+        </div>
+    
+        <!-- Body Weight -->
+        <div class="card mb-16">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="sec-title" style="margin:0">⚖️ وزن الجسم</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="number" id="fit-bw-inp" class="fi" placeholder="كجم" style="width:70px;font-size:13px;padding:5px 8px">
+              <button type="button" class="btn btn-p btn-sm" onclick="saveBW()">حفظ</button>
+            </div>
+          </div>
+          <div id="fit-bw-chart" style="height:60px;display:flex;align-items:flex-end;gap:4px"></div>
+        </div>
+      </div>
+    
+      <!-- Active Workout View (hidden by default) -->
+      <div id="fit-active-workout" style="display:none">
+        <div class="card mb-16" style="background:linear-gradient(135deg,var(--accent),#92400E);color:white">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;opacity:0.8;margin-bottom:2px">تمرين جارٍ</div>
+              <div style="font-size:18px;font-weight:800" id="fit-active-name">-</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:22px;font-weight:900;font-family:monospace" id="fit-timer-display">00:00</div>
+              <div style="font-size:10px;opacity:0.7">مدة التمرين</div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Rest Timer -->
+        <div id="fit-rest-timer" style="display:none" class="card mb-16" style="text-align:center">
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">⏱ راحة بين الجلسات</div>
+            <div style="font-size:36px;font-weight:900;font-family:monospace;color:var(--accent)" id="fit-rest-display">60</div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+              <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(30)">30ث</button>
+              <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(60)">60ث</button>
+              <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(90)">90ث</button>
+              <button type="button" class="btn btn-p btn-sm" onclick="skipRest()">تخطي</button>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Exercises in active workout -->
+        <div id="fit-exercises-list" style="margin-bottom:12px"></div>
+    
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <button type="button" class="btn btn-s" style="flex:1" onclick="addExerciseToWorkout()">+ تمرين</button>
+          <button type="button" class="btn btn-p" style="flex:1" onclick="finishWorkout()">✅ إنهاء التمرين</button>
+        </div>
+        <button type="button" class="btn" style="width:100%;color:var(--red);background:none;border:1px solid var(--red);font-size:13px" onclick="cancelWorkout()">إلغاء التمرين</button>
+      </div>
+    
+      <!-- History View -->
+      <div id="fit-history-view" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <button type="button" class="btn btn-s btn-sm" onclick="closeFitHistory()">← رجوع</button>
+          <div class="sec-title" style="margin:0">📋 سجل التمارين</div>
+        </div>
+        <div id="fit-history-list"></div>
+      </div>
+    </div>
+
+        </div><!-- /pages-wrapper -->
   </main>
 
   <!-- BOTTOM NAV -->
@@ -1481,99 +1578,6 @@ setInterval(()=>{
   </div>
 </div>
 
-<!-- PAGE: FITNESS -->
-<div class="page" id="page-fitness">
-  <div class="page-header">
-    <div class="ph2">🏋️ التمارين</div>
-  </div>
-
-  <!-- Dashboard -->
-  <div id="fit-dashboard">
-    <!-- Today's Workout Card -->
-    <div class="card mb-16" id="fit-today-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="sec-title" style="margin:0">💪 تمرين اليوم</div>
-        <div style="display:flex;gap:8px">
-          <button type="button" class="btn btn-s btn-sm" onclick="openFitHistory()">📋 السجل</button>
-          <button type="button" class="btn btn-p btn-sm" onclick="startWorkout()">+ تمرين جديد</button>
-        </div>
-      </div>
-      <div id="fit-today-content"></div>
-    </div>
-
-    <!-- Stats Row -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
-
-    <!-- Programs -->
-    <div class="card mb-16">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="sec-title" style="margin:0">📅 البرامج</div>
-        <button type="button" class="btn btn-s btn-sm" onclick="openProgramModal()">+ برنامج</button>
-      </div>
-      <div id="fit-programs-list"></div>
-    </div>
-
-    <!-- Body Weight -->
-    <div class="card mb-16">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="sec-title" style="margin:0">⚖️ وزن الجسم</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="number" id="fit-bw-inp" class="fi" placeholder="كجم" style="width:70px;font-size:13px;padding:5px 8px">
-          <button type="button" class="btn btn-p btn-sm" onclick="saveBW()">حفظ</button>
-        </div>
-      </div>
-      <div id="fit-bw-chart" style="height:60px;display:flex;align-items:flex-end;gap:4px"></div>
-    </div>
-  </div>
-
-  <!-- Active Workout View (hidden by default) -->
-  <div id="fit-active-workout" style="display:none">
-    <div class="card mb-16" style="background:linear-gradient(135deg,var(--accent),#92400E);color:white">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:11px;opacity:0.8;margin-bottom:2px">تمرين جارٍ</div>
-          <div style="font-size:18px;font-weight:800" id="fit-active-name">-</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-size:22px;font-weight:900;font-family:monospace" id="fit-timer-display">00:00</div>
-          <div style="font-size:10px;opacity:0.7">مدة التمرين</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Rest Timer -->
-    <div id="fit-rest-timer" style="display:none" class="card mb-16" style="text-align:center">
-      <div style="text-align:center">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">⏱ راحة بين الجلسات</div>
-        <div style="font-size:36px;font-weight:900;font-family:monospace;color:var(--accent)" id="fit-rest-display">60</div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
-          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(30)">30ث</button>
-          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(60)">60ث</button>
-          <button type="button" class="btn btn-s btn-sm" onclick="setRestTime(90)">90ث</button>
-          <button type="button" class="btn btn-p btn-sm" onclick="skipRest()">تخطي</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Exercises in active workout -->
-    <div id="fit-exercises-list" style="margin-bottom:12px"></div>
-
-    <div style="display:flex;gap:10px;margin-bottom:16px">
-      <button type="button" class="btn btn-s" style="flex:1" onclick="addExerciseToWorkout()">+ تمرين</button>
-      <button type="button" class="btn btn-p" style="flex:1" onclick="finishWorkout()">✅ إنهاء التمرين</button>
-    </div>
-    <button type="button" class="btn" style="width:100%;color:var(--red);background:none;border:1px solid var(--red);font-size:13px" onclick="cancelWorkout()">إلغاء التمرين</button>
-  </div>
-
-  <!-- History View -->
-  <div id="fit-history-view" style="display:none">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <button type="button" class="btn btn-s btn-sm" onclick="closeFitHistory()">← رجوع</button>
-      <div class="sec-title" style="margin:0">📋 سجل التمارين</div>
-    </div>
-    <div id="fit-history-list"></div>
-  </div>
-</div>
 
 <!-- MODAL: Add Habit -->
 <div class="modal-ov" id="habit-modal" onclick="if(event.target===this)closeModal('habit-modal')">
