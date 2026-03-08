@@ -524,37 +524,25 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .cal-event-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:700;margin:3px 3px 0 0;}
 
 /* ══════════════════════════════════════════════════
-   ✨ UI OVERHAUL — MODERN POLISH + ANIMATIONS
+   ✨ UI OVERHAUL — VISUAL POLISH ONLY
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED ROOT VARIABLES ──────────────────── */
 :root {
-  --r: 18px;
-  --r-sm: 12px;
+  --r: 16px;
+  --r-sm: 10px;
   --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-glow: 0 0 0 1px rgba(180,83,9,0.08), 0 4px 20px rgba(180,83,9,0.10);
-  --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  --glass-bg: rgba(255,255,255,0.72);
-  --glass-border: rgba(255,255,255,0.3);
-  --glass-blur: blur(20px);
 }
 
 body.theme-dark {
-  --glass-bg: rgba(26,26,26,0.78);
-  --glass-border: rgba(255,255,255,0.06);
   --shadow: 0 2px 12px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.15);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25);
-  --shadow-glow: 0 0 0 1px rgba(245,158,11,0.12), 0 4px 20px rgba(245,158,11,0.08);
 }
-
-/* Smooth transitions removed from wildcard - applied per-element instead */
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* ── IMPROVED SCROLLBAR ──────────────────────── */
@@ -563,51 +551,22 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-/* ── ENHANCED CARDS — GLASS MORPHISM ─────────── */
+/* ── ENHANCED CARDS ──────────────────────────── */
 .card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
   border-radius: var(--r);
   padding: 24px;
   box-shadow: var(--shadow);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
-.card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-/* ── STAT CARDS UPGRADE ──────────────────────── */
 .stat-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
   border-radius: var(--r);
   padding: 20px 22px;
   box-shadow: var(--shadow);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* ── ENHANCED HABITS ─────────────────────────── */
 .habit-row {
   border-radius: var(--r);
   padding: 16px 18px;
-  border-width: 1.5px;
-  transition: all var(--transition-base);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-}
-.habit-row:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow);
-  transform: translateX(-3px);
 }
 .habit-row.done {
   background: linear-gradient(135deg, var(--green-light) 0%, color-mix(in srgb, var(--green-light) 50%, var(--surface)) 100%);
@@ -616,33 +575,12 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 10px;
-  border-width: 2px;
-  transition: all var(--transition-spring);
-}
-.habit-row.done .hr-check {
-  transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(34,197,94,0.3);
 }
 
 /* ── ENHANCED WALLET CARDS ───────────────────── */
 .wallet-card {
   border-radius: 20px;
   padding: 20px 18px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1.5px solid var(--glass-border);
-  transition: all var(--transition-spring);
-}
-.wallet-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: var(--shadow-glow);
-}
-.wallet-card.selected {
-  border-color: var(--accent);
-  background: linear-gradient(145deg, var(--glass-bg), var(--accent-light));
-  box-shadow: var(--shadow-glow);
 }
 .wallet-balance {
   font-size: 24px;
@@ -651,370 +589,58 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.5px;
+}
+
+/* ── ENHANCED BUTTONS ────────────────────────── */
+.btn-p {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #F59E0B));
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.btn-auth {
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #F59E0B));
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ── ENHANCED AUTH ───────────────────────────── */
+.auth-box {
+  border-radius: 28px;
+  padding: 44px 40px 40px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 16px 56px rgba(0,0,0,0.12);
+}
+.auth-tabs { border-radius: 16px; padding: 5px; }
+.auth-tab { border-radius: 12px; }
+.auth-fi { border-radius: 16px; }
+
+/* ── ENHANCED MODALS ─────────────────────────── */
+.modal-box {
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── ENHANCED TOAST ──────────────────────────── */
+.toast {
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
 }
 
 /* ── ENHANCED TROPHY CARDS ───────────────────── */
 .trophy-card {
   border-radius: 20px;
   padding: 20px 14px;
-  transition: all var(--transition-spring);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
 }
 .trophy-card.unlocked {
-  border-color: var(--accent);
-  background: linear-gradient(145deg, var(--glass-bg) 40%, var(--accent-light) 100%);
-  box-shadow: var(--shadow-glow);
-}
-.trophy-card.unlocked:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: var(--shadow-lg);
-}
-.trophy-icon {
-  font-size: 40px;
-  transition: transform var(--transition-spring);
-}
-.trophy-card.unlocked:hover .trophy-icon {
-  transform: scale(1.15) rotate(-5deg);
-}
-
-/* ── ENHANCED TODO ITEMS ─────────────────────── */
-.todo-item {
-  padding: 16px 0;
-  transition: all var(--transition-base);
-}
-.todo-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  transition: all var(--transition-spring);
-}
-.todo-check:hover {
-  border-color: var(--accent);
-  transform: scale(1.1);
-}
-.todo-check.checked {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(34,197,94,0.3);
-}
-
-/* ── ENHANCED BUTTONS ────────────────────────── */
-.btn {
-  border-radius: var(--r-sm);
-  font-weight: 700;
-  transition: all var(--transition-base);
-  position: relative;
-}
-.btn-p {
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #F59E0B));
-  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.btn-p:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 90%, #000), var(--accent));
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 40%, transparent);
-}
-.btn-p:active {
-  transform: translateY(0) scale(0.98);
-}
-.btn-s {
-  transition: all var(--transition-base);
-}
-.btn-s:hover {
-  background: var(--border);
-  transform: translateY(-1px);
-}
-
-/* ── ENHANCED AUTH BUTTON ────────────────────── */
-.btn-auth {
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #F59E0B));
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: all var(--transition-spring);
-  letter-spacing: 0.3px;
-}
-.btn-auth:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--accent) 45%, transparent);
-}
-.btn-auth:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* ── ENHANCED INPUTS ─────────────────────────── */
-.fi, .fs {
-  border-radius: var(--r-sm);
-  transition: all var(--transition-base);
-  padding: 12px 15px;
-}
-.fi:focus, .fs:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.auth-fi {
-  border-radius: 16px;
-  padding: 16px 44px 16px 18px;
-  transition: all var(--transition-base);
-}
-.auth-fi:focus {
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent),
-              0 4px 12px color-mix(in srgb, var(--accent) 8%, transparent);
-}
-
-/* ── ENHANCED SIDEBAR ────────────────────────── */
-.sidebar {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-left: 1px solid var(--glass-border);
-  box-shadow: -4px 0 20px rgba(0,0,0,0.04);
-}
-.nav-item {
-  margin: 2px 10px;
-  border-radius: var(--r-sm);
-  padding: 12px 16px;
-  transition: all var(--transition-base);
-}
-.nav-item:hover {
-  background: var(--surface2);
-  transform: translateX(-2px);
-}
-.nav-item.active {
-  background: linear-gradient(135deg, var(--accent-light), color-mix(in srgb, var(--accent-light) 50%, transparent));
-}
-.nav-item.active::before {
-  border-radius: 0 3px 3px 0;
-  width: 3.5px;
-  right: -10px;
-}
-
-/* ── ENHANCED BOTTOM NAV ─────────────────────── */
-.top-tabs {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-top: 1px solid var(--glass-border);
-  box-shadow: 0 -4px 30px rgba(0,0,0,0.08);
-  padding: 4px 4px 0;
-  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
-  gap: 2px;
-}
-.top-tab {
-  border-top: none;
-  border-radius: 14px 14px 0 0;
-  padding: 8px 2px 10px;
-  transition: all var(--transition-base);
-  position: relative;
-}
-.top-tab.active {
-  border-top: none;
-  background: var(--accent-light);
-}
-.top-tab.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 20%;
-  right: 20%;
-  height: 3px;
-  background: var(--accent);
-  border-radius: 0 0 99px 99px;
-}
-.top-tab .tab-icon {
-  transition: transform var(--transition-spring);
-}
-.top-tab.active .tab-icon {
-  transform: scale(1.15) translateY(-1px);
-}
-.top-tab:active {
-  transform: scale(0.95);
-}
-
-/* ── ENHANCED TOP PROFILE BAR ────────────────── */
-.top-profile-bar {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
-  min-height: 64px;
-  padding: 12px 20px;
-}
-.tpb-avatar, .tpb-avatar-emoji {
-  transition: all var(--transition-spring);
-}
-.tpb-avatar:hover, .tpb-avatar-emoji:hover {
-  transform: scale(1.1) rotate(-3deg);
-  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-
-/* ── ENHANCED MODALS ─────────────────────────── */
-.modal-ov {
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.modal-box {
-  background: var(--surface);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: var(--shadow-lg);
-  animation: modal-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes modal-enter {
-  0% { opacity: 0; transform: scale(0.92) translateY(16px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* ── ENHANCED TOAST ──────────────────────────── */
-.toast {
-  background: var(--text);
-  color: var(--bg);
-  border-radius: 16px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: var(--shadow-lg);
-  transition: all var(--transition-spring);
-}
-.toast.show {
-  animation: toast-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes toast-in {
-  0% { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.9); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-
-/* ── ENHANCED PAGE TRANSITIONS ───────────────── */
-@keyframes slide-left {
-  from { opacity: 0; transform: translateX(-36px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slide-right {
-  from { opacity: 0; transform: translateX(36px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.page.slide-in-left { animation: slide-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.page.slide-in-right { animation: slide-right 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-
-/* ── STAGGERED ANIMATIONS FOR LISTS ──────────── */
-.habits-grid .habit-row,
-.wallets-grid .wallet-card,
-.trophy-grid .trophy-card,
-.todo-item {
-  animation: stagger-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-@keyframes stagger-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.habits-grid .habit-row:nth-child(1), .wallets-grid .wallet-card:nth-child(1), .trophy-grid .trophy-card:nth-child(1), .todo-item:nth-child(1) { animation-delay: 0s; }
-.habits-grid .habit-row:nth-child(2), .wallets-grid .wallet-card:nth-child(2), .trophy-grid .trophy-card:nth-child(2), .todo-item:nth-child(2) { animation-delay: 0.04s; }
-.habits-grid .habit-row:nth-child(3), .wallets-grid .wallet-card:nth-child(3), .trophy-grid .trophy-card:nth-child(3), .todo-item:nth-child(3) { animation-delay: 0.08s; }
-.habits-grid .habit-row:nth-child(4), .wallets-grid .wallet-card:nth-child(4), .trophy-grid .trophy-card:nth-child(4), .todo-item:nth-child(4) { animation-delay: 0.12s; }
-.habits-grid .habit-row:nth-child(5), .wallets-grid .wallet-card:nth-child(5), .trophy-grid .trophy-card:nth-child(5), .todo-item:nth-child(5) { animation-delay: 0.16s; }
-.habits-grid .habit-row:nth-child(6), .wallets-grid .wallet-card:nth-child(6), .trophy-grid .trophy-card:nth-child(6), .todo-item:nth-child(6) { animation-delay: 0.20s; }
-.habits-grid .habit-row:nth-child(n+7), .wallets-grid .wallet-card:nth-child(n+7), .trophy-grid .trophy-card:nth-child(n+7), .todo-item:nth-child(n+7) { animation-delay: 0.24s; }
-
-/* ── ENHANCED AUTH SCREEN ────────────────────── */
-#auth-screen::before {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 70%);
-}
-.auth-box {
-  border-radius: 32px;
-  padding: 44px 40px 40px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 16px 56px rgba(0,0,0,0.12);
-}
-.auth-tabs {
-  border-radius: 16px;
-  padding: 5px;
-}
-.auth-tab {
-  border-radius: 12px;
-  padding: 11px;
-  transition: all var(--transition-base);
-}
-.auth-tab.active {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-/* ── ENHANCED LOADING SCREEN ─────────────────── */
-.spinner {
-  width: 44px;
-  height: 44px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  animation: spin 0.7s linear infinite;
-}
-
-/* ── ENHANCED STREAKS ────────────────────────── */
-.s-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  transition: all var(--transition-base);
-}
-.s-dot.filled {
-  box-shadow: 0 1px 4px rgba(34,197,94,0.3);
-}
-.s-dot.today-d {
-  box-shadow: 0 1px 4px rgba(180,83,9,0.3);
-  animation: today-pulse 2s infinite;
-}
-@keyframes today-pulse {
-  0%, 100% { box-shadow: 0 1px 4px rgba(180,83,9,0.3); }
-  50% { box-shadow: 0 1px 8px rgba(180,83,9,0.5); }
-}
-
-/* ── ENHANCED EXPENSE ITEMS ──────────────────── */
-.exp-item {
-  padding: 14px 0;
-  transition: all var(--transition-base);
-}
-.exp-ico, .txn-ico {
-  border-radius: 12px;
-  transition: all var(--transition-base);
-}
-.txn-item {
-  padding: 13px 0;
-  transition: all var(--transition-base);
-}
-.txn-item:hover {
-  padding-right: 4px;
-}
-
-/* ── ENHANCED BAR CHART ──────────────────────── */
-.c-bar {
-  border-radius: 6px 6px 0 0;
-  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent));
+  background: linear-gradient(145deg, var(--surface) 40%, var(--accent-light) 100%);
 }
 
 /* ── ENHANCED PROGRESS BAR ───────────────────── */
-.bar-wrap {
-  height: 10px;
-  border-radius: 99px;
-}
+.bar-wrap { height: 10px; }
 .bar-fill {
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(90deg, var(--green), color-mix(in srgb, var(--green) 70%, #10B981));
-}
-
-/* ── FRIEND CARDS ────────────────────────────── */
-.friend-card {
-  border-radius: var(--r);
-  transition: all var(--transition-base);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-}
-.friend-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* ── PAGE HEADER ─────────────────────────────── */
@@ -1022,127 +648,12 @@ body {
   font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--text), color-mix(in srgb, var(--text) 70%, var(--accent)));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── SECTION TITLE ───────────────────────────── */
-.sec-title {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  position: relative;
-  padding-bottom: 8px;
 }
 
 /* ── CHIPS ───────────────────────────────────── */
 .chip {
   border-radius: 99px;
   padding: 5px 14px;
-  font-size: 12px;
-  transition: all var(--transition-base);
-  border-width: 1.5px;
-}
-.chip:hover, .chip.active {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent);
-}
-
-/* ── EMOJI PICKER ────────────────────────────── */
-.emo {
-  transition: all var(--transition-spring);
-  border-radius: 10px;
-}
-.emo:hover {
-  transform: scale(1.15);
-}
-
-/* ── DATE PICKER BUTTON ──────────────────────── */
-.date-pick-btn {
-  border-radius: var(--r-sm);
-  transition: all var(--transition-base);
-}
-.date-pick-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent);
-}
-
-/* ── STREAK PERIOD BUTTONS ───────────────────── */
-.streak-period-btn {
-  border-radius: 10px;
-  transition: all var(--transition-base);
-}
-.streak-period-btn:hover {
-  transform: translateY(-1px);
-}
-.streak-period-btn.active {
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
-/* ── CALENDAR DAYS ───────────────────────────── */
-.cal-day {
-  border-radius: 10px;
-  transition: all var(--transition-base);
-}
-.cal-day:hover {
-  transform: scale(1.08);
-  background: var(--surface2);
-}
-.cal-day.today {
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-/* ── ONLINE PILL ANIMATION ───────────────────── */
-.online-pill {
-  animation: stagger-in 0.5s ease both;
-}
-.dot-live {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* ── ENHANCED MOBILE RESPONSIVE ──────────────── */
-@media(max-width:680px) {
-  .main {
-    padding: 72px 14px 110px;
-  }
-  .card {
-    padding: 20px;
-    border-radius: 16px;
-  }
-  .modal-box {
-    border-radius: 20px;
-    padding: 24px;
-  }
-  .habit-row {
-    padding: 14px 15px;
-    border-radius: 16px;
-  }
-  .wallet-card {
-    border-radius: 18px;
-    padding: 18px 16px;
-  }
-  .trophy-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-  }
-  .top-tabs {
-    padding: 2px 2px 0;
-    padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px));
-  }
-  .top-tab {
-    border-radius: 12px 12px 0 0;
-    padding: 7px 2px 9px;
-  }
-  .bph {
-    font-size: 24px;
-  }
-  .auth-box {
-    border-radius: 24px;
-    padding: 32px 24px 28px;
-  }
 }
 
 /* ── SELECTION COLOR ─────────────────────────── */
@@ -1156,7 +667,6 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-
 /* ── MUSCLE BODY MAP ─────────────────────────── */
 .muscle-map-wrap {
   display: flex;
@@ -1189,48 +699,20 @@ body {
   color: var(--accent);
   box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
-.body-map {
-  position: relative;
-  width: 200px;
-  height: 380px;
-  margin: 0 auto;
-}
-.body-silhouette {
-  width: 100%;
-  height: 100%;
-  opacity: 0.08;
-}
-.muscle-zone {
-  position: absolute;
+
+/* SVG Muscle zones */
+.muscle-svg-zone {
   cursor: pointer;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--muted);
-  background: var(--surface2);
-  border: 2px solid var(--border);
-  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-  text-align: center;
-  line-height: 1.2;
-  padding: 4px;
-  z-index: 2;
+  transition: all 0.2s ease;
 }
-.muscle-zone:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-light);
-  transform: scale(1.05);
-  box-shadow: 0 2px 12px rgba(180,83,9,0.2);
+.muscle-svg-zone:hover {
+  filter: brightness(1.3);
+  stroke-width: 2.5;
+  fill-opacity: 0.6;
 }
-.muscle-zone.selected {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 2px 16px rgba(180,83,9,0.35);
-  transform: scale(1.08);
+.muscle-svg-label {
+  pointer-events: none;
+  font-family: 'Tajawal', sans-serif;
 }
 .muscle-grid-alt {
   display: grid;
@@ -5477,32 +4959,15 @@ const MUSCLE_COLORS = {
 let _selectedMuscle = '';
 
 function openMusclePickerModal(){
-  const grid = document.getElementById('muscle-grid-body');
-  const muscles = Object.keys(FIT_MUSCLES);
-  // Count exercises per muscle from history
-  const fd = getFitData();
-  const muscleCounts = {};
-  (fd.workouts||[]).forEach(w=>{
-    (w.exercises||[]).forEach(ex=>{
-      muscleCounts[ex.muscle] = (muscleCounts[ex.muscle]||0) + 1;
-    });
-  });
-  
-  grid.innerHTML = muscles.map(m => {
-    const icon = MUSCLE_ICONS[m] || '💪';
-    const color = MUSCLE_COLORS[m] || 'var(--accent)';
-    const count = muscleCounts[m] || 0;
-    const lastWorkout = getLastMuscleWorkout(m);
-    return '<div class="muscle-card" onclick="selectMuscleGroup(\''+m+'\')">' +
-      '<span class="mc-icon">'+icon+'</span>' +
-      '<div class="mc-name">'+m+'</div>' +
-      '<div class="mc-count">'+FIT_MUSCLES[m].length+' تمرين</div>' +
-      (count > 0 ? '<div style="font-size:10px;color:var(--muted);margin-top:4px">'+count+' مرة'+
-      (lastWorkout ? ' · '+lastWorkout : '')+'</div>' : '') +
-    '</div>';
-  }).join('');
-  
+  showBodyView('front');
   document.getElementById('muscle-picker-modal').classList.add('open');
+}
+
+function showBodyView(view){
+  document.getElementById('body-front-view').style.display = view==='front' ? 'block' : 'none';
+  document.getElementById('body-back-view').style.display = view==='back' ? 'block' : 'none';
+  document.getElementById('mv-front').classList.toggle('active', view==='front');
+  document.getElementById('mv-back').classList.toggle('active', view==='back');
 }
 
 function getLastMuscleWorkout(muscle){
@@ -5908,19 +5373,209 @@ function deleteFitProgram(id){
 <!-- CALENDAR DAY MODAL -->
 <div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
 
-<!-- MUSCLE PICKER MODAL -->
+<!-- MUSCLE PICKER MODAL — Interactive Body Map -->
 <div class="modal-ov" id="muscle-picker-modal" onclick="if(event.target===this)closeMusclePickerModal()">
-  <div class="modal-box" style="max-width:440px;width:95vw;max-height:88vh;overflow-y:auto;padding:0">
-    <div style="padding:20px 22px 0;position:sticky;top:0;background:var(--surface);z-index:2;border-bottom:1px solid var(--border);padding-bottom:14px">
-      <div class="flex-b" style="margin-bottom:12px">
-        <div style="font-size:17px;font-weight:900">🏋️ اختر العضلة</div>
+  <div class="modal-box" style="max-width:400px;width:95vw;max-height:92vh;overflow-y:auto;padding:0">
+    <div style="padding:18px 22px 0;position:sticky;top:0;background:var(--surface);z-index:2;border-bottom:1px solid var(--border);padding-bottom:12px">
+      <div class="flex-b">
+        <div style="font-size:17px;font-weight:900">💪 اختر العضلة</div>
         <span style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px" onclick="closeMusclePickerModal()">✕</span>
       </div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6">اضغط على العضلة اللي تبي تتمرنها</div>
-    </div>
-    <div style="padding:16px 22px 22px">
-      <div class="muscle-grid-alt" id="muscle-grid-body">
+      <div class="muscle-view-toggle" style="margin-top:10px">
+        <button type="button" class="muscle-view-btn active" id="mv-front" onclick="showBodyView('front')">أمامي</button>
+        <button type="button" class="muscle-view-btn" id="mv-back" onclick="showBodyView('back')">خلفي</button>
       </div>
+    </div>
+    <div style="padding:10px 16px 20px;display:flex;flex-direction:column;align-items:center">
+      <!-- FRONT VIEW -->
+      <div id="body-front-view">
+        <svg viewBox="0 0 260 480" width="240" height="440" style="display:block;margin:0 auto">
+          <!-- Body outline -->
+          <defs>
+            <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style="stop-color:var(--surface2)"/>
+              <stop offset="100%" style="stop-color:var(--border)"/>
+            </linearGradient>
+          </defs>
+          <!-- Head -->
+          <ellipse cx="130" cy="42" rx="28" ry="34" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <!-- Neck -->
+          <rect x="118" y="74" width="24" height="18" rx="6" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1"/>
+          <!-- Torso -->
+          <path d="M82,92 Q80,92 76,100 L66,140 L62,200 L68,260 L82,280 Q110,290 130,290 Q150,290 178,280 L192,260 L198,200 L194,140 L184,100 Q180,92 178,92 Z" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <!-- Left arm -->
+          <path d="M76,100 L56,120 L42,170 L38,220 L36,248 Q34,258 40,260 Q46,258 46,248 L50,220 L54,180 L62,140" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <!-- Right arm -->
+          <path d="M184,100 L204,120 L218,170 L222,220 L224,248 Q226,258 220,260 Q214,258 214,248 L210,220 L206,180 L198,140" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <!-- Left leg -->
+          <path d="M88,275 L82,320 L78,370 L76,420 L74,450 Q72,468 80,470 Q88,468 86,450 L88,420 L92,370 L96,320 L100,290" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <!-- Right leg -->
+          <path d="M172,275 L178,320 L182,370 L184,420 L186,450 Q188,468 180,470 Q172,468 174,450 L172,420 L168,370 L164,320 L160,290" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+
+          <!-- Clickable muscle zones - FRONT -->
+          <!-- Chest -->
+          <path d="M88,108 Q90,100 110,98 L130,100 L150,98 Q170,100 172,108 L168,140 Q150,150 130,148 Q110,150 92,140 Z"
+            class="muscle-svg-zone" data-muscle="صدر" onclick="selectMuscleGroup('صدر')"
+            fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.4)" stroke-width="1.5"/>
+          <text x="130" y="126" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">صدر</text>
+
+          <!-- Shoulders Left -->
+          <ellipse cx="74" cy="106" rx="16" ry="14"
+            class="muscle-svg-zone" data-muscle="كتف" onclick="selectMuscleGroup('كتف')"
+            fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+          <text x="74" y="110" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
+
+          <!-- Shoulders Right -->
+          <ellipse cx="186" cy="106" rx="16" ry="14"
+            class="muscle-svg-zone" data-muscle="كتف" onclick="selectMuscleGroup('كتف')"
+            fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+          <text x="186" y="110" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
+
+          <!-- Biceps Left -->
+          <ellipse cx="56" cy="155" rx="12" ry="22"
+            class="muscle-svg-zone" data-muscle="بايسبس" onclick="selectMuscleGroup('بايسبس')"
+            fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.4)" stroke-width="1.5"/>
+          <text x="56" y="158" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
+
+          <!-- Biceps Right -->
+          <ellipse cx="204" cy="155" rx="12" ry="22"
+            class="muscle-svg-zone" data-muscle="بايسبس" onclick="selectMuscleGroup('بايسبس')"
+            fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.4)" stroke-width="1.5"/>
+          <text x="204" y="158" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
+
+          <!-- Forearms Left -->
+          <ellipse cx="44" cy="210" rx="10" ry="26"
+            class="muscle-svg-zone" data-muscle="بايسبس" onclick="selectMuscleGroup('بايسبس')"
+            fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+
+          <!-- Forearms Right -->
+          <ellipse cx="216" cy="210" rx="10" ry="26"
+            class="muscle-svg-zone" data-muscle="بايسبس" onclick="selectMuscleGroup('بايسبس')"
+            fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+
+          <!-- Abs -->
+          <rect x="104" y="150" width="52" height="80" rx="12"
+            class="muscle-svg-zone" data-muscle="بطن" onclick="selectMuscleGroup('بطن')"
+            fill="rgba(249,115,22,0.15)" stroke="rgba(249,115,22,0.4)" stroke-width="1.5"/>
+          <!-- Ab lines -->
+          <line x1="130" y1="155" x2="130" y2="225" stroke="rgba(249,115,22,0.3)" stroke-width="1"/>
+          <line x1="108" y1="172" x2="152" y2="172" stroke="rgba(249,115,22,0.2)" stroke-width="0.8"/>
+          <line x1="108" y1="192" x2="152" y2="192" stroke="rgba(249,115,22,0.2)" stroke-width="0.8"/>
+          <line x1="108" y1="212" x2="152" y2="212" stroke="rgba(249,115,22,0.2)" stroke-width="0.8"/>
+          <text x="130" y="195" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">بطن</text>
+
+          <!-- Quads Left -->
+          <path d="M88,278 L84,310 L80,360 L86,380 Q95,385 104,380 L100,340 L98,300 L96,278 Z"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
+          <text x="92" y="335" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
+
+          <!-- Quads Right -->
+          <path d="M164,278 L160,300 L158,340 L156,380 Q165,385 174,380 L178,360 L176,310 L172,278 Z"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
+          <text x="166" y="335" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
+
+          <!-- Calves Left -->
+          <ellipse cx="82" cy="425" rx="10" ry="30"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.25)" stroke-width="1"/>
+
+          <!-- Calves Right -->
+          <ellipse cx="178" cy="425" rx="10" ry="30"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.25)" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <!-- BACK VIEW -->
+      <div id="body-back-view" style="display:none">
+        <svg viewBox="0 0 260 480" width="240" height="440" style="display:block;margin:0 auto">
+          <!-- Body outline (same silhouette) -->
+          <ellipse cx="130" cy="42" rx="28" ry="34" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <rect x="118" y="74" width="24" height="18" rx="6" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1"/>
+          <path d="M82,92 Q80,92 76,100 L66,140 L62,200 L68,260 L82,280 Q110,290 130,290 Q150,290 178,280 L192,260 L198,200 L194,140 L184,100 Q180,92 178,92 Z" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <path d="M76,100 L56,120 L42,170 L38,220 L36,248 Q34,258 40,260 Q46,258 46,248 L50,220 L54,180 L62,140" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <path d="M184,100 L204,120 L218,170 L222,220 L224,248 Q226,258 220,260 Q214,258 214,248 L210,220 L206,180 L198,140" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <path d="M88,275 L82,320 L78,370 L76,420 L74,450 Q72,468 80,470 Q88,468 86,450 L88,420 L92,370 L96,320 L100,290" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+          <path d="M172,275 L178,320 L182,370 L184,420 L186,450 Q188,468 180,470 Q172,468 174,450 L172,420 L168,370 L164,320 L160,290" fill="url(#skinGrad)" stroke="var(--border)" stroke-width="1.5"/>
+
+          <!-- Clickable muscle zones - BACK -->
+          <!-- Traps -->
+          <path d="M100,92 L130,88 L160,92 L155,110 Q140,115 130,115 Q120,115 105,110 Z"
+            class="muscle-svg-zone" data-muscle="ظهر" onclick="selectMuscleGroup('ظهر')"
+            fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/>
+          <text x="130" y="106" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">ترابس</text>
+
+          <!-- Upper Back / Lats -->
+          <path d="M90,115 L105,112 Q120,118 130,118 Q140,118 155,112 L170,115 L172,160 Q155,168 130,166 Q105,168 88,160 Z"
+            class="muscle-svg-zone" data-muscle="ظهر" onclick="selectMuscleGroup('ظهر')"
+            fill="rgba(59,130,246,0.18)" stroke="rgba(59,130,246,0.45)" stroke-width="1.5"/>
+          <text x="130" y="145" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">ظهر</text>
+
+          <!-- Lower Back -->
+          <rect x="104" y="170" width="52" height="55" rx="12"
+            class="muscle-svg-zone" data-muscle="ظهر" onclick="selectMuscleGroup('ظهر')"
+            fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+          <text x="130" y="200" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="700">أسفل الظهر</text>
+
+          <!-- Rear Delts Left -->
+          <ellipse cx="76" cy="108" rx="14" ry="12"
+            class="muscle-svg-zone" data-muscle="كتف" onclick="selectMuscleGroup('كتف')"
+            fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+          <text x="76" y="112" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
+
+          <!-- Rear Delts Right -->
+          <ellipse cx="184" cy="108" rx="14" ry="12"
+            class="muscle-svg-zone" data-muscle="كتف" onclick="selectMuscleGroup('كتف')"
+            fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+          <text x="184" y="112" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
+
+          <!-- Triceps Left -->
+          <ellipse cx="58" cy="148" rx="11" ry="24"
+            class="muscle-svg-zone" data-muscle="ترايسبس" onclick="selectMuscleGroup('ترايسبس')"
+            fill="rgba(139,92,246,0.15)" stroke="rgba(139,92,246,0.4)" stroke-width="1.5"/>
+          <text x="58" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
+
+          <!-- Triceps Right -->
+          <ellipse cx="202" cy="148" rx="11" ry="24"
+            class="muscle-svg-zone" data-muscle="ترايسبس" onclick="selectMuscleGroup('ترايسبس')"
+            fill="rgba(139,92,246,0.15)" stroke="rgba(139,92,246,0.4)" stroke-width="1.5"/>
+          <text x="202" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
+
+          <!-- Glutes -->
+          <path d="M88,240 Q90,230 110,232 L130,234 L150,232 Q170,230 172,240 L170,265 Q155,278 130,280 Q105,278 90,265 Z"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.45)" stroke-width="1.5"/>
+          <text x="130" y="260" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="10" font-weight="800">أرداف</text>
+
+          <!-- Hamstrings Left -->
+          <path d="M88,282 L84,310 L80,355 L86,375 Q95,378 102,375 L100,340 L98,310 L96,282 Z"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/>
+          <text x="92" y="332" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
+
+          <!-- Hamstrings Right -->
+          <path d="M164,282 L160,310 L158,340 L156,375 Q165,378 174,375 L178,355 L176,310 L172,282 Z"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/>
+          <text x="166" y="332" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
+
+          <!-- Calves Back Left -->
+          <ellipse cx="82" cy="418" rx="10" ry="28"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.1)" stroke="rgba(236,72,153,0.3)" stroke-width="1"/>
+          <text x="82" y="422" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="700">سمانة</text>
+
+          <!-- Calves Back Right -->
+          <ellipse cx="178" cy="418" rx="10" ry="28"
+            class="muscle-svg-zone" data-muscle="رجل" onclick="selectMuscleGroup('رجل')"
+            fill="rgba(236,72,153,0.1)" stroke="rgba(236,72,153,0.3)" stroke-width="1"/>
+          <text x="178" y="422" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="700">سمانة</text>
+        </svg>
+      </div>
+
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">اضغط على العضلة مباشرة</div>
     </div>
   </div>
 </div>
