@@ -1522,7 +1522,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.2</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.3</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -1683,9 +1683,151 @@ setInterval(()=>{
         <!-- Stats Row -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
     
-        <!-- Muscle Stats -->
+        <!-- Interactive Body Map -->
         <div class="card mb-16">
-          <div class="sec-title" style="margin-bottom:12px">🎯 العضلات</div>
+          <div class="flex-b" style="margin-bottom:14px">
+            <div class="sec-title" style="margin:0">🎯 خريطة العضلات</div>
+            <div class="muscle-view-toggle" id="dash-view-toggle">
+              <button type="button" class="muscle-view-btn active" id="dash-mv-front" onclick="showDashBodyView('front')">أمامي</button>
+              <button type="button" class="muscle-view-btn" id="dash-mv-back" onclick="showDashBodyView('back')">خلفي</button>
+            </div>
+          </div>
+
+          <!-- FRONT VIEW -->
+          <div id="dash-body-front" style="text-align:center">
+            <svg viewBox="0 0 260 440" width="220" height="380" style="display:block;margin:0 auto">
+              <defs>
+                <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" style="stop-color:var(--surface2)"/>
+                  <stop offset="100%" style="stop-color:var(--border)"/>
+                </linearGradient>
+              </defs>
+              <!-- Head -->
+              <ellipse cx="130" cy="38" rx="25" ry="30" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <!-- Neck -->
+              <rect x="120" y="66" width="20" height="16" rx="5" fill="url(#skinG)" stroke="var(--border)" stroke-width="1"/>
+              <!-- Torso -->
+              <path d="M86,82 L74,100 L66,140 L64,195 L70,250 L84,270 Q110,278 130,278 Q150,278 176,270 L190,250 L196,195 L194,140 L186,100 L174,82 Z" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <!-- Arms -->
+              <path d="M74,100 L56,118 L44,165 L40,210 L38,238 Q36,248 42,250 Q48,248 48,238 L52,210 L56,175 L64,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M186,100 L204,118 L216,165 L220,210 L222,238 Q224,248 218,250 Q212,248 212,238 L208,210 L204,175 L196,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <!-- Legs -->
+              <path d="M90,268 L84,310 L80,355 L78,400 Q76,418 82,420 Q88,418 86,400 L90,360 L95,310 L100,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M170,268 L176,310 L180,355 L182,400 Q184,418 178,420 Q172,418 174,400 L170,360 L165,310 L160,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+
+              <!-- CHEST -->
+              <path d="M92,100 Q95,92 115,92 L130,94 L145,92 Q165,92 168,100 L166,130 Q150,140 130,138 Q110,140 94,130 Z"
+                class="muscle-svg-zone" id="dz-chest" onclick="dashMuscleClick('صدر')"
+                fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.5)" stroke-width="1.5"/>
+              <text x="130" y="120" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">صدر</text>
+
+              <!-- SHOULDERS -->
+              <ellipse cx="76" cy="98" rx="15" ry="13" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
+                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+              <text x="76" y="102" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
+              <ellipse cx="184" cy="98" rx="15" ry="13" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
+                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+              <text x="184" y="102" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
+
+              <!-- BICEPS -->
+              <ellipse cx="58" cy="148" rx="11" ry="20" class="muscle-svg-zone" onclick="dashMuscleClick('بايسبس')"
+                fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
+              <text x="58" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
+              <ellipse cx="202" cy="148" rx="11" ry="20" class="muscle-svg-zone" onclick="dashMuscleClick('بايسبس')"
+                fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
+              <text x="202" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
+
+              <!-- ABS -->
+              <rect x="108" y="142" width="44" height="72" rx="10" class="muscle-svg-zone" onclick="dashMuscleClick('بطن')"
+                fill="rgba(249,115,22,0.2)" stroke="rgba(249,115,22,0.5)" stroke-width="1.5"/>
+              <line x1="130" y1="146" x2="130" y2="210" stroke="rgba(249,115,22,0.3)" stroke-width="1"/>
+              <line x1="112" y1="162" x2="148" y2="162" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
+              <line x1="112" y1="180" x2="148" y2="180" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
+              <line x1="112" y1="198" x2="148" y2="198" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
+              <text x="130" y="185" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="10" font-weight="800">بطن</text>
+
+              <!-- QUADS -->
+              <path d="M90,270 L86,305 L82,345 L88,362 Q96,366 104,362 L102,330 L98,300 L96,270 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
+                fill="rgba(236,72,153,0.2)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
+              <text x="94" y="322" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
+              <path d="M164,270 L160,300 L158,330 L156,362 Q164,366 172,362 L178,345 L176,305 L170,270 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
+                fill="rgba(236,72,153,0.2)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
+              <text x="166" y="322" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
+            </svg>
+          </div>
+
+          <!-- BACK VIEW -->
+          <div id="dash-body-back" style="display:none;text-align:center">
+            <svg viewBox="0 0 260 440" width="220" height="380" style="display:block;margin:0 auto">
+              <ellipse cx="130" cy="38" rx="25" ry="30" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <rect x="120" y="66" width="20" height="16" rx="5" fill="url(#skinG)" stroke="var(--border)" stroke-width="1"/>
+              <path d="M86,82 L74,100 L66,140 L64,195 L70,250 L84,270 Q110,278 130,278 Q150,278 176,270 L190,250 L196,195 L194,140 L186,100 L174,82 Z" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M74,100 L56,118 L44,165 L40,210 L38,238 Q36,248 42,250 Q48,248 48,238 L52,210 L56,175 L64,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M186,100 L204,118 L216,165 L220,210 L222,238 Q224,248 218,250 Q212,248 212,238 L208,210 L204,175 L196,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M90,268 L84,310 L80,355 L78,400 Q76,418 82,420 Q88,418 86,400 L90,360 L95,310 L100,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <path d="M170,268 L176,310 L180,355 L182,400 Q184,418 178,420 Q172,418 174,400 L170,360 L165,310 L160,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+
+              <!-- TRAPS -->
+              <path d="M104,82 L130,80 L156,82 L152,102 Q140,108 130,108 Q120,108 108,102 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
+                fill="rgba(59,130,246,0.2)" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/>
+              <text x="130" y="96" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">ترابس</text>
+
+              <!-- BACK -->
+              <path d="M94,106 L108,103 Q120,110 130,110 Q140,110 152,103 L166,106 L168,152 Q150,162 130,160 Q110,162 92,152 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
+                fill="rgba(59,130,246,0.25)" stroke="rgba(59,130,246,0.55)" stroke-width="1.5"/>
+              <text x="130" y="138" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">ظهر</text>
+
+              <!-- LOWER BACK -->
+              <rect x="108" y="162" width="44" height="48" rx="10" class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
+                fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.35)" stroke-width="1"/>
+              <text x="130" y="190" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="700">أسفل</text>
+
+              <!-- REAR DELTS -->
+              <ellipse cx="78" cy="100" rx="13" ry="11" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
+                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+              <text x="78" y="104" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
+              <ellipse cx="182" cy="100" rx="13" ry="11" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
+                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+              <text x="182" y="104" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
+
+              <!-- TRICEPS -->
+              <ellipse cx="60" cy="142" rx="10" ry="22" class="muscle-svg-zone" onclick="dashMuscleClick('ترايسبس')"
+                fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.5)" stroke-width="1.5"/>
+              <text x="60" y="146" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
+              <ellipse cx="200" cy="142" rx="10" ry="22" class="muscle-svg-zone" onclick="dashMuscleClick('ترايسبس')"
+                fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.5)" stroke-width="1.5"/>
+              <text x="200" y="146" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
+
+              <!-- GLUTES -->
+              <path d="M92,230 Q95,222 115,224 L130,226 L145,224 Q165,222 168,230 L166,254 Q150,268 130,270 Q110,268 94,254 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
+                fill="rgba(236,72,153,0.22)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
+              <text x="130" y="250" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">أرداف</text>
+
+              <!-- HAMSTRINGS -->
+              <path d="M90,272 L86,300 L82,340 L88,358 Q96,362 104,358 L102,325 L98,300 L96,272 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
+                fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
+              <text x="94" y="320" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
+              <path d="M164,272 L160,300 L158,325 L156,358 Q164,362 172,358 L178,340 L176,300 L170,272 Z"
+                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
+                fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
+              <text x="166" y="320" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
+            </svg>
+          </div>
+
+          <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">اضغط على أي عضلة لعرض تمارينها</div>
+          <!-- Muscle exercise popup -->
+          <div id="dash-muscle-exercises" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px"></div>
+        </div>
+
+        <!-- Muscle Stats Grid -->
+        <div class="card mb-16">
+          <div class="sec-title" style="margin-bottom:12px">📊 إحصائيات العضلات</div>
           <div class="muscle-stats-grid" id="fit-muscle-stats"></div>
         </div>
     
@@ -4979,6 +5121,53 @@ function showBodyView(view){
   document.getElementById('body-back-view').style.display = view==='back' ? 'block' : 'none';
   document.getElementById('mv-front').classList.toggle('active', view==='front');
   document.getElementById('mv-back').classList.toggle('active', view==='back');
+}
+
+function showDashBodyView(view){
+  document.getElementById('dash-body-front').style.display = view==='front' ? 'block' : 'none';
+  document.getElementById('dash-body-back').style.display = view==='back' ? 'block' : 'none';
+  document.getElementById('dash-mv-front').classList.toggle('active', view==='front');
+  document.getElementById('dash-mv-back').classList.toggle('active', view==='back');
+}
+
+function dashMuscleClick(muscle){
+  var el = document.getElementById('dash-muscle-exercises');
+  var exercises = FIT_MUSCLES[muscle] || [];
+  var icon = MUSCLE_ICONS[muscle] || '💪';
+  var color = MUSCLE_COLORS[muscle] || '#B45309';
+  
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+  html += '<div style="font-size:15px;font-weight:900;color:var(--text)">' + icon + ' تمارين ' + muscle + '</div>';
+  html += '<span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="document.getElementById(\'dash-muscle-exercises\').style.display=\'none\'">✕</span>';
+  html += '</div>';
+  
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  exercises.forEach(function(ex){
+    html += '<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" ';
+    html += 'onmouseenter="this.style.borderColor=\'' + color + '\'" onmouseleave="this.style.borderColor=\'var(--border)\'">';
+    html += ex;
+    html += '</div>';
+  });
+  html += '</div>';
+  
+  html += '<button type="button" class="btn btn-p btn-sm" style="width:100%;margin-top:12px" onclick="startWorkoutWithMuscle(\'' + muscle + '\')">';
+  html += '🏋️ ابدأ تمرين ' + muscle;
+  html += '</button>';
+  
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function startWorkoutWithMuscle(muscle){
+  startWorkout();
+  setTimeout(function(){
+    var exercises = FIT_MUSCLES[muscle] || [];
+    if(exercises.length > 0 && fitActiveWorkout){
+      _selectedMuscle = muscle;
+      openExercisePickerModal(muscle);
+    }
+  }, 300);
 }
 
 function getLastMuscleWorkout(muscle){
