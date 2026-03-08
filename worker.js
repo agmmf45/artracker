@@ -811,7 +811,7 @@ body {
 </style>
 </head>
 <body>
-<!-- ARTRK v2.1 -->
+<!-- ARTRK v2.2 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1522,7 +1522,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.1</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.2</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -1878,6 +1878,11 @@ setInterval(()=>{
       <label class="fl">اختر إيموجي</label>
       <div class="emoji-grid" id="emoji-picker"></div>
       <input type="text" class="fi" id="new-habit-icon" placeholder="أو اكتب هنا" style="width:80px;text-align:center;font-size:20px;margin-top:7px;">
+    </div>
+    <div class="fg">
+      <label class="fl">مهام مصغرة (اختياري)</label>
+      <div id="new-habit-subtasks"></div>
+      <button type="button" class="btn btn-s btn-sm" style="margin-top:6px" onclick="addSubtaskField()">+ مهمة مصغرة</button>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn btn-p" style="flex:1" onclick="saveNewHabit()">حفظ</button>
