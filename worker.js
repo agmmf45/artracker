@@ -811,6 +811,8 @@ body {
 </style>
 </head>
 <body>
+<!-- ARTRK v2.1 -->
+
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
 // حفظ SMS فوراً قبل أي redirect
@@ -1520,7 +1522,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب</div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.1</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -5374,9 +5376,6 @@ function deleteFitProgram(id){
 </div>
 
 
-<!-- CALENDAR DAY MODAL -->
-<div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
-
 <!-- MUSCLE PICKER MODAL — Interactive Body Map -->
 <div class="modal-ov" id="muscle-picker-modal" onclick="if(event.target===this)closeMusclePickerModal()">
   <div class="modal-box" style="max-width:400px;width:95vw;max-height:92vh;overflow-y:auto;padding:0">
@@ -5608,6 +5607,11 @@ function deleteFitProgram(id){
     </div>
   </div>
 </div>
+
+
+<!-- CALENDAR DAY MODAL -->
+<div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
+
   <div class="modal-box" style="max-width:400px;width:95vw">
     <div class="flex-b" style="margin-bottom:14px">
       <div>
