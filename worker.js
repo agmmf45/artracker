@@ -1,3 +1,7 @@
+addEventListener('fetch', event => {
+  event.respondWith(new Response(HTML, { headers: { 'Content-Type': 'text/html; charset=UTF-8' } }))
+})
+const HTML = `
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -2310,7 +2314,7 @@ let selectedExpenseDate = todayKey();
 let datePickerTarget = 'habits';
 
 // ── UTILS ──────────────────────────────────────
-function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function todayKey(){ const d=new Date(); return \`\${d.getFullYear()}-\${String(d.getMonth()+1).padStart(2,'0')}-\${String(d.getDate()).padStart(2,'0')}\`; }
 function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
 function showErr(id,msg){ const el=document.getElementById(id);el.textContent=msg;el.style.display='block'; }
 function hideErr(id){ document.getElementById(id).style.display='none'; }
@@ -2382,13 +2386,13 @@ const GREGORIAN_EVENTS = {
 function getDateInfo(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const hijri = toHijriFromDate(d);
-  const hijriStr = `${hijri.day} ${HIJRI_MONTHS[hijri.month-1]} ${hijri.year} هـ`;
+  const hijriStr = \`\${hijri.day} \${HIJRI_MONTHS[hijri.month-1]} \${hijri.year} هـ\`;
   const gregorianStr = d.toLocaleDateString('ar-SA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   const gregorianEn = d.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   
   // Check events
-  const gKey = `${d.getMonth()+1}-${d.getDate()}`;
-  const hKey = `${hijri.month}-${hijri.day}`;
+  const gKey = \`\${d.getMonth()+1}-\${d.getDate()}\`;
+  const hKey = \`\${hijri.month}-\${hijri.day}\`;
   const event = HIJRI_EVENTS[hKey] || GREGORIAN_EVENTS[gKey] || null;
   
   return { hijriStr, gregorianStr, gregorianEn, event };
@@ -2684,7 +2688,7 @@ async function startApp(user){
 
   // Apply theme
   if(myData.theme && myData.theme !== 'default'){
-    document.body.className = `theme-${myData.theme}`;
+    document.body.className = \`theme-\${myData.theme}\`;
   }
 
   // Show app
@@ -2794,22 +2798,22 @@ function getHabitStreak(habitId){
 function renderHabits(){
   const list=getHabits();
   const el=document.getElementById('my-habits-grid');
-  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>`;return;}
+  if(!list.length){el.innerHTML=\`<div class="empty"><div class="empty-ico">🌱</div><p>أضف أول عادة!</p></div>\`;return;}
   const doneToday=list.filter(h=>isDone(h.id)).length;
   const total=list.length;
-  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding:0 2px">
-    <div style="font-size:13px;color:var(--muted);font-weight:600">${doneToday}/${total} منجز اليوم</div>
-    <div style="font-size:12px;font-weight:800;color:${doneToday===total&&total>0?'var(--green)':'var(--muted)'}">${total>0?Math.round(doneToday/total*100):0}%</div>
+  el.innerHTML=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding:0 2px">
+    <div style="font-size:13px;color:var(--muted);font-weight:600">\${doneToday}/\${total} منجز اليوم</div>
+    <div style="font-size:12px;font-weight:800;color:\${doneToday===total&&total>0?'var(--green)':'var(--muted)'}">\${total>0?Math.round(doneToday/total*100):0}%</div>
   </div>
   <div style="height:5px;background:var(--surface2);border-radius:99px;margin-bottom:14px;overflow:hidden">
-    <div style="height:100%;width:${total>0?Math.round(doneToday/total*100):0}%;background:var(--green);border-radius:99px;transition:width 0.4s"></div>
-  </div>`+
+    <div style="height:100%;width:\${total>0?Math.round(doneToday/total*100):0}%;background:var(--green);border-radius:99px;transition:width 0.4s"></div>
+  </div>\`+
   list.map(h=>{
     const done=isDone(h.id);
     const streak=getHabitStreak(h.id);
     const note=getHabitNote(h.id,selectedHabitsDate);
-    const streakHTML=streak>0?`<span class="hr-streak ${streak>=7?'hot':''}">🔥 ${streak} يوم</span>`:'';
-    const noteHTML=done?`<span class="hr-note" onclick="openHabitNote('${h.id}',event)">${note?'📝 '+note.slice(0,20):'+ ملاحظة'}</span>`:'';
+    const streakHTML=streak>0?\`<span class="hr-streak \${streak>=7?'hot':''}">🔥 \${streak} يوم</span>\`:'';
+    const noteHTML=done?\`<span class="hr-note" onclick="openHabitNote('\${h.id}',event)">\${note?'📝 '+note.slice(0,20):'+ ملاحظة'}</span>\`:'';
     // Subtasks progress
     const subs = h.subtasks||[];
     const {done:subsDone, total:subsTotal} = getSubtasksDone(h.id);
@@ -2818,35 +2822,35 @@ function renderHabits(){
     const bgColor = done
       ? 'var(--accent-light)'
       : subsTotal>0 && subsDone>0
-        ? `rgba(var(--accent-rgb,180,83,9),${0.05+pct*0.12})`
+        ? \`rgba(var(--accent-rgb,180,83,9),\${0.05+pct*0.12})\`
         : 'var(--surface2)';
-    const borderColor = done ? 'var(--accent)' : subsTotal>0 && subsDone>0 ? `rgba(var(--accent-rgb,180,83,9),${0.2+pct*0.6})` : 'transparent';
-    const subtasksHTML = subs.length ? `
+    const borderColor = done ? 'var(--accent)' : subsTotal>0 && subsDone>0 ? \`rgba(var(--accent-rgb,180,83,9),\${0.2+pct*0.6})\` : 'transparent';
+    const subtasksHTML = subs.length ? \`
       <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px" onclick="event.stopPropagation()">
-        ${subs.map(s=>{
+        \${subs.map(s=>{
           const k=selectedHabitsDate;
           const sd=!!(myData.done[k]&&myData.done[k][h.id+'_sub_'+s.id]);
-          return `<div onclick="toggleSubtask('${h.id}','${s.id}',event)" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border-radius:8px;background:${sd?'var(--accent-light)':'var(--surface2)'}">
-            <div style="width:16px;height:16px;border-radius:50%;border:2px solid ${sd?'var(--accent)':'var(--muted)'};background:${sd?'var(--accent)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
-              ${sd?'<span style="color:white;font-size:10px;line-height:1">✓</span>':''}
+          return \`<div onclick="toggleSubtask('\${h.id}','\${s.id}',event)" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border-radius:8px;background:\${sd?'var(--accent-light)':'var(--surface2)'}">
+            <div style="width:16px;height:16px;border-radius:50%;border:2px solid \${sd?'var(--accent)':'var(--muted)'};background:\${sd?'var(--accent)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
+              \${sd?'<span style="color:white;font-size:10px;line-height:1">✓</span>':''}
             </div>
-            <span style="font-size:12px;color:${sd?'var(--muted)':'var(--text)'};text-decoration:${sd?'line-through':'none'};transition:all .2s">${s.name}</span>
-          </div>`;
+            <span style="font-size:12px;color:\${sd?'var(--muted)':'var(--text)'};text-decoration:\${sd?'line-through':'none'};transition:all .2s">\${s.name}</span>
+          </div>\`;
         }).join('')}
-        ${subsTotal>0?`<div style="height:3px;background:var(--surface2);border-radius:99px;margin-top:2px;overflow:hidden">
-          <div style="height:100%;width:${Math.round(pct*100)}%;background:${pct===1?'var(--green)':'var(--accent)'};border-radius:99px;transition:width 0.4s"></div>
-        </div>`:''}
-      </div>` : '';
-    return`<div class="habit-row ${done?'done':''}" onclick="toggleHabit('${h.id}')" style="background:${bgColor};border:1.5px solid ${borderColor};transition:all 0.3s">
-      <div class="hr-check">${done?'✓':subsTotal>0?`<span style="font-size:10px;font-weight:800;color:${pct>0?'var(--accent)':'var(--muted)'}">${subsDone}/${subsTotal}</span>`:''}</div>
-      <div class="hr-icon">${h.icon}</div>
+        \${subsTotal>0?\`<div style="height:3px;background:var(--surface2);border-radius:99px;margin-top:2px;overflow:hidden">
+          <div style="height:100%;width:\${Math.round(pct*100)}%;background:\${pct===1?'var(--green)':'var(--accent)'};border-radius:99px;transition:width 0.4s"></div>
+        </div>\`:''}
+      </div>\` : '';
+    return\`<div class="habit-row \${done?'done':''}" onclick="toggleHabit('\${h.id}')" style="background:\${bgColor};border:1.5px solid \${borderColor};transition:all 0.3s">
+      <div class="hr-check">\${done?'✓':subsTotal>0?\`<span style="font-size:10px;font-weight:800;color:\${pct>0?'var(--accent)':'var(--muted)'}">\${subsDone}/\${subsTotal}</span>\`:''}</div>
+      <div class="hr-icon">\${h.icon}</div>
       <div class="hr-info" style="flex:1">
-        <div class="hr-name">${h.name}</div>
-        <div class="hr-meta">${streakHTML}${noteHTML}</div>
-        ${subtasksHTML}
+        <div class="hr-name">\${h.name}</div>
+        <div class="hr-meta">\${streakHTML}\${noteHTML}</div>
+        \${subtasksHTML}
       </div>
-      <button class="hr-del" onclick="deleteHabit('${h.id}',event)">✕</button>
-    </div>`;
+      <button class="hr-del" onclick="deleteHabit('\${h.id}',event)">✕</button>
+    </div>\`;
   }).join('');
 }
 let streakDays=7;
@@ -2883,9 +2887,9 @@ function renderStreaks(){
         const d=new Date(day+'T12:00:00');
         const isT=day===todayKey();
         const show=isT||i===0||(i%step===0);
-        const lbl=show?`${d.getDate()}/${d.getMonth()+1}`:'';
+        const lbl=show?\`\${d.getDate()}/\${d.getMonth()+1}\`:'';
         const col=isT?'var(--accent)':'var(--muted)';
-        labelsHtml+=`<div style="width:18px;font-size:8px;text-align:center;flex-shrink:0;color:${col};font-weight:${isT?900:500}">${lbl}</div>`;
+        labelsHtml+=\`<div style="width:18px;font-size:8px;text-align:center;flex-shrink:0;color:\${col};font-weight:\${isT?900:500}">\${lbl}</div>\`;
       });
       // dots row
       let dotsHtml='';
@@ -2895,15 +2899,15 @@ function renderStreaks(){
         const hasNote=!!getHabitNote(h.id,day);
         let cls='s-dot';
         if(done) cls+= isT?' today-d':' filled';
-        const click=done?`onclick="viewHabitDay('${h.id}','${day}',event)"` :'';
+        const click=done?\`onclick="viewHabitDay('\${h.id}','\${day}',event)"\` :'';
         const pos=done&&hasNote?'position:relative':'';
-        dotsHtml+=`<div class="${cls}${done&&hasNote?' has-note':''}" ${click} style="${pos}${done?'cursor:pointer':''}"></div>`;
+        dotsHtml+=\`<div class="\${cls}\${done&&hasNote?' has-note':''}" \${click} style="\${pos}\${done?'cursor:pointer':''}"></div>\`;
       });
-      html+=`<div style="margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">${h.icon} ${h.name}</div>
-        <div style="display:flex;gap:3px;margin-bottom:3px">${labelsHtml}</div>
-        <div style="display:flex;gap:3px;flex-wrap:nowrap">${dotsHtml}</div>
-      </div>`;
+      html+=\`<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:3px;color:var(--muted)">\${h.icon} \${h.name}</div>
+        <div style="display:flex;gap:3px;margin-bottom:3px">\${labelsHtml}</div>
+        <div style="display:flex;gap:3px;flex-wrap:nowrap">\${dotsHtml}</div>
+      </div>\`;
     });
     el.innerHTML=html;
   }catch(e){console.error('renderStreaks error:',e);}
@@ -2955,7 +2959,7 @@ function renderFriends(){
     myFriendCodes.includes(u.friend_code)   // my friends
   );
   const sorted=[...visible.filter(u=>u.friend_code===myData.friend_code),...visible.filter(u=>u.friend_code!==myData.friend_code)];
-  if(!sorted.length){el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><p>أضف أصدقاء من ملفك الشخصي!</p></div>`;return;}
+  if(!sorted.length){el.innerHTML=\`<div class="empty"><div class="empty-ico">👥</div><p>أضف أصدقاء من ملفك الشخصي!</p></div>\`;return;}
   el.innerHTML=sorted.map(u=>{
     const isMe=u.friend_code===myData.friend_code;
     const habits=u.habits_list||[];
@@ -2966,28 +2970,28 @@ function renderFriends(){
     const color=u.avatar_color||AVATAR_COLORS[0];
     const emoji=u.avatar_emoji||'😊';
     const avatarHTML = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ${color};flex-shrink:0">`
-      : `<div class="f-avatar" style="background:${color}">${emoji}</div>`;
-    const habitsHTML=habits.map(h=>`
-      <div class="habit-card ${doneMap[h.id]?'done':''} readonly" style="padding:12px 10px;">
+      ? \`<img src="\${u.avatar_photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid \${color};flex-shrink:0">\`
+      : \`<div class="f-avatar" style="background:\${color}">\${emoji}</div>\`;
+    const habitsHTML=habits.map(h=>\`
+      <div class="habit-card \${doneMap[h.id]?'done':''} readonly" style="padding:12px 10px;">
         <div class="done-badge">✓</div>
-        <div class="h-icon" style="font-size:22px;margin-bottom:5px">${h.icon}</div>
-        <div class="h-name" style="font-size:11px">${h.name}</div>
-      </div>`).join('');
-    return`<div class="friend-card">
+        <div class="h-icon" style="font-size:22px;margin-bottom:5px">\${h.icon}</div>
+        <div class="h-name" style="font-size:11px">\${h.name}</div>
+      </div>\`).join('');
+    return\`<div class="friend-card">
       <div class="friend-header">
-        ${avatarHTML}
+        \${avatarHTML}
         <div>
-          <div class="f-name">${u.display_name||u.name}${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
-          <div class="f-tag">${doneCount}/${total} عادة منجزة اليوم</div>
+          <div class="f-name">\${u.display_name||u.name}\${isMe?' <span style="font-size:11px;color:var(--muted)">(أنت)</span>':''}</div>
+          <div class="f-tag">\${doneCount}/\${total} عادة منجزة اليوم</div>
         </div>
       </div>
-      ${u.status_note ? `<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid ${color}">💬 ${u.status_note}</div>` : ''}
-      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      \${u.status_note ? \`<div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);margin-bottom:10px;border-right:3px solid \${color}">💬 \${u.status_note}</div>\` : ''}
+      <div class="bar-wrap"><div class="bar-fill" style="width:\${pct}%;background:\${color}"></div></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px">
-        ${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
+        \${habitsHTML||'<p style="font-size:12px;color:var(--muted)">لا توجد عادات</p>'}
       </div>
-    </div>`;
+    </div>\`;
   }).join('');
 }
 
@@ -3020,8 +3024,8 @@ async function sendFriendRequest(){
     myData.incoming_requests = myData.incoming_requests.filter(c=>c!==code);
     await saveMyData();
     document.getElementById('friend-code-input').value='';
-    showMsg(msgEl,`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`,'ok');
-    showToast(`🎉 صرتوا أصدقاء مع ${found.display_name||found.name}!`);
+    showMsg(msgEl,\`🎉 صرتوا أصدقاء مع \${found.display_name||found.name}!\`,'ok');
+    showToast(\`🎉 صرتوا أصدقاء مع \${found.display_name||found.name}!\`);
     renderFriendsList(); renderFriends(); renderIncomingRequests();
     return;
   }
@@ -3047,8 +3051,8 @@ async function sendFriendRequest(){
 
   await saveMyData();
   document.getElementById('friend-code-input').value='';
-  showMsg(msgEl,`📨 تم إرسال الطلب إلى ${found.display_name||found.name}!`,'ok');
-  showToast(`📨 أُرسل الطلب!`);
+  showMsg(msgEl,\`📨 تم إرسال الطلب إلى \${found.display_name||found.name}!\`,'ok');
+  showToast(\`📨 أُرسل الطلب!\`);
   renderFriendsList();
 }
 
@@ -3077,7 +3081,7 @@ async function acceptRequest(code){
     if(uid) await sb.from('users').update({data: theirFullData}).eq('id', uid);
   }
 
-  showToast(`🎉 قبلت طلب ${found?.display_name||found?.name||code}`);
+  showToast(\`🎉 قبلت طلب \${found?.display_name||found?.name||code}\`);
   renderFriendsList(); renderFriends(); renderIncomingRequests();
 }
 
@@ -3116,44 +3120,44 @@ function renderIncomingRequests(){
   if(!senders.length){ list.innerHTML='<p style="font-size:13px;color:var(--muted);padding:10px">لا يوجد طلبات</p>'; return; }
   list.innerHTML = senders.map(u=>{
     const av = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
-    return `<div class="friend-list-item">
+      ? \`<img src="\${u.avatar_photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0">\`
+      : \`<div style="width:38px;height:38px;border-radius:50%;background:\${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">\${u.avatar_emoji||'😊'}</div>\`;
+    return \`<div class="friend-list-item">
       <div style="display:flex;align-items:center;gap:10px;flex:1">
-        ${av}
+        \${av}
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
+          <div style="font-size:14px;font-weight:700">\${u.display_name||u.name}</div>
           <div style="font-size:11px;color:var(--muted)">يريد إضافتك صديقاً</div>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="btn btn-p btn-sm" style="padding:6px 12px;font-size:12px" onclick="acceptRequest('${u.friend_code}')">✅ قبول</button>
-        <button class="btn btn-s btn-sm" style="padding:6px 12px;font-size:12px" onclick="rejectRequest('${u.friend_code}')">❌ رفض</button>
+        <button class="btn btn-p btn-sm" style="padding:6px 12px;font-size:12px" onclick="acceptRequest('\${u.friend_code}')">✅ قبول</button>
+        <button class="btn btn-s btn-sm" style="padding:6px 12px;font-size:12px" onclick="rejectRequest('\${u.friend_code}')">❌ رفض</button>
       </div>
-    </div>`;
+    </div>\`;
   }).join('');
 }
 
 function renderFriendsList(){
   const el=document.getElementById('my-friends-list');
   const codes=myData.friends||[];
-  if(!codes.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div>`;return;}
+  if(!codes.length){el.innerHTML=\`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>لا يوجد أصدقاء بعد</p></div>\`;return;}
   const friends=allUsers.filter(u=>codes.includes(u.friend_code));
-  if(!friends.length){el.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>أصدقاؤك لم يسجلوا بعد</p></div>`;return;}
+  if(!friends.length){el.innerHTML=\`<div class="empty" style="padding:20px"><div class="empty-ico">👥</div><p>أصدقاؤك لم يسجلوا بعد</p></div>\`;return;}
   el.innerHTML=friends.map(u=>{
     const av = u.avatar_photo
-      ? `<img src="${u.avatar_photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${u.avatar_emoji||'😊'}</div>`;
-    return `<div class="friend-list-item">
+      ? \`<img src="\${u.avatar_photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0">\`
+      : \`<div style="width:36px;height:36px;border-radius:50%;background:\${u.avatar_color||AVATAR_COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">\${u.avatar_emoji||'😊'}</div>\`;
+    return \`<div class="friend-list-item">
       <div style="display:flex;align-items:center;gap:10px;flex:1">
-        ${av}
+        \${av}
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${u.display_name||u.name}</div>
-          ${u.status_note ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 ${u.status_note}</div>` : `<div style="font-size:11px;color:var(--muted)">${u.friend_code}</div>`}
+          <div style="font-size:14px;font-weight:700">\${u.display_name||u.name}</div>
+          \${u.status_note ? \`<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 \${u.status_note}</div>\` : \`<div style="font-size:11px;color:var(--muted)">\${u.friend_code}</div>\`}
         </div>
       </div>
-      <button class="btn-danger" style="flex-shrink:0" onclick="removeFriend('${u.friend_code}')">إزالة</button>
-    </div>`;
+      <button class="btn-danger" style="flex-shrink:0" onclick="removeFriend('\${u.friend_code}')">إزالة</button>
+    </div>\`;
   }).join('');
 }
 async function removeFriend(code){
@@ -3173,7 +3177,7 @@ const THEMES = [
 ];
 
 function applyTheme(id) {
-  document.body.className = id === 'default' ? '' : `theme-${id}`;
+  document.body.className = id === 'default' ? '' : \`theme-\${id}\`;
   myData.theme = id;
   renderThemeGrid();
   saveMyData();
@@ -3184,12 +3188,12 @@ function applyTheme(id) {
 
 function renderThemeGrid() {
   const current = myData.theme || 'default';
-  document.getElementById('theme-grid').innerHTML = THEMES.map(t => `
-    <div class="theme-card ${current===t.id?'active':''}" onclick="applyTheme('${t.id}')">
+  document.getElementById('theme-grid').innerHTML = THEMES.map(t => \`
+    <div class="theme-card \${current===t.id?'active':''}" onclick="applyTheme('\${t.id}')">
       <div class="theme-check">✓</div>
-      <div class="theme-preview" style="background:linear-gradient(135deg,${t.colors[0]} 40%,${t.colors[1]} 100%);border:1px solid ${t.colors[2]}"></div>
-      <div class="theme-name">${t.name}</div>
-    </div>`).join('');
+      <div class="theme-preview" style="background:linear-gradient(135deg,\${t.colors[0]} 40%,\${t.colors[1]} 100%);border:1px solid \${t.colors[2]}"></div>
+      <div class="theme-name">\${t.name}</div>
+    </div>\`).join('');
 }
 
 // ── PHOTO UPLOAD ──────────────────────────────
@@ -3251,11 +3255,11 @@ function renderProfilePage(){
   updateAvatarDisplay();
   // Emoji picker
   document.getElementById('avatar-emojis').innerHTML=AVATAR_EMOJIS.map(e=>
-    `<span class="av-emoji ${myData.avatar_emoji===e?'sel':''}" onclick="pickAvatarEmoji('${e}')">${e}</span>`
+    \`<span class="av-emoji \${myData.avatar_emoji===e?'sel':''}" onclick="pickAvatarEmoji('\${e}')">\${e}</span>\`
   ).join('');
   // Color picker
   document.getElementById('avatar-colors').innerHTML=AVATAR_COLORS.map(c=>
-    `<div class="av-color ${myData.avatar_color===c?'sel':''}" style="background:${c}" onclick="pickAvatarColor('${c}')"></div>`
+    \`<div class="av-color \${myData.avatar_color===c?'sel':''}" style="background:\${c}" onclick="pickAvatarColor('\${c}')"></div>\`
   ).join('');
   // Themes
   renderThemeGrid();
@@ -3360,12 +3364,12 @@ function renderWalletStats(){
   const cats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
   const maxCat = cats[0]?.[1]||1;
   document.getElementById('ws-cat-breakdown').innerHTML = cats.length
-    ? cats.map(([cat,amt])=>`
+    ? cats.map(([cat,amt])=>\`
       <div class="ws-cat-row">
-        <div class="ws-cat-label">${cat}</div>
-        <div class="ws-cat-bar-wrap"><div class="ws-cat-bar" style="width:${Math.round(amt/maxCat*100)}%"></div></div>
-        <div class="ws-cat-amount">${amt.toLocaleString('ar')} ر</div>
-      </div>`).join('')
+        <div class="ws-cat-label">\${cat}</div>
+        <div class="ws-cat-bar-wrap"><div class="ws-cat-bar" style="width:\${Math.round(amt/maxCat*100)}%"></div></div>
+        <div class="ws-cat-amount">\${amt.toLocaleString('ar')} ر</div>
+      </div>\`).join('')
     : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px">لا يوجد إنفاق بعد</div>';
 
   // per wallet
@@ -3375,20 +3379,20 @@ function renderWalletStats(){
     const sv=wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
     const ad=wt.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
     const bal=(w.balance||0)+ad-sp-sv;
-    return`<div class="ws-wallet-row">
+    return\`<div class="ws-wallet-row">
       <div class="ws-wallet-info">
-        <span style="font-size:22px">${w.icon||'💰'}</span>
+        <span style="font-size:22px">\${w.icon||'💰'}</span>
         <div>
-          <div style="font-size:13px;font-weight:800">${w.name}</div>
-          <div style="font-size:11px;color:var(--muted)">رصيد: <strong style="color:${bal<0?'var(--red)':'var(--accent)'}">${bal.toLocaleString('ar')} ر</strong></div>
+          <div style="font-size:13px;font-weight:800">\${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">رصيد: <strong style="color:\${bal<0?'var(--red)':'var(--accent)'}">\${bal.toLocaleString('ar')} ر</strong></div>
         </div>
       </div>
       <div class="ws-wallet-amounts">
-        <span style="color:var(--red)">-${sp.toLocaleString('ar')}</span>
-        <span style="color:#16A34A">🏦${sv.toLocaleString('ar')}</span>
-        <span style="color:#2563EB">+${ad.toLocaleString('ar')}</span>
+        <span style="color:var(--red)">-\${sp.toLocaleString('ar')}</span>
+        <span style="color:#16A34A">🏦\${sv.toLocaleString('ar')}</span>
+        <span style="color:#2563EB">+\${ad.toLocaleString('ar')}</span>
       </div>
-    </div>`;
+    </div>\`;
   }).join('');
 }
 
@@ -3412,31 +3416,31 @@ function renderWallets(){
     const goal = w.goal||0;
     const pct = goal>0 ? Math.min(100,Math.round(totalSaved/goal*100)) : 0;
 
-    const savingsBar = isSavings ? `
+    const savingsBar = isSavings ? \`
       <div style="margin-top:8px">
-        ${goal>0?`
+        \${goal>0?\`
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:10px;color:var(--muted)">الهدف: ${goal.toLocaleString('ar')} ر</span>
-          <span style="font-size:11px;font-weight:800;color:${pct>=100?'var(--green)':'var(--accent)'}">${pct}%</span>
+          <span style="font-size:10px;color:var(--muted)">الهدف: \${goal.toLocaleString('ar')} ر</span>
+          <span style="font-size:11px;font-weight:800;color:\${pct>=100?'var(--green)':'var(--accent)'}">\${pct}%</span>
         </div>
         <div style="height:5px;background:rgba(255,255,255,0.15);border-radius:99px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${pct>=100?'#22C55E':'#FCD34D'};border-radius:99px;transition:width 0.5s"></div>
+          <div style="height:100%;width:\${pct}%;background:\${pct>=100?'#22C55E':'#FCD34D'};border-radius:99px;transition:width 0.5s"></div>
         </div>
-        `:`<div style="font-size:10px;color:rgba(255,255,255,0.6)">💰 ${totalSaved.toLocaleString('ar')} ر مدخر</div>`}
-      </div>` : '';
+        \`:\`<div style="font-size:10px;color:rgba(255,255,255,0.6)">💰 \${totalSaved.toLocaleString('ar')} ر مدخر</div>\`}
+      </div>\` : '';
 
-    return`<div class="wallet-card ${isSelected?'selected':''} ${isSavings?'savings-wallet':''}" onclick="selectWallet('${w.id}')"
-      style="${isSavings?'background:linear-gradient(135deg,#065F46,#059669);border-color:#34D399':''}"
+    return\`<div class="wallet-card \${isSelected?'selected':''} \${isSavings?'savings-wallet':''}" onclick="selectWallet('\${w.id}')"
+      style="\${isSavings?'background:linear-gradient(135deg,#065F46,#059669);border-color:#34D399':''}"
     >
       <div class="wallet-actions">
-        <div class="wallet-act-btn" onclick="event.stopPropagation();editWallet('${w.id}')">✏️</div>
-        <div class="wallet-act-btn" onclick="event.stopPropagation();deleteWallet('${w.id}')">🗑</div>
+        <div class="wallet-act-btn" onclick="event.stopPropagation();editWallet('\${w.id}')">✏️</div>
+        <div class="wallet-act-btn" onclick="event.stopPropagation();deleteWallet('\${w.id}')">🗑</div>
       </div>
-      <div class="wallet-icon">${w.icon||'💰'}</div>
-      <div class="wallet-name">${w.name}${isSavings?'<span style="font-size:10px;background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:99px;margin-right:4px">ادخار</span>':''}</div>
-      <div class="wallet-balance ${balance<0?'negative':''}">${isSavings?totalSaved.toLocaleString('ar'):balance.toLocaleString('ar')} ر</div>
-      ${isSavings ? savingsBar : `<div class="wallet-sub">خصم: ${spent.toLocaleString('ar')} · ادخار: ${saved.toLocaleString('ar')}</div>`}
-    </div>`;
+      <div class="wallet-icon">\${w.icon||'💰'}</div>
+      <div class="wallet-name">\${w.name}\${isSavings?'<span style="font-size:10px;background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:99px;margin-right:4px">ادخار</span>':''}</div>
+      <div class="wallet-balance \${balance<0?'negative':''}">\${isSavings?totalSaved.toLocaleString('ar'):balance.toLocaleString('ar')} ر</div>
+      \${isSavings ? savingsBar : \`<div class="wallet-sub">خصم: \${spent.toLocaleString('ar')} · ادخار: \${saved.toLocaleString('ar')}</div>\`}
+    </div>\`;
   }).join('');
 }
 
@@ -3531,27 +3535,27 @@ function renderTxnList(){
   const allTxns=(myData.transactions||[]).filter(t=>t.walletId===activeWalletId);
   const cats=['الكل',...new Set(allTxns.map(t=>t.cat))];
   document.getElementById('filter-chips').innerHTML=cats.map(c=>
-    `<div class="chip ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</div>`
+    \`<div class="chip \${activeFilter===c?'active':''}" onclick="setFilter('\${c}')">\${c}</div>\`
   ).join('');
   const txns=allTxns.filter(t=>activeFilter==='الكل'||t.cat===activeFilter);
   const el=document.getElementById('expenses-list');
-  if(!txns.length){ el.innerHTML=`<div class="empty"><div class="empty-ico">🧾</div><p>لا توجد حركات</p></div>`; return; }
+  if(!txns.length){ el.innerHTML=\`<div class="empty"><div class="empty-ico">🧾</div><p>لا توجد حركات</p></div>\`; return; }
   el.innerHTML=txns.map(t=>{
     const {ar}=formatDateBilingual(t.date);
     const icons={spend:'💸',save:'💰',add:'➕'};
     const labels={spend:'إنفاق',save:'ادخار',add:'إيداع'};
     const prefix={spend:'-',save:'-',add:'+'};
-    return`<div class="txn-item">
-      <div class="txn-ico ${t.type}">${icons[t.type]||'💸'}</div>
+    return\`<div class="txn-item">
+      <div class="txn-ico \${t.type}">\${icons[t.type]||'💸'}</div>
       <div class="txn-info">
-        <div class="txn-desc">${t.desc}</div>
-        <div class="txn-meta">${t.cat} · ${ar} · ${labels[t.type]}</div>
+        <div class="txn-desc">\${t.desc}</div>
+        <div class="txn-meta">\${t.cat} · \${ar} · \${labels[t.type]}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="txn-amount ${t.type}">${prefix[t.type]}${t.amount.toLocaleString('ar')} ر</div>
-        <button class="btn-danger" onclick="deleteTxn(${t.id})">🗑</button>
+        <div class="txn-amount \${t.type}">\${prefix[t.type]}\${t.amount.toLocaleString('ar')} ر</div>
+        <button class="btn-danger" onclick="deleteTxn(\${t.id})">🗑</button>
       </div>
-    </div>`;
+    </div>\`;
   }).join('');
 }
 
@@ -3625,19 +3629,19 @@ function renderStats(){
   let total=0,dc=0;
   for(let i=0;i<7;i++){const dd=new Date();dd.setDate(dd.getDate()-i);const k=dd.toISOString().slice(0,10);list.forEach(h=>{total++;if(doneMap[k]&&doneMap[k][h.id])dc++;});}
   document.getElementById('stat-week').textContent=total?Math.round(dc/total*100)+'%':'0%';
-  const now=new Date();const mk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const now=new Date();const mk=\`\${now.getFullYear()}-\${String(now.getMonth()+1).padStart(2,'0')}\`;
   const exps=(myData.expenses||[]).filter(e=>e.date.startsWith(mk));
   document.getElementById('stat-total').textContent=exps.reduce((a,b)=>a+b.amount,0).toLocaleString('ar');
   const days7=[];for(let i=6;i>=0;i--){const dd=new Date();dd.setDate(dd.getDate()-i);days7.push({key:dd.toISOString().slice(0,10),label:['أح','إث','ثل','أر','خم','جم','سب'][dd.getDay()]});}
   const allE=myData.expenses||[];
   const maxA=Math.max(...days7.map(d=>allE.filter(e=>e.date===d.key).reduce((a,b)=>a+b.amount,0)),1);
-  document.getElementById('weekly-chart').innerHTML=days7.map(d=>{const amt=allE.filter(e=>e.date===d.key).reduce((a,b)=>a+b.amount,0);return`<div class="c-bar-w"><div class="c-val">${amt?amt.toLocaleString('ar'):''}</div><div class="c-bar" style="height:${Math.round(amt/maxA*90)}px"></div><div class="c-label">${d.label}</div></div>`;}).join('');
+  document.getElementById('weekly-chart').innerHTML=days7.map(d=>{const amt=allE.filter(e=>e.date===d.key).reduce((a,b)=>a+b.amount,0);return\`<div class="c-bar-w"><div class="c-val">\${amt?amt.toLocaleString('ar'):''}</div><div class="c-bar" style="height:\${Math.round(amt/maxA*90)}px"></div><div class="c-label">\${d.label}</div></div>\`;}).join('');
   const catT={};exps.forEach(e=>{catT[e.cat]=(catT[e.cat]||0)+e.amount;});
   const sorted=Object.entries(catT).sort((a,b)=>b[1]-a[1]);
   const cb=document.getElementById('cat-breakdown');
-  if(!sorted.length){cb.innerHTML=`<div class="empty" style="padding:16px"><div class="empty-ico">📊</div><p>لا بيانات</p></div>`;return;}
+  if(!sorted.length){cb.innerHTML=\`<div class="empty" style="padding:16px"><div class="empty-ico">📊</div><p>لا بيانات</p></div>\`;return;}
   const maxC=sorted[0][1];
-  cb.innerHTML=sorted.map(([cat,amt])=>`<div style="margin-bottom:10px"><div class="flex-b" style="margin-bottom:4px;font-size:12px"><span>${cat}</span><span style="font-weight:700">${amt.toLocaleString('ar')} ر</span></div><div class="bar-wrap" style="margin:0"><div class="bar-fill" style="width:${Math.round(amt/maxC*100)}%;background:var(--blue)"></div></div></div>`).join('');
+  cb.innerHTML=sorted.map(([cat,amt])=>\`<div style="margin-bottom:10px"><div class="flex-b" style="margin-bottom:4px;font-size:12px"><span>\${cat}</span><span style="font-weight:700">\${amt.toLocaleString('ar')} ر</span></div><div class="bar-wrap" style="margin:0"><div class="bar-fill" style="width:\${Math.round(amt/maxC*100)}%;background:var(--blue)"></div></div></div>\`).join('');
 }
 
 // ── MODAL & NAV ───────────────────────────────
@@ -3645,7 +3649,7 @@ function openModal(id){
   if(id==='habit-modal'){
     document.getElementById('new-habit-name').value='';
     document.getElementById('new-habit-icon').value='';
-    document.getElementById('emoji-picker').innerHTML=EMOJIS.map(e=>`<span class="emo" onclick="pickEmoji(this,'${e}')">${e}</span>`).join('');
+    document.getElementById('emoji-picker').innerHTML=EMOJIS.map(e=>\`<span class="emo" onclick="pickEmoji(this,'\${e}')">\${e}</span>\`).join('');
   }
   document.getElementById(id).classList.add('open');
 }
@@ -3671,8 +3675,8 @@ function addSubtaskField(val=''){
   if(!cont) return;
   const div = document.createElement('div');
   div.style.cssText='display:flex;gap:6px;align-items:center';
-  div.innerHTML=`<input type="text" class="fi subtask-input" placeholder="مثل: اقرأ 5 دقائق" value="${val}" style="flex:1;font-size:13px;padding:7px 10px">
-    <button type="button" onclick="this.parentNode.remove()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0">✕</button>`;
+  div.innerHTML=\`<input type="text" class="fi subtask-input" placeholder="مثل: اقرأ 5 دقائق" value="\${val}" style="flex:1;font-size:13px;padding:7px 10px">
+    <button type="button" onclick="this.parentNode.remove()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0">✕</button>\`;
   cont.appendChild(div);
   div.querySelector('input').focus();
 }
@@ -3722,11 +3726,11 @@ function showPage(name,tabEl,dir){
   const next=document.getElementById('page-'+name);
   next.classList.add('active');
   // Fix scroll position when switching pages
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  try { window.scrollTo(0, 0); } catch(e) {}
   if(dir==='left') next.classList.add('slide-in-left');
   else if(dir==='right') next.classList.add('slide-in-right');
   if(tabEl)tabEl.classList.add('active');
-  const si=document.querySelector(`.nav-item[data-p="${name}"]`);if(si)si.classList.add('active');
+  const si=document.querySelector(\`.nav-item[data-p="\${name}"]\`);if(si)si.classList.add('active');
   if(name==='stats'){renderStats();try{renderCalendar();}catch(e){}try{initNotes();}catch(e){}}
   if(name==='friends')refreshAll();
   if(name==='profile'){renderProfilePage();renderFriendsList();}
@@ -3801,7 +3805,7 @@ function renderTodos(){
 
   const el=document.getElementById('todo-list');
   if(!todos.length){
-    el.innerHTML=`<div class="card empty"><div class="empty-ico">📝</div><p>${filter==='done'?'لا توجد مهام منجزة':'لا توجد مهام — أضف أول مهمة!'}</p></div>`;
+    el.innerHTML=\`<div class="card empty"><div class="empty-ico">📝</div><p>\${filter==='done'?'لا توجد مهام منجزة':'لا توجد مهام — أضف أول مهمة!'}</p></div>\`;
     return;
   }
 
@@ -3827,20 +3831,20 @@ function renderTodos(){
     if(i===pending.length&&doneItems.length>0&&pending.length>0)
       sep='<div class="todo-group-title">✅ المنجزة</div>';
 
-    return sep + `<div class="todo-item ${t.done?'todo-done':''}">
-      <div class="todo-check ${t.done?'checked':''}" onclick="toggleTodo(${t.id})">${t.done?'✓':''}</div>
+    return sep + \`<div class="todo-item \${t.done?'todo-done':''}">
+      <div class="todo-check \${t.done?'checked':''}" onclick="toggleTodo(\${t.id})">\${t.done?'✓':''}</div>
       <div style="flex:1;min-width:0">
-        <div class="todo-text">${t.text}</div>
+        <div class="todo-text">\${t.text}</div>
         <div class="todo-meta">
-          ${t.cat?`<span class="todo-tag">${t.cat}</span>`:''}
-          ${t.priority!=='normal'?`<span class="todo-tag ${t.priority}">${priorityLabel[t.priority]}</span>`:''}
-          ${t.due?`<span class="todo-tag ${dueCls}">📅 ${dueLabel}</span>`:''}
+          \${t.cat?\`<span class="todo-tag">\${t.cat}</span>\`:''}
+          \${t.priority!=='normal'?\`<span class="todo-tag \${t.priority}">\${priorityLabel[t.priority]}</span>\`:''}
+          \${t.due?\`<span class="todo-tag \${dueCls}">📅 \${dueLabel}</span>\`:''}
         </div>
       </div>
       <div class="todo-actions">
-        <button class="todo-del" onclick="deleteTodo(${t.id})">🗑</button>
+        <button class="todo-del" onclick="deleteTodo(\${t.id})">🗑</button>
       </div>
-    </div>`;
+    </div>\`;
   }).join('') + '</div>';
 }
 
@@ -3901,7 +3905,7 @@ function checkHabit100(d){
 function checkSaver(d){
   if(!(d.budget>0))return false;
   const now=new Date();
-  const thisMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const thisMonth=\`\${now.getFullYear()}-\${String(now.getMonth()+1).padStart(2,'0')}\`;
   const spent=(d.expenses||[]).filter(e=>e.date&&e.date.startsWith(thisMonth)).reduce((s,e)=>s+e.amount,0);
   return spent<d.budget;
 }
@@ -3923,7 +3927,7 @@ function checkAndUnlockTrophies(){
 
 function showTrophyToast(t){
   const toast=document.getElementById('toast');
-  toast.innerHTML=`🏆 فتحت تروفي: ${t.icon} ${t.name}!`;
+  toast.innerHTML=\`🏆 فتحت تروفي: \${t.icon} \${t.name}!\`;
   toast.classList.add('show');
   setTimeout(()=>toast.classList.remove('show'),3500);
 }
@@ -3933,9 +3937,9 @@ function updateTrophyBadge(){
   const tab=document.getElementById('tab-trophies');
   if(tab){
     if(newCount>0){
-      tab.innerHTML=`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات <span style='background:var(--red);color:white;border-radius:99px;padding:1px 5px;font-size:9px;font-weight:800'>${newCount}</span></span>`;
+      tab.innerHTML=\`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات <span style='background:var(--red);color:white;border-radius:99px;padding:1px 5px;font-size:9px;font-weight:800'>\${newCount}</span></span>\`;
     } else {
-      tab.innerHTML=`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات</span>`;
+      tab.innerHTML=\`<svg class='tab-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.5a2.5 2.5 0 010-5H6'/><path d='M18 9h1.5a2.5 2.5 0 000-5H18'/><path d='M4 22h16'/><path d='M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22'/><path d='M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22'/><path d='M18 2H6v7a6 6 0 0012 0V2z'/></svg><span class='tab-label'>الإنجازات</span>\`;
     }
   }
 }
@@ -3963,20 +3967,20 @@ function renderTrophies(){
   let html='';
   cats.forEach(cat=>{
     const defs=TROPHY_DEFS.filter(t=>t.cat===cat);
-    html+=`<div class="trophy-section-title">${CAT_LABELS[cat]}</div><div class="trophy-grid">`;
+    html+=\`<div class="trophy-section-title">\${CAT_LABELS[cat]}</div><div class="trophy-grid">\`;
     defs.forEach(t=>{
       const data=myData._trophies?.[t.id];
       const isUnlocked=!!data;
       const isNew=data?.isNew;
       const isSecretLocked=t.secret&&!isUnlocked;
       const dateStr=data?.unlockedAt?new Date(data.unlockedAt).toLocaleDateString('ar-SA'):'';
-      html+=`<div class="trophy-card ${isUnlocked?'unlocked':'locked'} ">
-        ${isNew?'<div class="trophy-new-badge">جديد!</div>':''}
-        <div class="trophy-icon">${isSecretLocked?'🔒':t.icon}</div>
-        <div class="trophy-name">${isSecretLocked?'سري':''+t.name}</div>
-        <div class="trophy-desc">${isSecretLocked?t.desc:t.desc}</div>
-        ${dateStr?`<div class="trophy-date">✅ ${dateStr}</div>`:''}
-      </div>`;
+      html+=\`<div class="trophy-card \${isUnlocked?'unlocked':'locked'} ">
+        \${isNew?'<div class="trophy-new-badge">جديد!</div>':''}
+        <div class="trophy-icon">\${isSecretLocked?'🔒':t.icon}</div>
+        <div class="trophy-name">\${isSecretLocked?'سري':''+t.name}</div>
+        <div class="trophy-desc">\${isSecretLocked?t.desc:t.desc}</div>
+        \${dateStr?\`<div class="trophy-date">✅ \${dateStr}</div>\`:''}
+      </div>\`;
     });
     html+='</div>';
   });
@@ -4052,11 +4056,11 @@ function updateTopBar(){
   }
 
   if(myData.avatar_photo){
-    avatarWrap.innerHTML = `<img src="${myData.avatar_photo}" class="tpb-avatar" alt="avatar">`;
+    avatarWrap.innerHTML = \`<img src="\${myData.avatar_photo}" class="tpb-avatar" alt="avatar">\`;
   } else {
     const color = myData.avatar_color || '#B45309';
     const emoji = myData.avatar_emoji || '😊';
-    avatarWrap.innerHTML = `<div class="tpb-avatar-emoji" style="background:${color}">${emoji}</div>`;
+    avatarWrap.innerHTML = \`<div class="tpb-avatar-emoji" style="background:\${color}">\${emoji}</div>\`;
   }
 }
 
@@ -4136,10 +4140,10 @@ function openExpenseAI(){
   if(!wallets.length){
     sel.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px;text-align:center">أضف محفظة أولاً</div>';
   } else {
-    sel.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">اختر المحفظة</div>
+    sel.innerHTML=\`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">اختر المحفظة</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      ${wallets.map((w,i)=>`<div class="chip ${i===0?'active':''}" onclick="selectAIWallet(this,'${w.id}')" data-wid="${w.id}">${w.icon} ${w.name}</div>`).join('')}
-    </div>`;
+      \${wallets.map((w,i)=>\`<div class="chip \${i===0?'active':''}" onclick="selectAIWallet(this,'\${w.id}')" data-wid="\${w.id}">\${w.icon} \${w.name}</div>\`).join('')}
+    </div>\`;
   }
   document.getElementById('ai-expense-input').value='';
   document.getElementById('ai-expense-result').style.display='none';
@@ -4169,9 +4173,9 @@ async function sendExpenseAI(){
   btn.disabled=true;
   result.style.display='none';
 
-  const prompt = `أنت مساعد ذكي لتسجيل المصاريف.
+  const prompt = \`أنت مساعد ذكي لتسجيل المصاريف.
 
-المستخدم كتب: "${text}"
+المستخدم كتب: "\${text}"
 
 استخرج كل مصروف أو معاملة مالية وصنفها.
 
@@ -4193,7 +4197,7 @@ async function sendExpenseAI(){
 - amount يجب أن يكون رقم موجب
 - إذا ذكر "صرفت" أو "دفعت" → spend
 - إذا ذكر "وفرت" أو "ادخرت" → save  
-- إذا ذكر "استلمت" أو "راتب" أو "أضفت" → add`;
+- إذا ذكر "استلمت" أو "راتب" أو "أضفت" → add\`;
 
   try{
     const resp = await fetch('https://artrk-ai.agmmf45.workers.dev',{
@@ -4216,7 +4220,7 @@ async function sendExpenseAI(){
     const parsed = JSON.parse(clean);
     showExpenseAIResult(parsed, walletId);
   }catch(e){
-    result.innerHTML=`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ ${e.message||'خطأ غير معروف'}</div>`;
+    result.innerHTML=\`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ \${e.message||'خطأ غير معروف'}</div>\`;
     result.style.display='block';
   }
   btn.textContent='✨ حلل وسجل';
@@ -4231,27 +4235,27 @@ function showExpenseAIResult(data, walletId){
 
   let html='';
   if(data.message){
-    html+=`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ ${data.message}</div>`;
+    html+=\`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ \${data.message}</div>\`;
   }
 
   if(!txns.length){
     html+='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">ما قدرت أستخرج مصاريف، حاول اكتب بشكل أوضح</div>';
   } else {
     const total=txns.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
-    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${txns.length} معاملة · إجمالي الإنفاق: ${total.toLocaleString('ar')} ر</div>`;
+    html+=\`<div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">\${txns.length} معاملة · إجمالي الإنفاق: \${total.toLocaleString('ar')} ر</div>\`;
     txns.forEach((t,i)=>{
       const col=t.type==='spend'?'#FEE2E2':t.type==='save'?'var(--green-light)':'var(--blue-light)';
-      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${col};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
-        <span style="font-size:20px">${typeIcons[t.type]||'💸'}</span>
+      html+=\`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:\${col};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:20px">\${typeIcons[t.type]||'💸'}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${t.desc}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.cat} · ${typeLabels[t.type]}</div>
+          <div style="font-size:14px;font-weight:700">\${t.desc}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">\${t.cat} · \${typeLabels[t.type]}</div>
         </div>
-        <div style="font-size:15px;font-weight:900;color:${t.type==='spend'?'var(--red)':t.type==='save'?'var(--green)':'#2563EB'}">${t.amount.toLocaleString('ar')} ر</div>
-        <input type="checkbox" id="ai-exp-${i}" checked style="width:18px;height:18px;cursor:pointer">
-      </div>`;
+        <div style="font-size:15px;font-weight:900;color:\${t.type==='spend'?'var(--red)':t.type==='save'?'var(--green)':'#2563EB'}">\${t.amount.toLocaleString('ar')} ر</div>
+        <input type="checkbox" id="ai-exp-\${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>\`;
     });
-    html+=`<div style="position:sticky;bottom:0;padding:10px 0 0;background:var(--surface)"><button type="button" class="btn btn-p btn-full" onclick="applyExpenseAI(${JSON.stringify(txns).replace(/"/g,'&quot;')},'${walletId}')">✅ أضف المحدد</button></div>`;
+    html+=\`<div style="position:sticky;bottom:0;padding:10px 0 0;background:var(--surface)"><button type="button" class="btn btn-p btn-full" onclick="applyExpenseAI(\${JSON.stringify(txns).replace(/"/g,'&quot;')},'\${walletId}')">✅ أضف المحدد</button></div>\`;
   }
 
   result.innerHTML=html;
@@ -4276,7 +4280,7 @@ function applyExpenseAI(txns, walletId){
     saveMyData();
     renderWallets();
     if(activeWalletId===walletId) renderTxnList();
-    showToast(`✅ أضفت ${added} معاملة`);
+    showToast(\`✅ أضفت \${added} معاملة\`);
     closeExpenseAI();
   } else {
     showToast('ما اخترت شيء!');
@@ -4308,11 +4312,11 @@ async function sendToAI(){
   result.style.display='none';
 
   const existingHabits = getHabits().map(h=>h.name).join('، ');
-  const prompt = `أنت مساعد ذكي لتطبيق تتبع العادات والمهام.
+  const prompt = \`أنت مساعد ذكي لتطبيق تتبع العادات والمهام.
 
-المستخدم كتب: "${text}"
+المستخدم كتب: "\${text}"
 
-العادات الموجودة حالياً: ${existingHabits||'لا يوجد'}
+العادات الموجودة حالياً: \${existingHabits||'لا يوجد'}
 
 مهمتك: استخرج من كلام المستخدم:
 1. العادات اليومية (أشياء يفعلها كل يوم أو بشكل منتظم)
@@ -4329,8 +4333,8 @@ async function sendToAI(){
 - لا تكرر العادات الموجودة
 - اختر إيموجي مناسب لكل عادة
 - priority: high للمهام المهمة والعاجلة، low للأقل أهمية
-- إذا ذكر يوم محدد (الخميس، الأحد..) احسب التاريخ من اليوم ${new Date().toISOString().slice(0,10)}
-- إذا ما في شيء لنوع معين اتركه array فاضي []`;
+- إذا ذكر يوم محدد (الخميس، الأحد..) احسب التاريخ من اليوم \${new Date().toISOString().slice(0,10)}
+- إذا ما في شيء لنوع معين اتركه array فاضي []\`;
 
   try{
     const resp = await fetch('https://artrk-ai.agmmf45.workers.dev',{
@@ -4354,7 +4358,7 @@ async function sendToAI(){
     const parsed = JSON.parse(clean);
     showAIResult(parsed);
   }catch(e){
-    result.innerHTML=`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ ${e.message||'خطأ غير معروف'}</div>`;
+    result.innerHTML=\`<div style="color:var(--red);font-size:13px;padding:10px;background:#FEE2E2;border-radius:10px">❌ \${e.message||'خطأ غير معروف'}</div>\`;
     result.style.display='block';
     console.error('AI error:',e);
   }
@@ -4369,40 +4373,40 @@ function showAIResult(data){
   
   let html = '';
   if(data.message){
-    html+=`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ ${data.message}</div>`;
+    html+=\`<div style="background:linear-gradient(135deg,#f3e8ff,#fef3c7);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:14px">✨ \${data.message}</div>\`;
   }
   
   if(habits.length){
-    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">عادات جديدة (${habits.length})</div>`;
+    html+=\`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">عادات جديدة (\${habits.length})</div>\`;
     habits.forEach((h,i)=>{
-      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
-        <span style="font-size:22px">${h.icon}</span>
-        <span style="flex:1;font-size:14px;font-weight:700">${h.name}</span>
-        <input type="checkbox" id="ai-h-${i}" checked style="width:18px;height:18px;cursor:pointer">
-      </div>`;
+      html+=\`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+        <span style="font-size:22px">\${h.icon}</span>
+        <span style="flex:1;font-size:14px;font-weight:700">\${h.name}</span>
+        <input type="checkbox" id="ai-h-\${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>\`;
     });
   }
   
   if(todos.length){
-    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:${habits.length?12:0}px">مهام جديدة (${todos.length})</div>`;
+    html+=\`<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:\${habits.length?12:0}px">مهام جديدة (\${todos.length})</div>\`;
     const pColors={high:'#FEE2E2',normal:'var(--surface2)',low:'var(--blue-light)'};
     const pLabels={high:'مهمة 🔴',normal:'عادية',low:'منخفضة'};
     todos.forEach((t,i)=>{
-      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${pColors[t.priority]||pColors.normal};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
+      html+=\`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:\${pColors[t.priority]||pColors.normal};border-radius:10px;margin-bottom:6px;border:1.5px solid var(--border)">
         <span style="font-size:18px">📝</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${t.text}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${pLabels[t.priority]||'عادية'}${t.due?' · 📅 '+t.due:''}</div>
+          <div style="font-size:14px;font-weight:700">\${t.text}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">\${pLabels[t.priority]||'عادية'}\${t.due?' · 📅 '+t.due:''}</div>
         </div>
-        <input type="checkbox" id="ai-t-${i}" checked style="width:18px;height:18px;cursor:pointer">
-      </div>`;
+        <input type="checkbox" id="ai-t-\${i}" checked style="width:18px;height:18px;cursor:pointer">
+      </div>\`;
     });
   }
   
   if(!habits.length && !todos.length){
     html='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">ما قدرت أستخرج عادات أو مهام، حاول اكتب بشكل أوضح</div>';
   } else {
-    html+=`<button type="button" class="btn btn-p btn-full" style="margin-top:14px" onclick="applyAIResult(${JSON.stringify(habits).replace(/"/g,'&quot;')},${JSON.stringify(todos).replace(/"/g,'&quot;')})">✅ أضف المحدد</button>`;
+    html+=\`<button type="button" class="btn btn-p btn-full" style="margin-top:14px" onclick="applyAIResult(\${JSON.stringify(habits).replace(/"/g,'&quot;')},\${JSON.stringify(todos).replace(/"/g,'&quot;')})">✅ أضف المحدد</button>\`;
   }
   
   result.innerHTML=html;
@@ -4436,7 +4440,7 @@ function applyAIResult(habits,todos){
     renderHabits();
     renderStreaks();
     renderTodos();
-    showToast(`✅ أضفت ${addedH} عادة و${addedT} مهمة`);
+    showToast(\`✅ أضفت \${addedH} عادة و\${addedT} مهمة\`);
     closeAIAssistant();
   } else {
     showToast('ما اخترت شيء!');
@@ -4452,7 +4456,7 @@ const NOTE_TEMPLATES = {
   workout: {
     label: '🏋️ رياضة وبناء جسم',
     quickInserts: ['💪 التمرين','⚖️ الوزن','📏 القياسات','🔥 السعرات','💧 الماء','😤 الجهد'],
-    text: `🏋️ تمرين اليوم
+    text: \`🏋️ تمرين اليوم
 ━━━━━━━━━━━━━━━
 💪 التمارين:
 • 
@@ -4463,12 +4467,12 @@ const NOTE_TEMPLATES = {
 
 😤 مستوى الجهد (1-10): ___
 📝 ملاحظات:
-`
+\`
   },
   nutrition: {
     label: '🍽️ تغذية',
     quickInserts: ['🌅 الفطور','☀️ الغداء','🌙 العشاء','🍎 وجبة خفيفة','💧 الماء','🔢 السعرات'],
-    text: `🍽️ تغذية اليوم
+    text: \`🍽️ تغذية اليوم
 ━━━━━━━━━━━━━━━
 🌅 الفطور:
 • 
@@ -4481,12 +4485,12 @@ const NOTE_TEMPLATES = {
 
 💧 الماء: ___ لتر
 🔢 إجمالي السعرات: ___
-`
+\`
   },
   sleep: {
     label: '😴 نوم وراحة',
     quickInserts: ['🌙 وقت النوم','🌅 وقت الاستيقاظ','⏱️ ساعات النوم','⭐ جودة النوم','😪 التعب','🧘 الراحة'],
-    text: `😴 نوم اليوم
+    text: \`😴 نوم اليوم
 ━━━━━━━━━━━━━━━
 🌙 وقت النوم: ___
 🌅 وقت الاستيقاظ: ___
@@ -4494,12 +4498,12 @@ const NOTE_TEMPLATES = {
 ⭐ جودة النوم (1-10): ___
 
 🧘 كيف أشعر اليوم:
-`
+\`
   },
   reflect: {
     label: '💡 تأمل وأفكار',
     quickInserts: ['🙏 أشكر على','🎯 هدف اليوم','✅ أنجزت','😔 أتحسن في','💭 فكرة','🌟 لحظة مميزة'],
-    text: `💡 تأملي اليوم
+    text: \`💡 تأملي اليوم
 ━━━━━━━━━━━━━━━
 🙏 أشكر الله على:
 • 
@@ -4511,7 +4515,7 @@ const NOTE_TEMPLATES = {
 💭 فكرة أو شيء تعلمته:
 
 🌟 أفضل لحظة اليوم:
-`
+\`
   },
   free: {
     label: '✍️ كتابة حرة',
@@ -4525,7 +4529,7 @@ let currentTemplate = null;
 
 function noteTimestamp() {
   const n = new Date();
-  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}_${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  return \`\${n.getFullYear()}-\${String(n.getMonth()+1).padStart(2,'0')}-\${String(n.getDate()).padStart(2,'0')}_\${String(n.getHours()).padStart(2,'0')}:\${String(n.getMinutes()).padStart(2,'0')}\`;
 }
 
 function initNotes() {
@@ -4571,7 +4575,7 @@ function insertTemplate(type) {
   // Update quick inserts
   const qi = document.getElementById('quick-inserts');
   qi.innerHTML = tpl.quickInserts.map(q =>
-    `<button type="button" onclick="insertQuick('${q}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--text)">${q}</button>`
+    \`<button type="button" onclick="insertQuick('\${q}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--text)">\${q}</button>\`
   ).join('');
 
   // Set template text if empty or confirm
@@ -4607,13 +4611,13 @@ function renderNotesHistory() {
     const p=datePart.split('-');
     const dayNames=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
     const dt=new Date(datePart+'T12:00:00');
-    const lbl=`${dayNames[dt.getDay()]} ${parseInt(p[2])} ${GM2[parseInt(p[1])-1]}`;
-    return timePart?lbl+` <span style="color:var(--muted);font-size:11px">${timePart}</span>`:lbl;
+    const lbl=\`\${dayNames[dt.getDay()]} \${parseInt(p[2])} \${GM2[parseInt(p[1])-1]}\`;
+    return timePart?lbl+\` <span style="color:var(--muted);font-size:11px">\${timePart}</span>\`:lbl;
   }
 
   const today=todayKey();
   const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
-  const yKey=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+  const yKey=\`\${yesterday.getFullYear()}-\${String(yesterday.getMonth()+1).padStart(2,'0')}-\${String(yesterday.getDate()).padStart(2,'0')}\`;
 
   function getLabel(key){
     const d=key.split('_')[0];
@@ -4622,35 +4626,35 @@ function renderNotesHistory() {
     return '';
   }
 
-  el.innerHTML = `
+  el.innerHTML = \`
     <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted)">📋 ملاحظاتك (${allDates.length})</div>
-        ${currentNoteDate!==today?`<button type="button" onclick="loadPastNote('${today}');document.getElementById('daily-note-input').focus()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700">+ اليوم</button>`:''}
+        <div style="font-size:12px;font-weight:800;color:var(--muted)">📋 ملاحظاتك (\${allDates.length})</div>
+        \${currentNoteDate!==today?\`<button type="button" onclick="loadPastNote('\${today}');document.getElementById('daily-note-input').focus()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700">+ اليوم</button>\`:''}
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        ${allDates.map(date=>{
+        \${allDates.map(date=>{
           const note=notes[date]||'';
           const preview=note.replace(/━+/g,'').replace(/\n+/g,' ').replace(/[ \t\r]+/g,' ').trim();
           const short=preview.slice(0,55);
           const isActive=date===currentNoteDate;
-          return `<div onclick="loadPastNote('${date}')"
-            style="padding:11px 14px;background:${isActive?'var(--accent-light)':'var(--surface2)'};border-radius:12px;cursor:pointer;border:2px solid ${isActive?'var(--accent)':'transparent'};transition:all .15s"
-            onmouseover="if('${date}'!=='${currentNoteDate}')this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='${isActive?'var(--accent)':'transparent'}'">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${short?'5':'0'}px">
+          return \`<div onclick="loadPastNote('\${date}')"
+            style="padding:11px 14px;background:\${isActive?'var(--accent-light)':'var(--surface2)'};border-radius:12px;cursor:pointer;border:2px solid \${isActive?'var(--accent)':'transparent'};transition:all .15s"
+            onmouseover="if('\${date}'!=='\${currentNoteDate}')this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='\${isActive?'var(--accent)':'transparent'}'">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:\${short?'5':'0'}px">
               <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-                <span style="font-size:13px;font-weight:800;color:${isActive?'var(--accent)':'var(--text)'}">${fmtDate(date)}</span>
-                ${getLabel(date)}
+                <span style="font-size:13px;font-weight:800;color:\${isActive?'var(--accent)':'var(--text)'}">\${fmtDate(date)}</span>
+                \${getLabel(date)}
               </div>
-              <button type="button" onclick="event.stopPropagation();deleteNote('${date}')"
+              <button type="button" onclick="event.stopPropagation();deleteNote('\${date}')"
                 style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:0 2px;flex-shrink:0"
                 onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
             </div>
-            ${short?`<div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${short}${preview.length>55?'...':''}</div>`:''}
-          </div>`;
+            \${short?\`<div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\${short}\${preview.length>55?'...':''}</div>\`:''}
+          </div>\`;
         }).join('')}
       </div>
-    </div>`;
+    </div>\`;
 }
 
 function loadPastNote(key) {
@@ -4723,13 +4727,13 @@ function toHijri(year, month, day) {
 
 function getHijriLabel(date) {
   const h = toHijri(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  return `${h.d} ${HIJRI_MONTHS[h.m - 1]} ${h.y} هـ`;
+  return \`\${h.d} \${HIJRI_MONTHS[h.m - 1]} \${h.y} هـ\`;
 }
 
 function renderCalendar() {
   const today = new Date();
   // Use LOCAL date (not UTC) to avoid timezone offset bugs
-  const todayKey2 = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const todayKey2 = \`\${today.getFullYear()}-\${String(today.getMonth()+1).padStart(2,'0')}-\${String(today.getDate()).padStart(2,'0')}\`;
   const firstDay = new Date(calYear, calMonth, 1);
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   let startDow = firstDay.getDay(); // 0=Sun
@@ -4738,7 +4742,7 @@ function renderCalendar() {
   const hijriFirst = toHijri(calYear, calMonth + 1, 1);
   const hijriLast = toHijri(calYear, calMonth + 1, daysInMonth);
   document.getElementById('cal-title-m').textContent = GREGORIAN_MONTHS[calMonth] + ' ' + calYear;
-  document.getElementById('cal-title-h').textContent = `${HIJRI_MONTHS[hijriFirst.m-1]}${hijriFirst.m!==hijriLast.m?' - '+HIJRI_MONTHS[hijriLast.m-1]:''} ${hijriFirst.y} هـ`;
+  document.getElementById('cal-title-h').textContent = \`\${HIJRI_MONTHS[hijriFirst.m-1]}\${hijriFirst.m!==hijriLast.m?' - '+HIJRI_MONTHS[hijriLast.m-1]:''} \${hijriFirst.y} هـ\`;
 
   const doneMap = myData.done || {};
   const todos = myData.todos || [];
@@ -4753,7 +4757,7 @@ function renderCalendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(calYear, calMonth, d);
     // Local date key (avoids UTC timezone shift)
-    const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const key = \`\${calYear}-\${String(calMonth+1).padStart(2,'0')}-\${String(d).padStart(2,'0')}\`;
     const isToday = key === todayKey2;
     const islamicEv = ISLAMIC_EVENTS[key];
     const hasTodo = todos.some(t => t.due === key && !t.done);
@@ -4768,11 +4772,11 @@ function renderCalendar() {
 
     const hd = toHijri(calYear, calMonth + 1, d);
     if (hd.m === 9) cls += ' ramadan-day';
-    html += `<div class="${cls}" onclick="openCalDay('${key}')">
-      <span style="font-size:13px;line-height:1">${d}</span>
-      <span class="hijri-lbl" style="font-size:7.5px;opacity:0.65;font-weight:600;line-height:1">${hd.d} ${HIJRI_MONTHS[hd.m-1].slice(0,4)}</span>
-      ${islamicEv ? `<span style="font-size:7px;line-height:1">${islamicEv.split(' ').pop()}</span>` : ''}
-    </div>`;
+    html += \`<div class="\${cls}" onclick="openCalDay('\${key}')">
+      <span style="font-size:13px;line-height:1">\${d}</span>
+      <span class="hijri-lbl" style="font-size:7.5px;opacity:0.65;font-weight:600;line-height:1">\${hd.d} \${HIJRI_MONTHS[hd.m-1].slice(0,4)}</span>
+      \${islamicEv ? \`<span style="font-size:7px;line-height:1">\${islamicEv.split(' ').pop()}</span>\` : ''}
+    </div>\`;
   }
 
   html += '</div>';
@@ -4780,16 +4784,16 @@ function renderCalendar() {
 
   // Events bar - show this month's events
   const monthEvents = Object.entries(ISLAMIC_EVENTS)
-    .filter(([k]) => k.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`));
+    .filter(([k]) => k.startsWith(\`\${calYear}-\${String(calMonth+1).padStart(2,'0')}\`));
   
   let evBar = '';
   if (monthEvents.length) {
     evBar = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
     monthEvents.forEach(([k, name]) => {
       const d = new Date(k + 'T12:00:00');
-      evBar += `<div class="cal-event-chip" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#065f46">
-        ${name} · ${d.getDate()} ${GREGORIAN_MONTHS[d.getMonth()]}
-      </div>`;
+      evBar += \`<div class="cal-event-chip" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#065f46">
+        \${name} · \${d.getDate()} \${GREGORIAN_MONTHS[d.getMonth()]}
+      </div>\`;
     });
     evBar += '</div>';
   }
@@ -4812,7 +4816,7 @@ function openCalDay(dateKey) {
   calSelectedDate = dateKey;
   const date = new Date(dateKey + 'T12:00:00');
   document.getElementById('cal-day-title').textContent = 
-    `${date.getDate()} ${GREGORIAN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+    \`\${date.getDate()} \${GREGORIAN_MONTHS[date.getMonth()]} \${date.getFullYear()}\`;
   document.getElementById('cal-day-hijri').textContent = getHijriLabel(date);
   document.getElementById('cal-reminder-input').value = '';
 
@@ -4826,37 +4830,37 @@ function openCalDay(dateKey) {
 
   // Islamic event
   if (islamicEv) {
-    html += `<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:14px;font-weight:700;color:#065f46">🌙 ${islamicEv}</div>`;
+    html += \`<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:14px;font-weight:700;color:#065f46">🌙 \${islamicEv}</div>\`;
   }
 
   // Habits done that day
   const doneThatDay = habits.filter(h => doneMap[dateKey] && doneMap[dateKey][h.id]);
   if (doneThatDay.length) {
-    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">العادات المنجزة</div>`;
+    html += \`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">العادات المنجزة</div>\`;
     doneThatDay.forEach(h => {
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--green-light);border-radius:8px;margin-bottom:4px;font-size:13px">✅ ${h.icon} ${h.name}</div>`;
+      html += \`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--green-light);border-radius:8px;margin-bottom:4px;font-size:13px">✅ \${h.icon} \${h.name}</div>\`;
     });
   }
 
   // Todos due that day
   const todayTodos = todos.filter(t => t.due === dateKey);
   if (todayTodos.length) {
-    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">المهام</div>`;
+    html += \`<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">المهام</div>\`;
     todayTodos.forEach(t => {
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:4px;font-size:13px">
-        ${t.done?'✅':'📝'} ${t.text}
-      </div>`;
+      html += \`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:4px;font-size:13px">
+        \${t.done?'✅':'📝'} \${t.text}
+      </div>\`;
     });
   }
 
   // Reminders
   if (reminders.length) {
-    html += `<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">التذكيرات</div>`;
+    html += \`<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px">التذكيرات</div>\`;
     reminders.forEach((r, i) => {
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#FEF3C7;border-radius:8px;margin-bottom:4px;font-size:13px">
-        <span style="flex:1">🔔 ${r}</span>
-        <span onclick="deleteCalReminder('${dateKey}',${i})" style="cursor:pointer;color:var(--muted);font-size:16px">✕</span>
-      </div>`;
+      html += \`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#FEF3C7;border-radius:8px;margin-bottom:4px;font-size:13px">
+        <span style="flex:1">🔔 \${r}</span>
+        <span onclick="deleteCalReminder('\${dateKey}',\${i})" style="cursor:pointer;color:var(--muted);font-size:16px">✕</span>
+      </div>\`;
     });
   }
 
@@ -4936,24 +4940,24 @@ function exportPDF(){
     catMap[cat] = (catMap[cat]||0) + (e.amount||0);
   });
   const catRows = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6)
-    .map(([cat,amt])=>`<tr><td>${cat}</td><td style="text-align:left;font-weight:700">${amt.toLocaleString('ar')} ر.س</td></tr>`).join('');
+    .map(([cat,amt])=>\`<tr><td>\${cat}</td><td style="text-align:left;font-weight:700">\${amt.toLocaleString('ar')} ر.س</td></tr>\`).join('');
 
   // Recent todos
   const recentTodos = todos.slice(0,10).map(t=>
-    `<tr><td>${t.done?'✅':'⬜'}</td><td>${t.text}</td><td style="text-align:left">${t.priority==='high'?'🔴 عالية':t.priority==='low'?'🟢 منخفضة':'🟡 عادية'}</td></tr>`
+    \`<tr><td>\${t.done?'✅':'⬜'}</td><td>\${t.text}</td><td style="text-align:left">\${t.priority==='high'?'🔴 عالية':t.priority==='low'?'🟢 منخفضة':'🟡 عادية'}</td></tr>\`
   ).join('');
 
   // Habits table
   const habitsRows = habitsWithStreak.map(h=>{
     const total = Object.keys(doneMap).filter(d=>doneMap[d][h.id]).length;
-    return `<tr><td>${h.icon} ${h.name}</td><td style="text-align:center">${h.streak} 🔥</td><td style="text-align:center">${total}</td></tr>`;
+    return \`<tr><td>\${h.icon} \${h.name}</td><td style="text-align:center">\${h.streak} 🔥</td><td style="text-align:center">\${total}</td></tr>\`;
   }).join('');
 
-  const html = `<!DOCTYPE html>
+  const html = \`<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>تقرير ${name}</title>
+<title>تقرير \${name}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -4977,54 +4981,54 @@ function exportPDF(){
 </head>
 <body>
 <div class="header">
-  <div style="font-size:48px;margin-bottom:8px">${myData.avatar_emoji||'👤'}</div>
-  <h1>${name}</h1>
-  <p>تقرير شامل · ${new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})}</p>
+  <div style="font-size:48px;margin-bottom:8px">\${myData.avatar_emoji||'👤'}</div>
+  <h1>\${name}</h1>
+  <p>تقرير شامل · \${new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})}</p>
 </div>
 
 <div class="cards">
-  <div class="card"><div class="num">${habits.length}</div><div class="lbl">عدد العادات</div></div>
-  <div class="card"><div class="num">${doneTodayCount}/${habits.length}</div><div class="lbl">منجز اليوم</div></div>
-  <div class="card"><div class="num">${topHabit?topHabit.streak:0}🔥</div><div class="lbl">أطول streak</div></div>
-  <div class="card"><div class="num">${doneTodos}</div><div class="lbl">مهام منجزة</div></div>
+  <div class="card"><div class="num">\${habits.length}</div><div class="lbl">عدد العادات</div></div>
+  <div class="card"><div class="num">\${doneTodayCount}/\${habits.length}</div><div class="lbl">منجز اليوم</div></div>
+  <div class="card"><div class="num">\${topHabit?topHabit.streak:0}🔥</div><div class="lbl">أطول streak</div></div>
+  <div class="card"><div class="num">\${doneTodos}</div><div class="lbl">مهام منجزة</div></div>
 </div>
 
-${habits.length?`
+\${habits.length?\`
 <div class="section">
   <h2>🔥 العادات والإنجازات</h2>
   <table>
     <tr><th>العادة</th><th style="text-align:center">Streak الحالي</th><th style="text-align:center">إجمالي الأيام</th></tr>
-    ${habitsRows}
+    \${habitsRows}
   </table>
-</div>`:''}
+</div>\`:''}
 
-${todos.length?`
+\${todos.length?\`
 <div class="section">
   <h2>✅ المهام</h2>
   <div style="display:flex;gap:20px;margin-bottom:14px;font-size:13px">
-    <span>✅ منجزة: <strong>${doneTodos}</strong></span>
-    <span>⏳ معلقة: <strong>${pendingTodos}</strong></span>
+    <span>✅ منجزة: <strong>\${doneTodos}</strong></span>
+    <span>⏳ معلقة: <strong>\${pendingTodos}</strong></span>
   </div>
   <table>
     <tr><th></th><th>المهمة</th><th style="text-align:left">الأولوية</th></tr>
-    ${recentTodos}
+    \${recentTodos}
   </table>
-</div>`:''}
+</div>\`:''}
 
-${wallets.length||expenses.length?`
+\${wallets.length||expenses.length?\`
 <div class="section">
   <h2>💰 ملخص المصاريف</h2>
   <div style="display:flex;gap:20px;margin-bottom:14px;font-size:13px">
-    <span>💳 الرصيد الكلي: <strong>${walletBalance.toLocaleString('ar')} ر.س</strong></span>
-    <span>💸 إجمالي الإنفاق: <strong>${totalSpend.toLocaleString('ar')} ر.س</strong></span>
+    <span>💳 الرصيد الكلي: <strong>\${walletBalance.toLocaleString('ar')} ر.س</strong></span>
+    <span>💸 إجمالي الإنفاق: <strong>\${totalSpend.toLocaleString('ar')} ر.س</strong></span>
   </div>
-  ${catRows?`<table>
+  \${catRows?\`<table>
     <tr><th>التصنيف</th><th style="text-align:left">المبلغ</th></tr>
-    ${catRows}
-  </table>`:''}
-</div>`:''}
+    \${catRows}
+  </table>\`:''}
+</div>\`:''}
 
-<div class="footer">تم التصدير من تطبيق Artracker · ${new Date().toLocaleString('ar-SA')}</div>
+<div class="footer">تم التصدير من تطبيق Artracker · \${new Date().toLocaleString('ar-SA')}</div>
 
 
 <!-- PWA Banner -->
@@ -5034,7 +5038,7 @@ ${wallets.length||expenses.length?`
   <span class="pwa-x" onclick="this.parentNode.style.display='none'">✕</span>
 </div>
 </body>
-</html>`;
+</html>\`;
 
   const w = window.open('','_blank');
   w.document.write(html);
@@ -5127,22 +5131,22 @@ function renderFitDashboard(){
   const todayWO = (fd.workouts||[]).filter(w=>w.date===today);
   const el = document.getElementById('fit-today-content');
   if(fitActiveWorkout){
-    el.innerHTML=`<div style="color:var(--accent);font-weight:700;font-size:14px">🟢 تمرين جارٍ: ${fitActiveWorkout.name}</div>
-      <button type="button" class="btn btn-p" style="width:100%;margin-top:8px" onclick="resumeWorkout()">العودة للتمرين →</button>`;
+    el.innerHTML=\`<div style="color:var(--accent);font-weight:700;font-size:14px">🟢 تمرين جارٍ: \${fitActiveWorkout.name}</div>
+      <button type="button" class="btn btn-p" style="width:100%;margin-top:8px" onclick="resumeWorkout()">العودة للتمرين →</button>\`;
   } else if(todayWO.length){
-    el.innerHTML = todayWO.map(w=>`
+    el.innerHTML = todayWO.map(w=>\`
       <div style="background:var(--surface2);border-radius:10px;padding:10px 14px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700;font-size:14px">${w.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${w.duration||0} دقيقة</div>
+          <div style="font-weight:700;font-size:14px">\${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">\${w.duration||0} دقيقة</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">${w.exercises?.length||0} تمارين · ${w.exercises?.reduce((a,e)=>a+(e.sets?.filter(s=>s.done).length||0),0)||0} جلسة</div>
-      </div>`).join('');
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">\${w.exercises?.length||0} تمارين · \${w.exercises?.reduce((a,e)=>a+(e.sets?.filter(s=>s.done).length||0),0)||0} جلسة</div>
+      </div>\`).join('');
   } else {
-    el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted)">
+    el.innerHTML=\`<div style="text-align:center;padding:16px;color:var(--muted)">
       <div style="font-size:32px;margin-bottom:8px">🏋️</div>
       <div style="font-size:13px">لا يوجد تمرين اليوم</div>
-    </div>`;
+    </div>\`;
   }
 
   // Stats row
@@ -5154,31 +5158,31 @@ function renderFitDashboard(){
     {label:'مجموع الحجم',val:Math.round(totalVol/1000),unit:'طن',icon:'⚡'},
     {label:'إجمالي',val:allWO.length,unit:'تمرين',icon:'🏆'},
   ];
-  document.getElementById('fit-stats-row').innerHTML = stats.map(s=>`
+  document.getElementById('fit-stats-row').innerHTML = stats.map(s=>\`
     <div style="background:var(--surface2);border-radius:12px;padding:12px 10px;text-align:center">
-      <div style="font-size:20px">${s.icon}</div>
-      <div style="font-size:18px;font-weight:900;color:var(--accent)">${s.val}</div>
-      <div style="font-size:10px;color:var(--muted)">${s.unit}</div>
-      <div style="font-size:10px;color:var(--muted)">${s.label}</div>
-    </div>`).join('');
+      <div style="font-size:20px">\${s.icon}</div>
+      <div style="font-size:18px;font-weight:900;color:var(--accent)">\${s.val}</div>
+      <div style="font-size:10px;color:var(--muted)">\${s.unit}</div>
+      <div style="font-size:10px;color:var(--muted)">\${s.label}</div>
+    </div>\`).join('');
 
   // Programs
   const progs = fd.programs||[];
   const el2 = document.getElementById('fit-programs-list');
   if(!progs.length){
-    el2.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">لا يوجد برامج — ابدأ بإنشاء برنامج!</div>`;
+    el2.innerHTML=\`<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">لا يوجد برامج — ابدأ بإنشاء برنامج!</div>\`;
   } else {
-    el2.innerHTML = progs.map(p=>`
+    el2.innerHTML = progs.map(p=>\`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
         <div>
-          <div style="font-weight:700;font-size:14px">${p.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${p.days?.length||0} يوم</div>
+          <div style="font-weight:700;font-size:14px">\${p.name}</div>
+          <div style="font-size:11px;color:var(--muted)">\${p.days?.length||0} يوم</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="btn btn-p btn-sm" onclick="startProgramWorkout('${p.id}')">ابدأ</button>
-          <button type="button" class="btn btn-s btn-sm" onclick="deleteFitProgram('${p.id}')">✕</button>
+          <button type="button" class="btn btn-p btn-sm" onclick="startProgramWorkout('\${p.id}')">ابدأ</button>
+          <button type="button" class="btn btn-s btn-sm" onclick="deleteFitProgram('\${p.id}')">✕</button>
         </div>
-      </div>`).join('');
+      </div>\`).join('');
   }
 
   // Body weight chart
@@ -5191,10 +5195,10 @@ function renderFitDashboard(){
     const range=max-min||1;
     bwEl.innerHTML=bw.map((b,i)=>{
       const h=Math.max(20,Math.round(((b.w-min)/range)*50+10));
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="font-size:9px;color:var(--muted)">${b.w}</div>
-        <div style="width:100%;height:${h}px;background:var(--accent);border-radius:4px 4px 0 0;opacity:${0.5+i/bw.length*0.5}"></div>
-      </div>`;
+      return \`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="font-size:9px;color:var(--muted)">\${b.w}</div>
+        <div style="width:100%;height:\${h}px;background:var(--accent);border-radius:4px 4px 0 0;opacity:\${0.5+i/bw.length*0.5}"></div>
+      </div>\`;
     }).join('');
   }
 }
@@ -5241,7 +5245,7 @@ function startProgramWorkout(progId){
   if(!prog) return;
   // Show day picker if multiple days
   if(prog.days && prog.days.length>1){
-    const daysList = prog.days.map((d,i)=>`${i+1}. ${d.name}`).join('\n');
+    const daysList = prog.days.map((d,i)=>\`\${i+1}. \${d.name}\`).join('\n');
     const day = prompt('اختر اليوم:\n'+daysList);
     if(!day) return;
     const idx=parseInt(day)-1;
@@ -5294,12 +5298,12 @@ function startWorkoutTimer(){
 function addExerciseToWorkout(){
   // Show muscle group picker
   const muscles=Object.keys(FIT_MUSCLES);
-  const mList=muscles.map((m,i)=>`${i+1}. ${m}`).join('\n');
+  const mList=muscles.map((m,i)=>\`\${i+1}. \${m}\`).join('\n');
   const mIdx=parseInt(prompt('اختر المجموعة العضلية:\n'+mList))-1;
   if(isNaN(mIdx)||mIdx<0||mIdx>=muscles.length) return;
   const muscle=muscles[mIdx];
   const exList=FIT_MUSCLES[muscle];
-  const exListStr=exList.map((e,i)=>`${i+1}. ${e}`).join('\n');
+  const exListStr=exList.map((e,i)=>\`\${i+1}. \${e}\`).join('\n');
   const eIdx=parseInt(prompt('اختر التمرين أو 0 لإضافة مخصص:\n'+exListStr))-1;
   let exName;
   if(eIdx===-1 || isNaN(eIdx)){
@@ -5322,23 +5326,23 @@ function renderActiveExercises(){
   const el=document.getElementById('fit-exercises-list');
   if(!el||!fitActiveWorkout) return;
   if(!fitActiveWorkout.exercises.length){
-    el.innerHTML=`<div class="card" style="text-align:center;padding:20px;color:var(--muted)">
+    el.innerHTML=\`<div class="card" style="text-align:center;padding:20px;color:var(--muted)">
       <div style="font-size:28px;margin-bottom:8px">💪</div>
       <div>اضغط "+ تمرين" لإضافة تمرين</div>
-    </div>`;
+    </div>\`;
     return;
   }
   el.innerHTML=fitActiveWorkout.exercises.map((ex,ei)=>{
     const doneSets=ex.sets.filter(s=>s.done).length;
-    return`<div class="card mb-10">
+    return\`<div class="card mb-10">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div>
-          <div style="font-weight:800;font-size:15px">${ex.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${ex.muscle} · ${doneSets}/${ex.sets.length} جلسة</div>
+          <div style="font-weight:800;font-size:15px">\${ex.name}</div>
+          <div style="font-size:11px;color:var(--muted)">\${ex.muscle} · \${doneSets}/\${ex.sets.length} جلسة</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="btn btn-s btn-sm" onclick="addSetToExercise(${ei})">+ جلسة</button>
-          <button type="button" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" onclick="removeExercise(${ei})">✕</button>
+          <button type="button" class="btn btn-s btn-sm" onclick="addSetToExercise(\${ei})">+ جلسة</button>
+          <button type="button" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" onclick="removeExercise(\${ei})">✕</button>
         </div>
       </div>
       <!-- Sets header -->
@@ -5349,25 +5353,25 @@ function renderActiveExercises(){
         <div style="font-size:10px;color:var(--muted);text-align:center">RPE</div>
         <div></div>
       </div>
-      ${ex.sets.map((s,si)=>`
-        <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px;align-items:center;opacity:${s.done?0.6:1}">
-          <div style="text-align:center;font-size:13px;font-weight:700;color:${s.done?'var(--green)':'var(--muted)'}">${si+1}</div>
-          <input type="number" class="fi" value="${s.reps}" placeholder="12" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
-            onchange="updateSet(${ei},${si},'reps',this.value)">
-          <input type="number" class="fi" value="${s.weight}" placeholder="0" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
-            onchange="updateSet(${ei},${si},'weight',this.value)">
-          <select class="fi" style="padding:6px;font-size:12px" onchange="updateSet(${ei},${si},'rpe',this.value)">
+      \${ex.sets.map((s,si)=>\`
+        <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px;align-items:center;opacity:\${s.done?0.6:1}">
+          <div style="text-align:center;font-size:13px;font-weight:700;color:\${s.done?'var(--green)':'var(--muted)'}">\${si+1}</div>
+          <input type="number" class="fi" value="\${s.reps}" placeholder="12" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
+            onchange="updateSet(\${ei},\${si},'reps',this.value)">
+          <input type="number" class="fi" value="\${s.weight}" placeholder="0" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
+            onchange="updateSet(\${ei},\${si},'weight',this.value)">
+          <select class="fi" style="padding:6px;font-size:12px" onchange="updateSet(\${ei},\${si},'rpe',this.value)">
             <option value="">-</option>
-            ${[6,7,7.5,8,8.5,9,9.5,10].map(r=>`<option value="${r}" ${s.rpe==r?'selected':''}>${r}</option>`).join('')}
+            \${[6,7,7.5,8,8.5,9,9.5,10].map(r=>\`<option value="\${r}" \${s.rpe==r?'selected':''}>\${r}</option>\`).join('')}
           </select>
-          <button type="button" onclick="doneSet(${ei},${si})" style="width:36px;height:36px;border-radius:50%;border:2px solid ${s.done?'var(--green)':'var(--border)'};background:${s.done?'var(--green)':'transparent'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:${s.done?'white':'var(--muted)'}">
-            ${s.done?'✓':'○'}
+          <button type="button" onclick="doneSet(\${ei},\${si})" style="width:36px;height:36px;border-radius:50%;border:2px solid \${s.done?'var(--green)':'var(--border)'};background:\${s.done?'var(--green)':'transparent'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:\${s.done?'white':'var(--muted)'}">
+            \${s.done?'✓':'○'}
           </button>
-        </div>`).join('')}
+        </div>\`).join('')}
       <!-- Notes -->
-      <input type="text" class="fi" value="${ex.notes||''}" placeholder="ملاحظات..." style="width:100%;font-size:12px;margin-top:6px"
-        onchange="updateExNotes(${ei},this.value)">
-    </div>`;
+      <input type="text" class="fi" value="\${ex.notes||''}" placeholder="ملاحظات..." style="width:100%;font-size:12px;margin-top:6px"
+        onchange="updateExNotes(\${ei},this.value)">
+    </div>\`;
   }).join('');
 }
 
@@ -5506,22 +5510,22 @@ function renderFitHistory(){
   el.innerHTML=workouts.map(w=>{
     const vol=calcVolume(w);
     const sets=w.exercises?.reduce((a,e)=>a+(e.sets?.filter(s=>s.done).length||0),0)||0;
-    return`<div class="card mb-10">
+    return\`<div class="card mb-10">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
-          <div style="font-weight:800;font-size:15px">${w.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${fmtD(w.date)} · ${w.duration||0} دقيقة</div>
+          <div style="font-weight:800;font-size:15px">\${w.name}</div>
+          <div style="font-size:11px;color:var(--muted)">\${fmtD(w.date)} · \${w.duration||0} دقيقة</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:13px;font-weight:800;color:var(--accent)">${vol.toLocaleString('ar')} كجم</div>
+          <div style="font-size:13px;font-weight:800;color:var(--accent)">\${vol.toLocaleString('ar')} كجم</div>
           <div style="font-size:10px;color:var(--muted)">حجم كلي</div>
         </div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        ${w.exercises?.map(e=>`<span style="font-size:11px;background:var(--surface2);padding:3px 8px;border-radius:99px">${e.name}</span>`).join('')||''}
+        \${w.exercises?.map(e=>\`<span style="font-size:11px;background:var(--surface2);padding:3px 8px;border-radius:99px">\${e.name}</span>\`).join('')||''}
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">${w.exercises?.length||0} تمارين · ${sets} جلسة</div>
-    </div>`;
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">\${w.exercises?.length||0} تمارين · \${sets} جلسة</div>
+    </div>\`;
   }).join('');
 }
 
@@ -5534,7 +5538,7 @@ function openProgramModal(){
   if(!fd.programs) fd.programs=[];
   const days=[];
   for(let i=0;i<daysCount;i++){
-    const dayName=prompt(`اسم اليوم ${i+1} (مثال: Push / Pull / Legs):`)||`يوم ${i+1}`;
+    const dayName=prompt(\`اسم اليوم \${i+1} (مثال: Push / Pull / Legs):\`)||\`يوم \${i+1}\`;
     days.push({name:dayName, exercises:[]});
   }
   fd.programs.push({id:'prog_'+Date.now(), name, days});
@@ -5646,3 +5650,4 @@ function deleteFitProgram(id){
 
 </body>
 </html>
+`;
