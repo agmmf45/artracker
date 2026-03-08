@@ -553,10 +553,7 @@ body.theme-dark {
   --shadow-glow: 0 0 0 1px rgba(245,158,11,0.12), 0 4px 20px rgba(245,158,11,0.08);
 }
 
-/* ── SMOOTH GLOBAL TRANSITIONS ───────────────── */
-*, *::before, *::after {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Smooth transitions removed from wildcard - applied per-element instead */
 
 body {
   -webkit-font-smoothing: antialiased;
@@ -713,7 +710,6 @@ body {
   font-weight: 700;
   transition: all var(--transition-base);
   position: relative;
-  overflow: hidden;
 }
 .btn-p {
   background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #F59E0B));
@@ -1163,6 +1159,171 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ── MUSCLE BODY MAP ─────────────────────────── */
+.muscle-map-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.muscle-view-toggle {
+  display: flex;
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+  width: fit-content;
+}
+.muscle-view-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  transition: all 0.2s;
+}
+.muscle-view-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+.body-map {
+  position: relative;
+  width: 200px;
+  height: 380px;
+  margin: 0 auto;
+}
+.body-silhouette {
+  width: 100%;
+  height: 100%;
+  opacity: 0.08;
+}
+.muscle-zone {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  text-align: center;
+  line-height: 1.2;
+  padding: 4px;
+  z-index: 2;
+}
+.muscle-zone:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+  transform: scale(1.05);
+  box-shadow: 0 2px 12px rgba(180,83,9,0.2);
+}
+.muscle-zone.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 16px rgba(180,83,9,0.35);
+  transform: scale(1.08);
+}
+.muscle-grid-alt {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.muscle-card {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.muscle-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  transform: translateY(-2px);
+}
+.muscle-card.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 16px rgba(180,83,9,0.3);
+}
+.muscle-card .mc-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+.muscle-card .mc-name { font-size: 13px; font-weight: 800; }
+.muscle-card .mc-count { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+/* Exercise picker */
+.exercise-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.exercise-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 600;
+}
+.exercise-pick-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  transform: translateX(-3px);
+}
+.exercise-pick-item .epi-icon { font-size: 20px; flex-shrink: 0; }
+.exercise-pick-item .epi-name { flex: 1; }
+
+/* Muscle stats in fitness dashboard */
+.muscle-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.muscle-stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.muscle-stat-chip .msc-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+.muscle-stat-chip .msc-count { font-size: 16px; font-weight: 900; color: var(--accent); display: block; }
+
+@media(max-width:680px) {
+  .muscle-grid-alt {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .muscle-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
 }
 
 </style>
@@ -2037,6 +2198,12 @@ setInterval(()=>{
     
         <!-- Stats Row -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
+    
+        <!-- Muscle Stats -->
+        <div class="card mb-16">
+          <div class="sec-title" style="margin-bottom:12px">🎯 العضلات</div>
+          <div class="muscle-stats-grid" id="fit-muscle-stats"></div>
+        </div>
     
         <!-- Programs -->
         <div class="card mb-16">
@@ -5099,14 +5266,14 @@ init();
 // ══════════════════════════════════════════════
 
 const FIT_MUSCLES = {
-  'صدر':['🏋️ بنش برس','🔺 إنكلاين بنش','🔻 ديكلاين بنش','🤸 تمريرة عرضية','💪 دمبل فلاي'],
-  'ظهر':['🏋️ ديدليفت','🚣 بار رو','💪 لات بول داون','🔄 كيبل رو','🤸 بول اب'],
-  'كتف':['🏋️ أوفرهيد برس','↕️ لاترال ريز','⬆️ فرونت ريز','🔄 فيس بول','🔃 ريفيرس فلاي'],
-  'بايسبس':['💪 بار كيرل','🔄 هامر كيرل','📐 إنكلاين كيرل','🔀 كونسنتريشن كيرل'],
-  'ترايسبس':['⬇️ تراي بوش داون','🏠 سكال كراشر','💎 دايموند بوش اب','🔄 أوفرهيد إكستنشن'],
-  'رجل':['🦵 سكوات','🏋️ ليج برس','⬆️ لانج','🔄 ليج كيرل','🦶 كالف ريز'],
-  'بطن':['🔄 كرنش','🏋️ بلانك','🔃 رشيان تويست','⬆️ ليج ريز','🔄 ماونتن كلايمبر'],
-  'كارديو':['🏃 ركض','🚴 دراجة','🎿 إليبتيكال','🏊 سباحة','🪂 جامبينغ جاك'],
+  'صدر':['🏋️ بنش برس','🔺 إنكلاين بنش','🔻 ديكلاين بنش','🤸 تمريرة عرضية','💪 دمبل فلاي','🔄 كيبل كروس أوفر','🏋️ دمبل بنش','🔺 إنكلاين دمبل'],
+  'ظهر':['🏋️ ديدليفت','🚣 بار رو','💪 لات بول داون','🔄 كيبل رو','🤸 بول اب','🏋️ تي بار رو','💪 دمبل رو','🔄 سيتد رو'],
+  'كتف':['🏋️ أوفرهيد برس','↕️ لاترال ريز','⬆️ فرونت ريز','🔄 فيس بول','🔃 ريفيرس فلاي','🏋️ دمبل شولدر برس','💪 أرنولد برس','🔄 شراغز'],
+  'بايسبس':['💪 بار كيرل','🔄 هامر كيرل','📐 إنكلاين كيرل','🔀 كونسنتريشن كيرل','💪 إي زي بار كيرل','🔄 كيبل كيرل'],
+  'ترايسبس':['⬇️ تراي بوش داون','🏠 سكال كراشر','💎 دايموند بوش اب','🔄 أوفرهيد إكستنشن','🏋️ كلوز جريب بنش','💪 دبس','🔄 كيكباك'],
+  'رجل':['🦵 سكوات','🏋️ ليج برس','⬆️ لانج','🔄 ليج كيرل','🦶 كالف ريز','🏋️ فرونت سكوات','💪 بلغاريان سبليت','🔄 ليج إكستنشن','🦵 هاك سكوات','🏋️ رومانيان ديدليفت'],
+  'بطن':['🔄 كرنش','🏋️ بلانك','🔃 رشيان تويست','⬆️ ليج ريز','🔄 ماونتن كلايمبر','💪 ابـ رول آوت','🔄 سايد بلانك','⬆️ هانجنج ليج ريز'],
+  'كارديو':['🏃 ركض','🚴 دراجة','🎿 إليبتيكال','🏊 سباحة','🪂 جامبينغ جاك','🏃 هيت','🚶 مشي سريع','🚣 رووينج'],
 };
 
 // State
@@ -5201,6 +5368,9 @@ function renderFitDashboard(){
       </div>\`;
     }).join('');
   }
+
+  // Muscle stats
+  try { renderMuscleStats(); } catch(e) {}
 }
 
 function calcVolume(workout){
@@ -5296,30 +5466,140 @@ function startWorkoutTimer(){
 }
 
 function addExerciseToWorkout(){
-  // Show muscle group picker
-  const muscles=Object.keys(FIT_MUSCLES);
-  const mList=muscles.map((m,i)=>\`\${i+1}. \${m}\`).join('\n');
-  const mIdx=parseInt(prompt('اختر المجموعة العضلية:\n'+mList))-1;
-  if(isNaN(mIdx)||mIdx<0||mIdx>=muscles.length) return;
-  const muscle=muscles[mIdx];
-  const exList=FIT_MUSCLES[muscle];
-  const exListStr=exList.map((e,i)=>\`\${i+1}. \${e}\`).join('\n');
-  const eIdx=parseInt(prompt('اختر التمرين أو 0 لإضافة مخصص:\n'+exListStr))-1;
-  let exName;
-  if(eIdx===-1 || isNaN(eIdx)){
-    exName=prompt('اسم التمرين المخصص:');
-    if(!exName) return;
-  } else {
-    if(eIdx<0||eIdx>=exList.length) return;
-    exName=exList[eIdx];
-  }
+  openMusclePickerModal();
+}
+
+// ── Muscle icons mapping
+const MUSCLE_ICONS = {
+  'صدر':'🫁','ظهر':'🔙','كتف':'💪','بايسبس':'💪',
+  'ترايسبس':'🦾','رجل':'🦵','بطن':'🧱','كارديو':'🏃'
+};
+const MUSCLE_COLORS = {
+  'صدر':'#EF4444','ظهر':'#3B82F6','كتف':'#F59E0B','بايسبس':'#10B981',
+  'ترايسبس':'#8B5CF6','رجل':'#EC4899','بطن':'#F97316','كارديو':'#06B6D4'
+};
+let _selectedMuscle = '';
+
+function openMusclePickerModal(){
+  const grid = document.getElementById('muscle-grid-body');
+  const muscles = Object.keys(FIT_MUSCLES);
+  // Count exercises per muscle from history
+  const fd = getFitData();
+  const muscleCounts = {};
+  (fd.workouts||[]).forEach(w=>{
+    (w.exercises||[]).forEach(ex=>{
+      muscleCounts[ex.muscle] = (muscleCounts[ex.muscle]||0) + 1;
+    });
+  });
+  
+  grid.innerHTML = muscles.map(m => {
+    const icon = MUSCLE_ICONS[m] || '💪';
+    const color = MUSCLE_COLORS[m] || 'var(--accent)';
+    const count = muscleCounts[m] || 0;
+    const lastWorkout = getLastMuscleWorkout(m);
+    return '<div class="muscle-card" onclick="selectMuscleGroup(\''+m+'\')">' +
+      '<span class="mc-icon">'+icon+'</span>' +
+      '<div class="mc-name">'+m+'</div>' +
+      '<div class="mc-count">'+FIT_MUSCLES[m].length+' تمرين</div>' +
+      (count > 0 ? '<div style="font-size:10px;color:var(--muted);margin-top:4px">'+count+' مرة'+
+      (lastWorkout ? ' · '+lastWorkout : '')+'</div>' : '') +
+    '</div>';
+  }).join('');
+  
+  document.getElementById('muscle-picker-modal').classList.add('open');
+}
+
+function getLastMuscleWorkout(muscle){
+  const fd = getFitData();
+  const workouts = (fd.workouts||[]).filter(w=>
+    (w.exercises||[]).some(ex=>ex.muscle===muscle)
+  );
+  if(!workouts.length) return '';
+  const last = workouts[workouts.length-1];
+  if(!last.date) return '';
+  const d = new Date(last.date);
+  const now = new Date();
+  const diff = Math.floor((now - d) / (1000*60*60*24));
+  if(diff === 0) return 'اليوم';
+  if(diff === 1) return 'أمس';
+  if(diff < 7) return 'قبل '+diff+' أيام';
+  return '';
+}
+
+function closeMusclePickerModal(){
+  document.getElementById('muscle-picker-modal').classList.remove('open');
+}
+
+function selectMuscleGroup(muscle){
+  _selectedMuscle = muscle;
+  closeMusclePickerModal();
+  setTimeout(function(){ openExercisePickerModal(muscle); }, 200);
+}
+
+function openExercisePickerModal(muscle){
+  const icon = MUSCLE_ICONS[muscle] || '💪';
+  document.getElementById('exercise-picker-title').textContent = icon + ' تمارين ' + muscle;
+  document.getElementById('exercise-picker-subtitle').textContent = 'اختر التمرين أو أضف مخصص';
+  
+  const list = document.getElementById('exercise-pick-list');
+  const exercises = FIT_MUSCLES[muscle] || [];
+  
+  list.innerHTML = exercises.map(function(ex){
+    return '<div class="exercise-pick-item" onclick="pickExercise(\''+ex.replace(/'/g,"\\'")+'\',\''+muscle+'\')">' +
+      '<span class="epi-icon">'+ex.split(' ')[0]+'</span>' +
+      '<span class="epi-name">'+ex.split(' ').slice(1).join(' ')+'</span>' +
+      '<span style="color:var(--muted);font-size:16px">›</span>' +
+    '</div>';
+  }).join('');
+  
+  document.getElementById('custom-exercise-name').value = '';
+  document.getElementById('exercise-picker-modal').classList.add('open');
+}
+
+function closeExercisePickerModal(){
+  document.getElementById('exercise-picker-modal').classList.remove('open');
+}
+
+function pickExercise(exName, muscle){
+  if(!fitActiveWorkout) return;
   fitActiveWorkout.exercises.push({
     id:'ex_'+Date.now(),
-    name:exName, muscle,
+    name:exName, muscle:muscle,
     sets:[{reps:'',weight:'',rpe:'',done:false}],
     notes:''
   });
+  closeExercisePickerModal();
   renderActiveExercises();
+  try{showToast('✅ تمت إضافة '+exName);}catch(e){}
+}
+
+function addCustomExercise(){
+  const inp = document.getElementById('custom-exercise-name');
+  const name = inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  pickExercise('⭐ '+name, _selectedMuscle);
+}
+
+function renderMuscleStats(){
+  const fd = getFitData();
+  const el = document.getElementById('fit-muscle-stats');
+  if(!el) return;
+  const muscleCounts = {};
+  (fd.workouts||[]).forEach(function(w){
+    (w.exercises||[]).forEach(function(ex){
+      muscleCounts[ex.muscle] = (muscleCounts[ex.muscle]||0) + 1;
+    });
+  });
+  const muscles = Object.keys(FIT_MUSCLES);
+  el.innerHTML = muscles.map(function(m){
+    var icon = MUSCLE_ICONS[m] || '💪';
+    var count = muscleCounts[m] || 0;
+    return '<div class="muscle-stat-chip">' +
+      '<span class="msc-icon">'+icon+'</span>' +
+      '<span class="msc-count">'+count+'</span>' +
+      m +
+    '</div>';
+  }).join('');
 }
 
 function renderActiveExercises(){
@@ -5631,6 +5911,48 @@ function deleteFitProgram(id){
 
 <!-- CALENDAR DAY MODAL -->
 <div class="modal-ov" id="cal-day-modal" onclick="if(event.target===this)closeCalDay()">
+
+<!-- MUSCLE PICKER MODAL -->
+<div class="modal-ov" id="muscle-picker-modal" onclick="if(event.target===this)closeMusclePickerModal()">
+  <div class="modal-box" style="max-width:440px;width:95vw;max-height:88vh;overflow-y:auto;padding:0">
+    <div style="padding:20px 22px 0;position:sticky;top:0;background:var(--surface);z-index:2;border-bottom:1px solid var(--border);padding-bottom:14px">
+      <div class="flex-b" style="margin-bottom:12px">
+        <div style="font-size:17px;font-weight:900">🏋️ اختر العضلة</div>
+        <span style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px" onclick="closeMusclePickerModal()">✕</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">اضغط على العضلة اللي تبي تتمرنها</div>
+    </div>
+    <div style="padding:16px 22px 22px">
+      <div class="muscle-grid-alt" id="muscle-grid-body">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE PICKER MODAL -->
+<div class="modal-ov" id="exercise-picker-modal" onclick="if(event.target===this)closeExercisePickerModal()">
+  <div class="modal-box" style="max-width:440px;width:95vw;max-height:88vh;overflow-y:auto;padding:0">
+    <div style="padding:20px 22px 0;position:sticky;top:0;background:var(--surface);z-index:2;border-bottom:1px solid var(--border);padding-bottom:14px">
+      <div class="flex-b" style="margin-bottom:8px">
+        <div>
+          <div style="font-size:17px;font-weight:900" id="exercise-picker-title">اختر التمرين</div>
+          <div style="font-size:12px;color:var(--muted)" id="exercise-picker-subtitle"></div>
+        </div>
+        <span style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px" onclick="closeExercisePickerModal()">✕</span>
+      </div>
+    </div>
+    <div style="padding:16px 22px">
+      <div class="exercise-pick-list" id="exercise-pick-list"></div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">أو أضف تمرين مخصص:</div>
+        <div style="display:flex;gap:8px">
+          <input class="fi" id="custom-exercise-name" placeholder="اسم التمرين..." style="flex:1;font-size:13px">
+          <button type="button" class="btn btn-p btn-sm" onclick="addCustomExercise()">+ أضف</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="modal-box" style="max-width:400px;width:95vw">
     <div class="flex-b" style="margin-bottom:14px">
       <div>
