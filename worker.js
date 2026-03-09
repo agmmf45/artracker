@@ -132,58 +132,101 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 #auth-screen{
   position:fixed;inset:0;z-index:9999;display:none;
   align-items:center;justify-content:center;padding:20px;
-  background:var(--bg);
+  background:#0A0A0A;
+  overflow:hidden;
 }
 #auth-screen::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 70% 50% at 50% 0%,var(--accent-light) 0%,transparent 70%);
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 0%, rgba(180,83,9,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(245,158,11,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(180,83,9,0.1) 0%, transparent 60%);
   pointer-events:none;
+  animation:auth-bg-pulse 6s ease-in-out infinite alternate;
+}
+@keyframes auth-bg-pulse{
+  0%{opacity:0.8;transform:scale(1)}
+  100%{opacity:1;transform:scale(1.05)}
+}
+#auth-screen::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23B45309' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+  opacity:0.5;
 }
 .auth-box{
   position:relative;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:28px;
-  padding:40px 36px 36px;
+  background:rgba(20,20,20,0.85);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+  border:1px solid rgba(180,83,9,0.2);
+  border-radius:32px;
+  padding:44px 38px 38px;
   width:420px;max-width:100%;
-  box-shadow:0 2px 4px rgba(0,0,0,0.04),0 12px 40px rgba(0,0,0,0.10);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 4px 16px rgba(0,0,0,0.3),
+    0 16px 64px rgba(0,0,0,0.4),
+    0 0 80px rgba(180,83,9,0.08);
+  animation:auth-box-in 0.6s cubic-bezier(0.34,1.56,0.64,1);
 }
-.auth-header{text-align:center;margin-bottom:32px;}
-.auth-title{font-size:30px;font-weight:900;color:var(--accent);margin-bottom:8px;letter-spacing:-0.5px;}
+@keyframes auth-box-in{
+  0%{opacity:0;transform:translateY(30px) scale(0.92)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.auth-header{text-align:center;margin-bottom:28px;}
+.auth-title{font-size:34px;font-weight:900;color:#F59E0B;margin-bottom:8px;letter-spacing:-0.5px;
+  text-shadow:0 0 30px rgba(245,158,11,0.3);
+}
 .brand-ar{font-family:'Playfair Display',serif;font-size:inherit;font-weight:900;letter-spacing:1px;direction:ltr;display:inline-block;}
 .sidebar-brand .brand-ar{font-size:20px;}
-.auth-sub{font-size:13px;color:var(--muted);line-height:1.7;}
-.auth-tabs{display:flex;background:var(--surface2);border-radius:14px;padding:4px;margin-bottom:26px;gap:3px;}
-.auth-tab{flex:1;padding:10px;text-align:center;border-radius:11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all 0.22s;}
-.auth-tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 6px rgba(0,0,0,0.09);}
+.auth-sub{font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;}
+.auth-tabs{display:flex;background:rgba(255,255,255,0.06);border-radius:16px;padding:5px;margin-bottom:26px;gap:3px;border:1px solid rgba(255,255,255,0.08);}
+.auth-tab{flex:1;padding:11px;text-align:center;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,0.4);transition:all 0.25s;}
+.auth-tab.active{background:rgba(180,83,9,0.2);color:#F59E0B;box-shadow:0 2px 12px rgba(180,83,9,0.15);border:1px solid rgba(180,83,9,0.3);}
 .auth-input-wrap{position:relative;margin-bottom:12px;}
-.auth-input-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:0.7;}
+.auth-input-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:0.5;}
 .auth-fi{
-  width:100%;padding:14px 44px 14px 16px;
-  border:1.5px solid var(--border);border-radius:14px;
-  background:var(--surface2);
-  font-family:'Tajawal',sans-serif;font-size:15px;color:var(--text);
-  transition:border-color 0.18s,box-shadow 0.18s,background 0.18s;
+  width:100%;padding:15px 44px 15px 18px;
+  border:1.5px solid rgba(255,255,255,0.1);border-radius:16px;
+  background:rgba(255,255,255,0.06);
+  font-family:'Tajawal',sans-serif;font-size:15px;color:#F5F5F5;
+  transition:all 0.25s ease;
   direction:rtl;
 }
 .auth-fi:focus{
-  outline:none;border-color:var(--accent);
-  background:var(--surface);
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 12%,transparent);
+  outline:none;border-color:rgba(245,158,11,0.5);
+  background:rgba(255,255,255,0.08);
+  box-shadow:0 0 0 4px rgba(245,158,11,0.1), 0 0 20px rgba(245,158,11,0.05);
 }
-.auth-fi::placeholder{color:var(--muted);opacity:0.7;}
+.auth-fi::placeholder{color:rgba(255,255,255,0.3);}
 .btn-auth{
-  width:100%;padding:14px;border:none;border-radius:14px;
+  width:100%;padding:15px;border:none;border-radius:16px;
   font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;
-  cursor:pointer;background:var(--accent);color:white;
-  transition:all 0.18s;margin-top:8px;letter-spacing:0.2px;
-  box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 35%,transparent);
+  cursor:pointer;
+  background:linear-gradient(135deg, #B45309, #D97706, #F59E0B);
+  color:white;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  margin-top:10px;letter-spacing:0.3px;
+  box-shadow:0 4px 20px rgba(180,83,9,0.4), 0 0 40px rgba(245,158,11,0.1);
+  position:relative;
+  overflow:hidden;
 }
-.btn-auth:hover{filter:brightness(1.06);transform:translateY(-1px);}
-.btn-auth:active{transform:translateY(0);filter:brightness(0.97);}
-.btn-auth:disabled{opacity:0.7;cursor:not-allowed;transform:none;}
-.auth-err{color:var(--red);font-size:13px;margin-top:12px;display:none;text-align:center;background:#FEE2E2;padding:10px 14px;border-radius:12px;border:1px solid #FECACA;}
-.auth-ok{color:var(--green);font-size:13px;margin-top:12px;display:none;text-align:center;background:var(--green-light);padding:10px 14px;border-radius:12px;border:1px solid #BBF7D0;}
+.btn-auth::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+  transform:translateX(-100%);
+  transition:transform 0.6s ease;
+}
+.btn-auth:hover::before{transform:translateX(100%);}
+.btn-auth:hover{
+  box-shadow:0 6px 28px rgba(180,83,9,0.5), 0 0 60px rgba(245,158,11,0.15);
+  transform:translateY(-2px);
+}
+.btn-auth:active{transform:translateY(0) scale(0.98);}
+.btn-auth:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
+.auth-err{color:#FCA5A5;font-size:13px;margin-top:12px;display:none;text-align:center;background:rgba(185,28,28,0.15);padding:10px 14px;border-radius:12px;border:1px solid rgba(185,28,28,0.3);}
+.auth-ok{color:#86EFAC;font-size:13px;margin-top:12px;display:none;text-align:center;background:rgba(21,128,61,0.15);padding:10px 14px;border-radius:12px;border:1px solid rgba(21,128,61,0.3);}
 
 /* APP */
 .app{display:flex;min-height:100vh;}
@@ -600,21 +643,6 @@ body {
   background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #F59E0B));
   box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 30%, transparent);
 }
-.btn-auth {
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #F59E0B));
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-/* ── ENHANCED AUTH ───────────────────────────── */
-.auth-box {
-  border-radius: 28px;
-  padding: 44px 40px 40px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 16px 56px rgba(0,0,0,0.12);
-}
-.auth-tabs { border-radius: 16px; padding: 5px; }
-.auth-tab { border-radius: 12px; }
-.auth-fi { border-radius: 16px; }
 
 /* ── ENHANCED MODALS ─────────────────────────── */
 .modal-box {
@@ -1102,7 +1130,7 @@ setInterval(()=>{
 },3000);
 </script>
       <div class="auth-title"><span class="brand-ar">Artrk</span></div>
-      <div class="auth-sub" style="font-size:14px;color:var(--muted);margin-top:4px">تتبع عاداتك ومصاريفك<br>مع أصدقائك في مكان واحد 🌿</div>
+      <div class="auth-sub" style="font-size:14px;margin-top:6px">تتبع عاداتك ومصاريفك وتمارينك<br>مع أصدقائك في مكان واحد ✨</div>
     </div>
 
     <!-- AUTH FORM -->
@@ -1170,14 +1198,14 @@ setInterval(()=>{
     </div>
 
     <style>
-    .pd-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6;}
-    .pd-pill{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:11px 14px;}
+    .pd-hint{font-size:13px;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:16px;line-height:1.6;}
+    .pd-pill{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:11px 14px;color:#F5F5F5;}
     .pd-pill-icon{font-size:20px;}
-    .pd-back{font-size:12px;color:var(--muted);cursor:pointer;font-weight:700;padding:3px 8px;border-radius:8px;transition:all 0.15s;border:1px solid var(--border);}
-    .pd-back:hover{background:var(--surface2);color:var(--text);}
-    .pd-new-tag{background:var(--accent-light);color:var(--accent);border-radius:99px;padding:6px 18px;font-size:12px;font-weight:700;text-align:center;margin-bottom:12px;display:block;}
-    .pd-link{font-size:12px;color:var(--muted);cursor:pointer;}
-    .pd-link:hover{color:var(--accent);text-decoration:underline;}
+    .pd-back{font-size:12px;color:rgba(255,255,255,0.45);cursor:pointer;font-weight:700;padding:3px 8px;border-radius:8px;transition:all 0.15s;border:1px solid rgba(255,255,255,0.1);}
+    .pd-back:hover{background:rgba(255,255,255,0.08);color:#F5F5F5;}
+    .pd-new-tag{background:rgba(245,158,11,0.15);color:#F59E0B;border-radius:99px;padding:6px 18px;font-size:12px;font-weight:700;text-align:center;margin-bottom:12px;display:block;border:1px solid rgba(245,158,11,0.2);}
+    .pd-link{font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;}
+    .pd-link:hover{color:#F59E0B;text-decoration:underline;}
     #pd-step1,#pd-step-login,#pd-step-register{animation:pd-in 0.3s cubic-bezier(0.34,1.56,0.64,1);}
     @keyframes pd-in{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
     </style>
@@ -1522,7 +1550,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.3</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.5</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -1683,10 +1711,10 @@ setInterval(()=>{
         <!-- Stats Row -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="fit-stats-row"></div>
     
-        <!-- Interactive Body Map -->
-        <div class="card mb-16">
-          <div class="flex-b" style="margin-bottom:14px">
-            <div class="sec-title" style="margin:0">🎯 خريطة العضلات</div>
+        <!-- Interactive Body Map - MuscleWiki Style -->
+        <div class="card mb-16" id="muscle-map-card">
+          <div class="flex-b" style="margin-bottom:10px">
+            <div class="sec-title" style="margin:0">💪 خريطة العضلات</div>
             <div class="muscle-view-toggle" id="dash-view-toggle">
               <button type="button" class="muscle-view-btn active" id="dash-mv-front" onclick="showDashBodyView('front')">أمامي</button>
               <button type="button" class="muscle-view-btn" id="dash-mv-back" onclick="showDashBodyView('back')">خلفي</button>
@@ -1695,142 +1723,174 @@ setInterval(()=>{
 
           <!-- FRONT VIEW -->
           <div id="dash-body-front" style="text-align:center">
-            <svg viewBox="0 0 260 440" width="220" height="380" style="display:block;margin:0 auto">
-              <defs>
-                <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" style="stop-color:var(--surface2)"/>
-                  <stop offset="100%" style="stop-color:var(--border)"/>
-                </linearGradient>
-              </defs>
+            <svg viewBox="0 0 300 520" width="280" height="490" style="display:block;margin:0 auto">
+              <style>
+                .mz{fill:var(--surface2);stroke:var(--border);stroke-width:1.8;cursor:pointer;transition:fill 0.15s,stroke 0.15s}
+                .mz:hover{fill:color-mix(in srgb,var(--accent) 20%,var(--surface2));stroke:var(--accent);stroke-width:2.5}
+                .ml{pointer-events:none;font-family:Tajawal,sans-serif;fill:var(--muted);font-size:10px;font-weight:700;text-anchor:middle}
+              </style>
               <!-- Head -->
-              <ellipse cx="130" cy="38" rx="25" ry="30" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
+              <ellipse cx="150" cy="40" rx="26" ry="32" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+              <line x1="143" y1="35" x2="143" y2="30" stroke="var(--border)" stroke-width="1"/>
+              <line x1="157" y1="35" x2="157" y2="30" stroke="var(--border)" stroke-width="1"/>
+              <path d="M142,48 Q150,54 158,48" fill="none" stroke="var(--border)" stroke-width="0.8"/>
               <!-- Neck -->
-              <rect x="120" y="66" width="20" height="16" rx="5" fill="url(#skinG)" stroke="var(--border)" stroke-width="1"/>
-              <!-- Torso -->
-              <path d="M86,82 L74,100 L66,140 L64,195 L70,250 L84,270 Q110,278 130,278 Q150,278 176,270 L190,250 L196,195 L194,140 L186,100 L174,82 Z" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <!-- Arms -->
-              <path d="M74,100 L56,118 L44,165 L40,210 L38,238 Q36,248 42,250 Q48,248 48,238 L52,210 L56,175 L64,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M186,100 L204,118 L216,165 L220,210 L222,238 Q224,248 218,250 Q212,248 212,238 L208,210 L204,175 L196,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <!-- Legs -->
-              <path d="M90,268 L84,310 L80,355 L78,400 Q76,418 82,420 Q88,418 86,400 L90,360 L95,310 L100,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M170,268 L176,310 L180,355 L182,400 Q184,418 178,420 Q172,418 174,400 L170,360 L165,310 L160,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-
-              <!-- CHEST -->
-              <path d="M92,100 Q95,92 115,92 L130,94 L145,92 Q165,92 168,100 L166,130 Q150,140 130,138 Q110,140 94,130 Z"
-                class="muscle-svg-zone" id="dz-chest" onclick="dashMuscleClick('صدر')"
-                fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.5)" stroke-width="1.5"/>
-              <text x="130" y="120" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">صدر</text>
-
-              <!-- SHOULDERS -->
-              <ellipse cx="76" cy="98" rx="15" ry="13" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
-                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
-              <text x="76" y="102" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
-              <ellipse cx="184" cy="98" rx="15" ry="13" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
-                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
-              <text x="184" y="102" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">كتف</text>
-
-              <!-- BICEPS -->
-              <ellipse cx="58" cy="148" rx="11" ry="20" class="muscle-svg-zone" onclick="dashMuscleClick('بايسبس')"
-                fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
-              <text x="58" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
-              <ellipse cx="202" cy="148" rx="11" ry="20" class="muscle-svg-zone" onclick="dashMuscleClick('بايسبس')"
-                fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
-              <text x="202" y="152" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">باي</text>
-
-              <!-- ABS -->
-              <rect x="108" y="142" width="44" height="72" rx="10" class="muscle-svg-zone" onclick="dashMuscleClick('بطن')"
-                fill="rgba(249,115,22,0.2)" stroke="rgba(249,115,22,0.5)" stroke-width="1.5"/>
-              <line x1="130" y1="146" x2="130" y2="210" stroke="rgba(249,115,22,0.3)" stroke-width="1"/>
-              <line x1="112" y1="162" x2="148" y2="162" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
-              <line x1="112" y1="180" x2="148" y2="180" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
-              <line x1="112" y1="198" x2="148" y2="198" stroke="rgba(249,115,22,0.2)" stroke-width="0.7"/>
-              <text x="130" y="185" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="10" font-weight="800">بطن</text>
-
-              <!-- QUADS -->
-              <path d="M90,270 L86,305 L82,345 L88,362 Q96,366 104,362 L102,330 L98,300 L96,270 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
-                fill="rgba(236,72,153,0.2)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
-              <text x="94" y="322" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
-              <path d="M164,270 L160,300 L158,330 L156,362 Q164,366 172,362 L178,345 L176,305 L170,270 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
-                fill="rgba(236,72,153,0.2)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
-              <text x="166" y="322" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">رجل</text>
+              <rect x="139" y="70" width="22" height="18" rx="5" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.2"/>
+              <!-- Traps -->
+              <path d="M118,88 L139,82 L161,82 L182,88 L175,96 Q162,100 150,100 Q138,100 125,96 Z" class="mz" onclick="dashMuscleClick('كتف')"/>
+              <text x="150" y="94" class="ml" font-size="8">ترابس</text>
+              <!-- Chest Left -->
+              <path d="M108,100 Q105,98 98,106 L92,120 L94,140 Q100,148 115,150 L128,148 L135,142 L134,118 Q132,104 125,100 Z" class="mz" data-m="chest" onclick="dashMuscleClick('صدر')"/>
+              <text x="114" y="128" class="ml">صدر</text>
+              <!-- Chest Right -->
+              <path d="M192,100 Q195,98 202,106 L208,120 L206,140 Q200,148 185,150 L172,148 L165,142 L166,118 Q168,104 175,100 Z" class="mz" onclick="dashMuscleClick('صدر')"/>
+              <text x="186" y="128" class="ml">صدر</text>
+              <!-- Shoulder Left -->
+              <path d="M80,96 Q72,100 68,112 L70,128 L80,136 L92,130 L98,114 L96,100 Z" class="mz" onclick="dashMuscleClick('كتف')"/>
+              <text x="84" y="118" class="ml" font-size="8">كتف</text>
+              <!-- Shoulder Right -->
+              <path d="M220,96 Q228,100 232,112 L230,128 L220,136 L208,130 L202,114 L204,100 Z" class="mz" onclick="dashMuscleClick('كتف')"/>
+              <text x="216" y="118" class="ml" font-size="8">كتف</text>
+              <!-- Bicep Left -->
+              <path d="M70,136 L65,148 L58,172 L56,196 L64,200 L74,196 L78,172 L80,148 L78,136 Z" class="mz" onclick="dashMuscleClick('بايسبس')"/>
+              <text x="68" y="170" class="ml" font-size="9">باي</text>
+              <!-- Bicep Right -->
+              <path d="M230,136 L235,148 L242,172 L244,196 L236,200 L226,196 L222,172 L220,148 L222,136 Z" class="mz" onclick="dashMuscleClick('بايسبس')"/>
+              <text x="232" y="170" class="ml" font-size="9">باي</text>
+              <!-- Forearm Left -->
+              <path d="M56,200 L50,228 L44,258 L42,276 L50,280 L60,276 L64,252 L68,228 L72,200 Z" class="mz" onclick="dashMuscleClick('بايسبس')"/>
+              <text x="56" y="242" class="ml" font-size="8">ساعد</text>
+              <!-- Forearm Right -->
+              <path d="M244,200 L250,228 L256,258 L258,276 L250,280 L240,276 L236,252 L232,228 L228,200 Z" class="mz" onclick="dashMuscleClick('بايسبس')"/>
+              <text x="244" y="242" class="ml" font-size="8">ساعد</text>
+              <!-- Abs -->
+              <path d="M128,150 L125,168 L124,190 L124,216 L126,236 L130,248 Q140,256 150,256 Q160,256 170,248 L174,236 L176,216 L176,190 L175,168 L172,150 Z" class="mz" onclick="dashMuscleClick('بطن')"/>
+              <!-- Ab detail lines -->
+              <line x1="150" y1="154" x2="150" y2="248" stroke="var(--border)" stroke-width="0.8" style="pointer-events:none"/>
+              <line x1="128" y1="174" x2="172" y2="174" stroke="var(--border)" stroke-width="0.6" style="pointer-events:none"/>
+              <line x1="127" y1="196" x2="173" y2="196" stroke="var(--border)" stroke-width="0.6" style="pointer-events:none"/>
+              <line x1="128" y1="218" x2="172" y2="218" stroke="var(--border)" stroke-width="0.6" style="pointer-events:none"/>
+              <text x="150" y="204" class="ml" font-size="10">بطن</text>
+              <!-- Obliques Left -->
+              <path d="M94,148 L92,170 L90,200 L92,230 L98,250 L106,260 L122,252 L124,230 L124,200 L125,170 L126,150 L112,150 Z" class="mz" style="fill:color-mix(in srgb,var(--surface2) 80%,var(--border))" onclick="dashMuscleClick('بطن')"/>
+              <text x="108" y="204" class="ml" font-size="8">جانب</text>
+              <!-- Obliques Right -->
+              <path d="M206,148 L208,170 L210,200 L208,230 L202,250 L194,260 L178,252 L176,230 L176,200 L175,170 L174,150 L188,150 Z" class="mz" style="fill:color-mix(in srgb,var(--surface2) 80%,var(--border))" onclick="dashMuscleClick('بطن')"/>
+              <text x="192" y="204" class="ml" font-size="8">جانب</text>
+              <!-- Hip flexor -->
+              <path d="M112,256 L108,270 L114,286 L128,290 L134,268 L130,252 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <path d="M188,256 L192,270 L186,286 L172,290 L166,268 L170,252 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <!-- Quad Left -->
+              <path d="M108,286 L100,310 L96,340 L94,370 L98,392 Q108,400 120,398 L126,380 L128,350 L128,320 L128,290 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="112" y="348" class="ml">فخذ</text>
+              <!-- Quad Right -->
+              <path d="M192,286 L200,310 L204,340 L206,370 L202,392 Q192,400 180,398 L174,380 L172,350 L172,320 L172,290 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="188" y="348" class="ml">فخذ</text>
+              <!-- Inner thigh left -->
+              <path d="M128,292 L130,320 L132,350 L130,380 L126,398 L134,400 Q140,396 145,380 L148,340 L148,300 L140,280 Z" class="mz" style="fill:color-mix(in srgb,var(--surface2) 80%,var(--border))" onclick="dashMuscleClick('رجل')"/>
+              <!-- Inner thigh right -->
+              <path d="M172,292 L170,320 L168,350 L170,380 L174,398 L166,400 Q160,396 155,380 L152,340 L152,300 L160,280 Z" class="mz" style="fill:color-mix(in srgb,var(--surface2) 80%,var(--border))" onclick="dashMuscleClick('رجل')"/>
+              <!-- Knee area left -->
+              <ellipse cx="112" cy="406" rx="16" ry="10" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+              <!-- Knee area right -->
+              <ellipse cx="188" cy="406" rx="16" ry="10" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+              <!-- Shin Left -->
+              <path d="M96,412 L94,440 L92,468 L96,488 L106,492 L114,488 L118,468 L120,440 L120,416 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="106" y="458" class="ml" font-size="8">ساق</text>
+              <!-- Shin Right -->
+              <path d="M204,412 L206,440 L208,468 L204,488 L194,492 L186,488 L182,468 L180,440 L180,416 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="194" y="458" class="ml" font-size="8">ساق</text>
             </svg>
           </div>
 
           <!-- BACK VIEW -->
           <div id="dash-body-back" style="display:none;text-align:center">
-            <svg viewBox="0 0 260 440" width="220" height="380" style="display:block;margin:0 auto">
-              <ellipse cx="130" cy="38" rx="25" ry="30" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <rect x="120" y="66" width="20" height="16" rx="5" fill="url(#skinG)" stroke="var(--border)" stroke-width="1"/>
-              <path d="M86,82 L74,100 L66,140 L64,195 L70,250 L84,270 Q110,278 130,278 Q150,278 176,270 L190,250 L196,195 L194,140 L186,100 L174,82 Z" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M74,100 L56,118 L44,165 L40,210 L38,238 Q36,248 42,250 Q48,248 48,238 L52,210 L56,175 L64,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M186,100 L204,118 L216,165 L220,210 L222,238 Q224,248 218,250 Q212,248 212,238 L208,210 L204,175 L196,140" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M90,268 L84,310 L80,355 L78,400 Q76,418 82,420 Q88,418 86,400 L90,360 L95,310 L100,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-              <path d="M170,268 L176,310 L180,355 L182,400 Q184,418 178,420 Q172,418 174,400 L170,360 L165,310 L160,278" fill="url(#skinG)" stroke="var(--border)" stroke-width="1.5"/>
-
-              <!-- TRAPS -->
-              <path d="M104,82 L130,80 L156,82 L152,102 Q140,108 130,108 Q120,108 108,102 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
-                fill="rgba(59,130,246,0.2)" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/>
-              <text x="130" y="96" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">ترابس</text>
-
-              <!-- BACK -->
-              <path d="M94,106 L108,103 Q120,110 130,110 Q140,110 152,103 L166,106 L168,152 Q150,162 130,160 Q110,162 92,152 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
-                fill="rgba(59,130,246,0.25)" stroke="rgba(59,130,246,0.55)" stroke-width="1.5"/>
-              <text x="130" y="138" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="11" font-weight="800">ظهر</text>
-
-              <!-- LOWER BACK -->
-              <rect x="108" y="162" width="44" height="48" rx="10" class="muscle-svg-zone" onclick="dashMuscleClick('ظهر')"
-                fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.35)" stroke-width="1"/>
-              <text x="130" y="190" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="700">أسفل</text>
-
-              <!-- REAR DELTS -->
-              <ellipse cx="78" cy="100" rx="13" ry="11" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
-                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
-              <text x="78" y="104" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
-              <ellipse cx="182" cy="100" rx="13" ry="11" class="muscle-svg-zone" onclick="dashMuscleClick('كتف')"
-                fill="rgba(245,158,11,0.2)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
-              <text x="182" y="104" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">كتف</text>
-
-              <!-- TRICEPS -->
-              <ellipse cx="60" cy="142" rx="10" ry="22" class="muscle-svg-zone" onclick="dashMuscleClick('ترايسبس')"
-                fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.5)" stroke-width="1.5"/>
-              <text x="60" y="146" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
-              <ellipse cx="200" cy="142" rx="10" ry="22" class="muscle-svg-zone" onclick="dashMuscleClick('ترايسبس')"
-                fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.5)" stroke-width="1.5"/>
-              <text x="200" y="146" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">تراي</text>
-
-              <!-- GLUTES -->
-              <path d="M92,230 Q95,222 115,224 L130,226 L145,224 Q165,222 168,230 L166,254 Q150,268 130,270 Q110,268 94,254 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
-                fill="rgba(236,72,153,0.22)" stroke="rgba(236,72,153,0.5)" stroke-width="1.5"/>
-              <text x="130" y="250" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="9" font-weight="800">أرداف</text>
-
-              <!-- HAMSTRINGS -->
-              <path d="M90,272 L86,300 L82,340 L88,358 Q96,362 104,358 L102,325 L98,300 L96,272 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
-                fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
-              <text x="94" y="320" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
-              <path d="M164,272 L160,300 L158,325 L156,358 Q164,362 172,358 L178,340 L176,300 L170,272 Z"
-                class="muscle-svg-zone" onclick="dashMuscleClick('رجل')"
-                fill="rgba(236,72,153,0.18)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
-              <text x="166" y="320" text-anchor="middle" class="muscle-svg-label" fill="var(--text)" font-size="8" font-weight="800">خلفية</text>
+            <svg viewBox="0 0 300 520" width="280" height="490" style="display:block;margin:0 auto">
+              <style>
+                .mz{fill:var(--surface2);stroke:var(--border);stroke-width:1.8;cursor:pointer;transition:fill 0.15s,stroke 0.15s}
+                .mz:hover{fill:color-mix(in srgb,var(--accent) 20%,var(--surface2));stroke:var(--accent);stroke-width:2.5}
+                .ml{pointer-events:none;font-family:Tajawal,sans-serif;fill:var(--muted);font-size:10px;font-weight:700;text-anchor:middle}
+              </style>
+              <!-- Head -->
+              <ellipse cx="150" cy="40" rx="26" ry="32" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+              <!-- Neck -->
+              <rect x="139" y="70" width="22" height="18" rx="5" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.2"/>
+              <!-- Upper Traps -->
+              <path d="M110,88 L139,82 L161,82 L190,88 L184,98 Q168,104 150,104 Q132,104 116,98 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="150" y="96" class="ml" font-size="8">ترابس</text>
+              <!-- Rear Delt Left -->
+              <path d="M82,96 Q74,100 70,112 L72,128 L82,134 L94,128 L98,112 L96,98 Z" class="mz" onclick="dashMuscleClick('كتف')"/>
+              <text x="84" y="118" class="ml" font-size="8">كتف</text>
+              <!-- Rear Delt Right -->
+              <path d="M218,96 Q226,100 230,112 L228,128 L218,134 L206,128 L202,112 L204,98 Z" class="mz" onclick="dashMuscleClick('كتف')"/>
+              <text x="216" y="118" class="ml" font-size="8">كتف</text>
+              <!-- Upper Back Left -->
+              <path d="M108,100 L96,110 L92,130 L95,150 L115,155 L132,152 L134,130 L132,108 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="114" y="132" class="ml" font-size="9">أعلى</text>
+              <!-- Upper Back Right -->
+              <path d="M192,100 L204,110 L208,130 L205,150 L185,155 L168,152 L166,130 L168,108 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="186" y="132" class="ml" font-size="9">أعلى</text>
+              <!-- Mid Back (Lats) Left -->
+              <path d="M92,152 L88,180 L90,210 L98,230 L118,240 L132,235 L134,210 L135,180 L134,155 L115,158 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="112" y="198" class="ml">ظهر</text>
+              <!-- Mid Back (Lats) Right -->
+              <path d="M208,152 L212,180 L210,210 L202,230 L182,240 L168,235 L166,210 L165,180 L166,155 L185,158 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="188" y="198" class="ml">ظهر</text>
+              <!-- Lower Back -->
+              <path d="M128,240 L124,260 L128,276 L140,282 L150,284 L160,282 L172,276 L176,260 L172,240 L155,236 L145,236 Z" class="mz" onclick="dashMuscleClick('ظهر')"/>
+              <text x="150" y="264" class="ml" font-size="9">أسفل</text>
+              <!-- Tricep Left -->
+              <path d="M70,134 L65,148 L58,172 L56,196 L64,200 L74,196 L78,172 L80,148 L78,136 Z" class="mz" onclick="dashMuscleClick('ترايسبس')"/>
+              <text x="68" y="170" class="ml" font-size="9">تراي</text>
+              <!-- Tricep Right -->
+              <path d="M230,134 L235,148 L242,172 L244,196 L236,200 L226,196 L222,172 L220,148 L222,136 Z" class="mz" onclick="dashMuscleClick('ترايسبس')"/>
+              <text x="232" y="170" class="ml" font-size="9">تراي</text>
+              <!-- Forearm Left -->
+              <path d="M56,200 L50,228 L44,258 L42,276 L50,280 L60,276 L64,252 L68,228 L72,200 Z" class="mz" onclick="dashMuscleClick('ترايسبس')"/>
+              <text x="56" y="242" class="ml" font-size="8">ساعد</text>
+              <!-- Forearm Right -->
+              <path d="M244,200 L250,228 L256,258 L258,276 L250,280 L240,276 L236,252 L232,228 L228,200 Z" class="mz" onclick="dashMuscleClick('ترايسبس')"/>
+              <text x="244" y="242" class="ml" font-size="8">ساعد</text>
+              <!-- Glutes Left -->
+              <path d="M110,278 L100,290 L96,310 L102,326 L118,332 L134,328 L140,312 L142,296 L138,282 L126,276 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="118" y="308" class="ml" font-size="9">أرداف</text>
+              <!-- Glutes Right -->
+              <path d="M190,278 L200,290 L204,310 L198,326 L182,332 L166,328 L160,312 L158,296 L162,282 L174,276 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="182" y="308" class="ml" font-size="9">أرداف</text>
+              <!-- Hamstring Left -->
+              <path d="M98,332 L94,360 L92,390 L98,408 Q108,414 120,410 L126,392 L128,360 L128,340 L118,334 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="110" y="374" class="ml" font-size="9">خلفية</text>
+              <!-- Hamstring Right -->
+              <path d="M202,332 L206,360 L208,390 L202,408 Q192,414 180,410 L174,392 L172,360 L172,340 L182,334 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="190" y="374" class="ml" font-size="9">خلفية</text>
+              <!-- Calf Left -->
+              <path d="M96,418 L94,442 L92,468 L96,488 L108,492 L116,488 L120,468 L120,442 L118,418 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="106" y="460" class="ml" font-size="8">سمانة</text>
+              <!-- Calf Right -->
+              <path d="M204,418 L206,442 L208,468 L204,488 L192,492 L184,488 L180,468 L180,442 L182,418 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <text x="194" y="460" class="ml" font-size="8">سمانة</text>
             </svg>
           </div>
 
-          <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">اضغط على أي عضلة لعرض تمارينها</div>
-          <!-- Muscle exercise popup -->
+          <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">اضغط على أي عضلة لعرض تمارينها</div>
           <div id="dash-muscle-exercises" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px"></div>
         </div>
 
-        <!-- Muscle Stats Grid -->
+        <!-- Quick Log Section -->
+        <div class="card mb-16" id="quick-log-card" style="display:none">
+          <div class="flex-b" style="margin-bottom:12px">
+            <div class="sec-title" style="margin:0" id="quick-log-title">تسجيل سريع</div>
+            <span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="closeQuickLog()">✕</span>
+          </div>
+          <div id="quick-log-content"></div>
+        </div>
+
+        <!-- Muscle Stats -->
         <div class="card mb-16">
           <div class="sec-title" style="margin-bottom:12px">📊 إحصائيات العضلات</div>
           <div class="muscle-stats-grid" id="fit-muscle-stats"></div>
         </div>
-    
+
         <!-- Programs -->
         <div class="card mb-16">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -5134,29 +5194,158 @@ function dashMuscleClick(muscle){
   var el = document.getElementById('dash-muscle-exercises');
   var exercises = FIT_MUSCLES[muscle] || [];
   var icon = MUSCLE_ICONS[muscle] || '💪';
-  var color = MUSCLE_COLORS[muscle] || '#B45309';
   
   var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
-  html += '<div style="font-size:15px;font-weight:900;color:var(--text)">' + icon + ' تمارين ' + muscle + '</div>';
+  html += '<div style="font-size:16px;font-weight:900;color:var(--text)">' + icon + ' تمارين ' + muscle + '</div>';
   html += '<span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="document.getElementById(\'dash-muscle-exercises\').style.display=\'none\'">✕</span>';
   html += '</div>';
   
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  html += '<div style="display:flex;flex-direction:column;gap:8px">';
   exercises.forEach(function(ex){
-    html += '<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" ';
-    html += 'onmouseenter="this.style.borderColor=\'' + color + '\'" onmouseleave="this.style.borderColor=\'var(--border)\'">';
-    html += ex;
+    var exSafe = ex.replace(/'/g, "\\'");
+    var muscleSafe = muscle.replace(/'/g, "\\'");
+    html += '<div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.15s" onclick="openQuickLog(\'' + exSafe + '\',\'' + muscleSafe + '\')">';
+    html += '<span style="font-size:18px;flex-shrink:0">' + ex.split(' ')[0] + '</span>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:14px;font-weight:700">' + ex.split(' ').slice(1).join(' ') + '</div>';
+    html += '<div style="font-size:11px;color:var(--muted)">اضغط للتسجيل السريع</div>';
+    html += '</div>';
+    html += '<span style="color:var(--accent);font-size:14px">+</span>';
     html += '</div>';
   });
   html += '</div>';
   
-  html += '<button type="button" class="btn btn-p btn-sm" style="width:100%;margin-top:12px" onclick="startWorkoutWithMuscle(\'' + muscle + '\')">';
-  html += '🏋️ ابدأ تمرين ' + muscle;
+  html += '<button type="button" class="btn btn-p btn-sm" style="width:100%;margin-top:12px" onclick="startWorkoutWithMuscle(\'' + muscle.replace(/'/g, "\\'") + '\')">';
+  html += '🏋️ ابدأ تمرين ' + muscle + ' كامل';
   html += '</button>';
   
   el.innerHTML = html;
   el.style.display = 'block';
   el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function openQuickLog(exName, muscle){
+  var card = document.getElementById('quick-log-card');
+  var content = document.getElementById('quick-log-content');
+  document.getElementById('quick-log-title').innerHTML = '🏋️ ' + exName;
+  
+  // Get last logged data for this exercise
+  var fd = getFitData();
+  var lastSets = [];
+  var allWorkouts = fd.workouts || [];
+  for(var i = allWorkouts.length - 1; i >= 0; i--){
+    var w = allWorkouts[i];
+    var found = (w.exercises||[]).find(function(e){ return e.name === exName; });
+    if(found && found.sets){
+      lastSets = found.sets;
+      break;
+    }
+  }
+  
+  var html = '';
+  if(lastSets.length > 0){
+    html += '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">آخر تمرين: ';
+    lastSets.forEach(function(s,i){
+      if(s.done) html += (s.weight||0) + 'كجم × ' + (s.reps||0) + (i < lastSets.length-1 ? ' ، ' : '');
+    });
+    html += '</div>';
+  }
+  
+  html += '<div id="quick-log-sets">';
+  for(var s = 0; s < 3; s++){
+    var prevW = lastSets[s] ? (lastSets[s].weight||'') : '';
+    var prevR = lastSets[s] ? (lastSets[s].reps||'') : '';
+    html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">';
+    html += '<div style="font-size:12px;font-weight:800;color:var(--muted);width:20px;text-align:center">' + (s+1) + '</div>';
+    html += '<input type="number" class="fi ql-weight" placeholder="وزن" value="' + prevW + '" style="flex:1;font-size:13px;padding:8px 10px;text-align:center">';
+    html += '<span style="font-size:12px;color:var(--muted)">كجم ×</span>';
+    html += '<input type="number" class="fi ql-reps" placeholder="عدد" value="' + prevR + '" style="flex:1;font-size:13px;padding:8px 10px;text-align:center">';
+    html += '</div>';
+  }
+  html += '</div>';
+  
+  html += '<button type="button" class="btn btn-s btn-sm" style="margin-bottom:10px" onclick="addQuickLogSet()">+ جلسة إضافية</button>';
+  
+  html += '<div style="display:flex;gap:8px;margin-top:6px">';
+  html += '<button type="button" class="btn btn-p" style="flex:1" onclick="saveQuickLog(\'' + exName.replace(/'/g, "\\'") + '\',\'' + muscle.replace(/'/g, "\\'") + '\')">💾 حفظ</button>';
+  html += '<button type="button" class="btn btn-s" style="flex:1" onclick="closeQuickLog()">إلغاء</button>';
+  html += '</div>';
+  
+  content.innerHTML = html;
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function addQuickLogSet(){
+  var container = document.getElementById('quick-log-sets');
+  var count = container.querySelectorAll('.ql-weight').length + 1;
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  div.innerHTML = '<div style="font-size:12px;font-weight:800;color:var(--muted);width:20px;text-align:center">' + count + '</div>' +
+    '<input type="number" class="fi ql-weight" placeholder="وزن" style="flex:1;font-size:13px;padding:8px 10px;text-align:center">' +
+    '<span style="font-size:12px;color:var(--muted)">كجم ×</span>' +
+    '<input type="number" class="fi ql-reps" placeholder="عدد" style="flex:1;font-size:13px;padding:8px 10px;text-align:center">';
+  container.appendChild(div);
+}
+
+function saveQuickLog(exName, muscle){
+  var weights = document.querySelectorAll('#quick-log-sets .ql-weight');
+  var reps = document.querySelectorAll('#quick-log-sets .ql-reps');
+  var sets = [];
+  for(var i = 0; i < weights.length; i++){
+    var w = parseFloat(weights[i].value) || 0;
+    var r = parseInt(reps[i].value) || 0;
+    if(w > 0 || r > 0){
+      sets.push({weight: w, reps: r, rpe: '', done: true});
+    }
+  }
+  if(sets.length === 0){
+    showToast('❌ أدخل جلسة واحدة على الأقل');
+    return;
+  }
+  
+  // Save as a quick workout
+  if(!myData.fitness) myData.fitness = {workouts:[],programs:[],bodyweight:[],prs:{}};
+  var today = todayKey();
+  
+  // Check if there's already a workout today, add to it
+  var todayWO = (myData.fitness.workouts||[]).find(function(w){ return w.date === today && w.name === 'تمرين سريع'; });
+  if(todayWO){
+    todayWO.exercises.push({
+      id: 'ex_' + Date.now(),
+      name: exName,
+      muscle: muscle,
+      sets: sets,
+      notes: ''
+    });
+  } else {
+    myData.fitness.workouts.push({
+      id: 'wo_' + Date.now(),
+      name: 'تمرين سريع',
+      date: today,
+      duration: 0,
+      exercises: [{
+        id: 'ex_' + Date.now(),
+        name: exName,
+        muscle: muscle,
+        sets: sets,
+        notes: ''
+      }]
+    });
+  }
+  
+  // Check PR
+  try{ checkPR({name:exName, muscle:muscle}, sets[sets.length-1]); }catch(e){}
+  
+  saveMyData();
+  closeQuickLog();
+  renderFitDashboard();
+  var totalVol = sets.reduce(function(a,s){ return a + (s.weight * s.reps); }, 0);
+  showToast('✅ تم حفظ ' + exName + ' — ' + sets.length + ' جلسة (' + totalVol + ' كجم)');
+}
+
+function closeQuickLog(){
+  document.getElementById('quick-log-card').style.display = 'none';
 }
 
 function startWorkoutWithMuscle(muscle){
