@@ -688,6 +688,209 @@ body {
   padding: 5px 14px;
 }
 
+
+/* ══════════════════════════════════════════════════
+   v2.6 — Enhanced Pages CSS
+   ══════════════════════════════════════════════════ */
+
+/* ── ENHANCED EXPENSES ───────────────────────── */
+.wallets-grid {
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px;
+}
+.wallet-card {
+  border-radius: 20px;
+  padding: 20px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.wallet-card::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.06;
+}
+.wallet-card.selected {
+  border-color: var(--accent);
+  background: linear-gradient(145deg, var(--surface), var(--accent-light));
+}
+.txn-type-btn {
+  border-radius: 12px;
+  font-size: 12px;
+  padding: 10px 6px;
+}
+.txn-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.txn-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 18px;
+}
+.exp-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 18px;
+}
+
+/* ── ENHANCED STATS/DASHBOARD ────────────────── */
+.chart-wrap {
+  height: 120px;
+  padding: 10px 0;
+  gap: 5px;
+}
+.c-bar {
+  border-radius: 6px 6px 0 0;
+  min-height: 4px;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 50%, transparent));
+}
+
+/* ── ENHANCED FRIENDS ────────────────────────── */
+.friends-grid {
+  gap: 14px;
+}
+.friend-card {
+  border-radius: 18px;
+  padding: 20px;
+  border-width: 1.5px;
+  position: relative;
+  overflow: hidden;
+}
+.friend-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--green), #7C3AED);
+  opacity: 0.6;
+}
+.f-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px;
+}
+.f-name {
+  font-size: 16px;
+  font-weight: 900;
+}
+.friend-code-box {
+  border-radius: 20px;
+  padding: 24px;
+}
+.friend-code {
+  font-size: 34px;
+  letter-spacing: 8px;
+}
+
+/* ── REMINDER NOTIFICATION BUTTON ────────────── */
+.reminder-fab {
+  position: fixed;
+  bottom: 90px;
+  left: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7C3AED, #A855F7);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+  z-index: 450;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media(max-width:680px){
+  .reminder-fab { bottom: 80px; left: 14px; width: 44px; height: 44px; border-radius: 14px; font-size: 18px; }
+}
+
+/* ── REMINDER MODAL ──────────────────────────── */
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.reminder-item:last-child { border-bottom: none; }
+.reminder-time {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--accent);
+  min-width: 60px;
+  font-family: monospace;
+}
+.reminder-info { flex: 1; }
+.reminder-label { font-size: 14px; font-weight: 700; }
+.reminder-days { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.reminder-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 99px;
+  background: var(--border);
+  cursor: pointer;
+  position: relative;
+  border: none;
+  padding: 0;
+}
+.reminder-toggle.on { background: var(--green); }
+.reminder-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.reminder-toggle.on::after { transform: translateX(-20px); }
+
+/* ── QUICK STAT IMPROVEMENTS ─────────────────── */
+.stat-card .plabel {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.stat-card .bph {
+  font-size: 24px;
+  margin-top: 4px;
+}
+
+/* ── TODO QUICK BTN FIX ──────────────────────── */
+.todo-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: 'Tajawal', sans-serif;
+  transition: all 0.15s;
+}
+.todo-quick-btn:hover, .todo-quick-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
 /* ── SELECTION COLOR ─────────────────────────── */
 ::selection {
   background: color-mix(in srgb, var(--accent) 25%, transparent);
@@ -1283,9 +1486,12 @@ setInterval(()=>{
 
     <!-- FRIENDS PAGE -->
     <div class="page" id="page-friends">
-      <div class="page-header">
-        <div class="ph2">👥 أهداف الأصدقاء</div>
-        <div class="psub2">شوف إنجازات الجميع اليوم</div>
+      <div class="page-header flex-b">
+        <div>
+          <div class="ph2">👥 الأصدقاء</div>
+          <div class="psub2">شوف إنجازات الجميع اليوم</div>
+        </div>
+        <button type="button" class="btn btn-p btn-sm" onclick="showPage('profile',null)">+ أضف صديق</button>
       </div>
       <div class="friends-grid" id="friends-grid"></div>
     </div>
@@ -1293,7 +1499,7 @@ setInterval(()=>{
     <!-- EXPENSES / WALLETS -->
     <div class="page" id="page-expenses">
       <div class="page-header flex-b" style="margin-bottom:16px">
-        <div><div class="ph2">💰 محافظي</div><div class="psub2">تتبع رصيدك وإنفاقك</div></div>
+        <div><div class="ph2">💰 المصاريف</div><div class="psub2">تتبع رصيدك وإنفاقك وادخارك</div></div>
         <div style="display:flex;gap:8px"><button class="btn btn-p btn-sm" onclick="openWalletModal()">+ محفظة</button><button type="button" class="btn btn-sm" onclick="openExpenseAI()" style="background:linear-gradient(135deg,#7C3AED,#B45309);color:white;display:flex;align-items:center;gap:5px">✨ ذكي</button></div>
       </div>
 
@@ -1550,7 +1756,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.5</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v2.6</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -4895,6 +5101,41 @@ function exportPDF(){
   <button class="pwa-btn" onclick="installPWA()">تثبيت</button>
   <span class="pwa-x" onclick="this.parentNode.style.display='none'">✕</span>
 </div>
+
+<!-- REMINDER FAB -->
+<button type="button" class="reminder-fab" onclick="openReminderModal()" id="reminder-fab" title="التذكيرات">🔔</button>
+
+<!-- REMINDER MODAL -->
+<div class="modal-ov" id="reminder-modal" onclick="if(event.target===this)closeModal('reminder-modal')">
+  <div class="modal-box" style="max-width:420px;width:95vw">
+    <div class="flex-b" style="margin-bottom:16px">
+      <h3 style="margin:0;font-size:17px">🔔 التذكيرات</h3>
+      <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('reminder-modal')">✕</span>
+    </div>
+    <div id="reminders-list"></div>
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">+ تذكير جديد</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" class="fi" id="reminder-label-inp" placeholder="تذكير بـ..." style="flex:1;font-size:13px">
+        <input type="time" class="fi" id="reminder-time-inp" style="width:100px;font-size:13px;text-align:center">
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px" id="reminder-days-pick">
+        <span class="chip active" data-d="0" onclick="toggleRDay(this)">أح</span>
+        <span class="chip active" data-d="1" onclick="toggleRDay(this)">إث</span>
+        <span class="chip active" data-d="2" onclick="toggleRDay(this)">ث</span>
+        <span class="chip active" data-d="3" onclick="toggleRDay(this)">أر</span>
+        <span class="chip active" data-d="4" onclick="toggleRDay(this)">خ</span>
+        <span class="chip active" data-d="5" onclick="toggleRDay(this)">ج</span>
+        <span class="chip active" data-d="6" onclick="toggleRDay(this)">س</span>
+      </div>
+      <button type="button" class="btn btn-p btn-full" onclick="saveReminder()">حفظ التذكير</button>
+    </div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:12px;font-size:11px;color:var(--muted);line-height:1.7">
+      💡 للحصول على إشعارات فعلية على جوالك، لازم تفعل الإشعارات من المتصفح لما يطلب منك
+    </div>
+  </div>
+</div>
+
 </body>
 </html>\`;
 
@@ -5687,6 +5928,119 @@ function deleteFitProgram(id){
 
 // ── FITNESS DATA in applyDefaults ──
 // (handled via getFitData check above)
+
+// ── REMINDERS ──────────────────────────────────
+function getReminders(){ return myData.reminders || []; }
+
+function openReminderModal(){
+  renderReminders();
+  openModal('reminder-modal');
+  requestNotificationPermission();
+}
+
+function requestNotificationPermission(){
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+}
+
+function toggleRDay(el){
+  el.classList.toggle('active');
+}
+
+function saveReminder(){
+  var label = document.getElementById('reminder-label-inp').value.trim();
+  var time = document.getElementById('reminder-time-inp').value;
+  if(!label){ document.getElementById('reminder-label-inp').focus(); return; }
+  if(!time){ showToast('اختر الوقت'); return; }
+  
+  var days = [];
+  document.querySelectorAll('#reminder-days-pick .chip.active').forEach(function(c){
+    days.push(parseInt(c.dataset.d));
+  });
+  
+  if(!myData.reminders) myData.reminders = [];
+  myData.reminders.push({
+    id: 'r_' + Date.now(),
+    label: label,
+    time: time,
+    days: days,
+    enabled: true
+  });
+  saveMyData();
+  document.getElementById('reminder-label-inp').value = '';
+  document.getElementById('reminder-time-inp').value = '';
+  renderReminders();
+  showToast('✅ تم حفظ التذكير');
+  scheduleReminders();
+}
+
+function renderReminders(){
+  var list = document.getElementById('reminders-list');
+  var reminders = getReminders();
+  var dayNames = ['أح','إث','ث','أر','خ','ج','س'];
+  
+  if(!reminders.length){
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:28px;margin-bottom:8px">🔕</div><div style="font-size:13px">لا توجد تذكيرات</div></div>';
+    return;
+  }
+  
+  list.innerHTML = reminders.map(function(r){
+    var daysStr = r.days.map(function(d){ return dayNames[d]; }).join(' · ');
+    return '<div class="reminder-item">' +
+      '<div class="reminder-time">' + r.time + '</div>' +
+      '<div class="reminder-info">' +
+        '<div class="reminder-label">' + r.label + '</div>' +
+        '<div class="reminder-days">' + (daysStr || 'كل يوم') + '</div>' +
+      '</div>' +
+      '<button type="button" class="reminder-toggle ' + (r.enabled ? 'on' : '') + '" onclick="toggleReminder(\'' + r.id + '\',this)"></button>' +
+      '<button type="button" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px" onclick="deleteReminder(\'' + r.id + '\')">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleReminder(id, btn){
+  var reminders = getReminders();
+  var r = reminders.find(function(x){ return x.id === id; });
+  if(r){
+    r.enabled = !r.enabled;
+    btn.classList.toggle('on', r.enabled);
+    saveMyData();
+  }
+}
+
+function deleteReminder(id){
+  if(!myData.reminders) return;
+  myData.reminders = myData.reminders.filter(function(r){ return r.id !== id; });
+  saveMyData();
+  renderReminders();
+  showToast('🗑 تم حذف التذكير');
+}
+
+function scheduleReminders(){
+  if(window._reminderInterval) clearInterval(window._reminderInterval);
+  window._reminderInterval = setInterval(checkReminders, 60000);
+}
+
+function checkReminders(){
+  var reminders = getReminders();
+  if(!reminders.length) return;
+  var now = new Date();
+  var currentTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var currentDay = now.getDay();
+  
+  reminders.forEach(function(r){
+    if(!r.enabled) return;
+    if(r.time !== currentTime) return;
+    if(r.days.length > 0 && r.days.indexOf(currentDay) === -1) return;
+    if('Notification' in window && Notification.permission === 'granted'){
+      new Notification('Artrk 🔔', { body: r.label, tag: r.id });
+    }
+    showToast('🔔 ' + r.label);
+  });
+}
+
+try{ scheduleReminders(); }catch(e){}
 
 </script>
 
