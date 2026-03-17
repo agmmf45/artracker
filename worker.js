@@ -3651,7 +3651,7 @@ function openWalletModal(id=null){
   document.querySelectorAll('.w-emoji').forEach(el=>{
     el.classList.toggle('active', el.dataset.e===(w?.icon||'💰'));
   });
-  document.getElementById('wallet-modal').style.display='flex';
+  document.getElementById('wallet-modal').classList.add('open');
   setTimeout(()=>document.getElementById('wallet-name-inp').focus(),80);
 }
 function editWallet(id){ openWalletModal(id); }
@@ -4133,7 +4133,7 @@ function updateTopBar(){
 function openResetModal(){
   document.getElementById('reset-pass-input').value='';
   document.getElementById('reset-err').style.display='none';
-  document.getElementById('reset-modal').style.display='flex';
+  document.getElementById('reset-modal').classList.add('open');
   setTimeout(()=>document.getElementById('reset-pass-input').focus(),100);
 }
 
