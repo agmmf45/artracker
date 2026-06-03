@@ -1,0 +1,17 @@
+{
+  "name": "artracker",
+  "compatibility_date": "2024-09-23",
+  "main": "worker.js",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "artracker-db",
+      "database_id": "17468068-0e8d-4bbe-9daa-485e8cd088ec"
+    }
+  ]
+}
