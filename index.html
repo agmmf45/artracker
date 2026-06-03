@@ -355,8 +355,16 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .mstat.red .mval{color:#FF9A9A;}
 
 /* ── PIXEL-ART NAV ICONS ───── */
-.tab-icon.px{width:30px;height:30px;image-rendering:pixelated;}
-.top-tab.active .tab-icon.px{filter:drop-shadow(0 0 7px rgba(var(--accent-rgb,56,189,248),.65));transform:scale(1.12) translateY(-1px);}
+.tab-icon.px{width:30px;height:30px;image-rendering:pixelated;padding:6px;border-radius:13px;box-sizing:content-box;transition:transform .15s,background .15s,box-shadow .15s;}
+.top-tab[data-g="daily"] .tab-icon.px{background:rgba(27,208,116,.16);}
+.top-tab[data-g="board"] .tab-icon.px{background:rgba(255,201,46,.18);}
+.top-tab[data-g="me"]    .tab-icon.px{background:rgba(74,144,255,.16);}
+.top-tab[data-g="fit"]   .tab-icon.px{background:rgba(240,68,74,.16);}
+.top-tab.active[data-g="daily"] .tab-icon.px{background:rgba(27,208,116,.32);box-shadow:0 6px 16px rgba(27,208,116,.45);}
+.top-tab.active[data-g="board"] .tab-icon.px{background:rgba(255,201,46,.34);box-shadow:0 6px 16px rgba(255,201,46,.45);}
+.top-tab.active[data-g="me"]    .tab-icon.px{background:rgba(74,144,255,.32);box-shadow:0 6px 16px rgba(74,144,255,.45);}
+.top-tab.active[data-g="fit"]   .tab-icon.px{background:rgba(240,68,74,.32);box-shadow:0 6px 16px rgba(240,68,74,.45);}
+.top-tab.active .tab-icon.px{transform:translateY(-2px) scale(1.05);}
 
 /* ── FITNESS HUB ───── */
 .wk-cta{width:100%;border:none;cursor:pointer;border-radius:20px;padding:18px;margin-bottom:18px;background:linear-gradient(135deg,#FF9A3D,#FF5E3A);color:#2a1000;text-align:right;display:flex;align-items:center;gap:13px;box-shadow:0 14px 34px rgba(255,94,58,.4);font-family:inherit;position:relative;overflow:hidden;}
@@ -3949,7 +3957,7 @@ function pixelSVG(rows,pal,size){
   return `<svg class="tab-icon px" viewBox="0 0 16 16" width="${size||28}" height="${size||28}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${r}</svg>`;
 }
 const NAV_PIX={
-  daily:{pal:{O:'#0B6B39',H:'#5CE89C',G:'#17C46A',W:'#ffffff'},rows:[
+  daily:{pal:{O:'#0E9E5E',H:'#8FF2BC',G:'#1BD074',W:'#ffffff'},rows:[
     "...OOOOOOOOOO",
     "..OHHHHHHHHHHO",
     ".OGGGGGGGGGGGGO",
@@ -3963,7 +3971,7 @@ const NAV_PIX={
     ".OGGGGGGGGGGGGO",
     "..OGGGGGGGGGGO",
     "...OOOOOOOOOO"]},
-  board:{pal:{O:'#7A4A00',Y:'#FFC32E',H:'#FFE79B',S:'#E0890A'},rows:[
+  board:{pal:{O:'#E59400',Y:'#FFC92E',H:'#FFEFB8',S:'#FFA716'},rows:[
     ".......OO",
     ".......HH",
     "......OYYO",
@@ -3976,7 +3984,7 @@ const NAV_PIX={
     "..OYYYSSSSYYYO",
     ".OYYOO....OOYYO",
     ".OOO........OOO"]},
-  me:{pal:{O:'#241B45',F:'#FFD2AC',f:'#ECA079',e:'#241B45',B:'#3B82F6',b:'#7FB0FF'},rows:[
+  me:{pal:{O:'#2E63D6',F:'#FFD2AC',f:'#ECA079',e:'#1E2A4A',B:'#3B82F6',b:'#8FBBFF'},rows:[
     ".....OOOOOO",
     "....OFFFFFFO",
     "...OFFFFFFFFO",
@@ -3991,7 +3999,7 @@ const NAV_PIX={
     ".OBBBBBBBBBBBBO",
     ".OBBBBBBBBBBBBO",
     ".OBBBBBBBBBBBBO"]},
-  fit:{pal:{O:'#5A1616',R:'#F0444A',r:'#FF8A8A',D:'#CBD2DE',d:'#99A1B2'},rows:[
+  fit:{pal:{O:'#D03A40',R:'#F0444A',r:'#FFA6A6',D:'#E4EAF4',d:'#B4BCCC'},rows:[
     "",
     "...OO......OO",
     "..OrRO....OrRO",
