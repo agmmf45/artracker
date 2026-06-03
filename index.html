@@ -361,6 +361,11 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .top-tab.active[data-g="board"] .tab-icon.px{filter:drop-shadow(0 0 8px rgba(255,215,64,.85));}
 .top-tab.active[data-g="me"]    .tab-icon.px{filter:drop-shadow(0 0 8px rgba(90,155,255,.8));}
 .top-tab.active[data-g="fit"]   .tab-icon.px{filter:drop-shadow(0 0 8px rgba(255,90,95,.8));}
+/* active label color = category color (not generic blue) */
+.top-tab.active[data-g="daily"]{color:#2AE88E;}
+.top-tab.active[data-g="board"]{color:#FFD740;}
+.top-tab.active[data-g="me"]{color:#5A9BFF;}
+.top-tab.active[data-g="fit"]{color:#FF6A70;}
 
 /* ── FITNESS HUB ───── */
 .wk-cta{width:100%;border:none;cursor:pointer;border-radius:20px;padding:18px;margin-bottom:18px;background:linear-gradient(135deg,#FF9A3D,#FF5E3A);color:#2a1000;text-align:right;display:flex;align-items:center;gap:13px;box-shadow:0 14px 34px rgba(255,94,58,.4);font-family:inherit;position:relative;overflow:hidden;}
@@ -2304,13 +2309,13 @@ setInterval(()=>{
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       <span class="tab-label">لوحتي</span>
     </div>
-    <div class="top-tab" data-g="me" onclick="showGroup('me')">
-      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="tab-label">ملفي</span>
-    </div>
     <div class="top-tab" data-g="fit" onclick="showGroup('fit')">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 9.5h2v5H3z"/><path d="M19 9.5h2v5h-2z"/><path d="M5 12h14"/></svg>
       <span class="tab-label">التمارين</span>
+    </div>
+    <div class="top-tab" data-g="me" onclick="showGroup('me')">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="tab-label">ملفي</span>
     </div>
   </div>
 </div>
