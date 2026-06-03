@@ -385,6 +385,34 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .wk-bar{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#6BA5FF,#3B82F6);opacity:.5;min-height:6px;}
 .wk-col.hi .wk-bar{background:linear-gradient(180deg,#FFB152,#FF7A00);opacity:1;box-shadow:0 0 12px rgba(255,122,0,.5);}
 
+/* ── ACTIVE WORKOUT LOGGING ───── */
+.awx-timer-card{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FF9A3D,#FF5E3A);color:#2a1000;border-radius:20px;padding:16px 18px;margin-bottom:16px;box-shadow:0 12px 30px rgba(255,94,58,.35);}
+.awx-timer-card .aw-time{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;}
+.awx-timer-card .aw-fin-btn{margin-right:auto;background:#0E9E5E;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:13px;padding:11px 16px;border-radius:13px;cursor:pointer;box-shadow:0 6px 16px rgba(16,185,129,.45);}
+.awx{background:var(--surface);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 10px 26px rgba(0,0,0,.28);}
+.awx-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.awx-ic{width:40px;height:40px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.awx-name{font-size:16px;font-weight:900;}
+.awx-last{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.awx-x{margin-right:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;}
+.seth{display:grid;grid-template-columns:32px 1fr 1fr 44px;gap:8px;font-size:10px;color:var(--muted2,#5B6987);font-weight:800;padding:0 2px 6px;text-align:center;}
+.setr{display:grid;grid-template-columns:32px 1fr 1fr 44px;gap:8px;align-items:center;margin-bottom:7px;}
+.setn{width:32px;height:42px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--muted);}
+.setf{display:flex;align-items:center;justify-content:center;gap:3px;background:var(--surface2);border-radius:11px;border:1.5px solid transparent;padding:0 6px;height:42px;}
+.setf input{width:100%;min-width:0;background:none;border:none;outline:none;text-align:center;font-family:inherit;font-size:19px;font-weight:900;color:var(--text);padding:0;}
+.setf .u{font-size:10px;color:var(--muted);font-weight:700;flex-shrink:0;}
+.setc{width:44px;height:42px;border-radius:12px;border:2px solid var(--surface2);background:var(--surface2);color:var(--muted2,#5B6987);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.setr.done .setn{background:rgba(16,185,129,.18);color:#5EEAB8;}
+.setr.done .setc{background:var(--green);border-color:var(--green);color:#04241a;}
+.setr.done .setf{opacity:.65;}
+.setr.cur .setf{border-color:var(--accent);background:rgba(var(--accent-rgb,56,189,248),.10);}
+.setr.cur .setn{background:rgba(var(--accent-rgb,56,189,248),.22);color:var(--accent);}
+.awx-add{width:100%;margin-top:6px;background:transparent;border:1.5px dashed var(--border);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;padding:10px;border-radius:13px;cursor:pointer;}
+.awx-notes{width:100%;margin-top:8px;background:var(--surface2);border:none;border-radius:10px;padding:9px 12px;font-family:inherit;font-size:12px;color:var(--text);}
+.awx-notes::placeholder{color:var(--muted2,#5B6987);}
+.pr-reward{background:linear-gradient(135deg,rgba(255,122,0,.20),rgba(139,92,246,.16));border:1px solid rgba(255,122,0,.3);border-radius:18px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.pr-reward .e{font-size:28px;}
+
 /* ── SWIPE PAGES ─────────────────── */
 .pages-wrapper{
   overflow:hidden;
@@ -2201,17 +2229,12 @@ setInterval(()=>{
     
       <!-- Active Workout View (hidden by default) -->
       <div id="fit-active-workout" style="display:none">
-        <div class="card mb-16" style="background:linear-gradient(135deg,var(--accent),#92400E);color:white">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:11px;opacity:0.8;margin-bottom:2px">تمرين جارٍ</div>
-              <div style="font-size:18px;font-weight:800" id="fit-active-name">-</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:22px;font-weight:900;font-family:monospace" id="fit-timer-display">00:00</div>
-              <div style="font-size:10px;opacity:0.7">مدة التمرين</div>
-            </div>
+        <div class="awx-timer-card">
+          <div>
+            <div class="aw-time" id="fit-timer-display">00:00</div>
+            <div style="font-size:12px;font-weight:700;opacity:.85;margin-top:2px"><span id="fit-active-name">-</span> · جارٍ الآن</div>
           </div>
+          <button type="button" class="aw-fin-btn" onclick="finishWorkout()">✅ إنهاء</button>
         </div>
     
         <!-- Rest Timer -->
@@ -2231,10 +2254,7 @@ setInterval(()=>{
         <!-- Exercises in active workout -->
         <div id="fit-exercises-list" style="margin-bottom:12px"></div>
     
-        <div style="display:flex;gap:10px;margin-bottom:16px">
-          <button type="button" class="btn btn-s" style="flex:1" onclick="addExerciseToWorkout()">+ تمرين</button>
-          <button type="button" class="btn btn-p" style="flex:1" onclick="finishWorkout()">✅ إنهاء التمرين</button>
-        </div>
+        <button type="button" class="btn btn-s" style="width:100%;margin-bottom:10px;padding:14px;font-size:14px" onclick="addExerciseToWorkout()">＋ إضافة تمرين</button>
         <button type="button" class="btn" style="width:100%;color:var(--red);background:none;border:1px solid var(--red);font-size:13px" onclick="cancelWorkout()">إلغاء التمرين</button>
       </div>
     
@@ -5901,6 +5921,7 @@ function nutriApplyAI(){
 
 // ── WORKOUT START ──
 function startWorkout(programId=null, dayName=null){
+  fitSessionPR=null;
   const name = dayName || (programId ? 'تمرين' : prompt('اسم التمرين (مثال: Push / Pull / Legs):') || 'تمرين');
   if(!name && !programId) return;
   fitActiveWorkout = {
@@ -6269,55 +6290,52 @@ function renderMuscleStats(){
   }).join('');
 }
 
+let fitSessionPR=null;
+function fitLastTime(name){
+  const ws=(getFitData().workouts||[]).slice().reverse();
+  for(const w of ws){
+    const ex=(w.exercises||[]).find(e=>e.name===name);
+    if(ex){
+      const ds=(ex.sets||[]).filter(s=>s.done&&(s.weight||s.reps));
+      const s=ds.length?ds[ds.length-1]:(ex.sets||[]).slice(-1)[0];
+      if(s&&(s.weight||s.reps)) return {weight:s.weight,reps:s.reps};
+    }
+  }
+  return null;
+}
 function renderActiveExercises(){
   const el=document.getElementById('fit-exercises-list');
   if(!el||!fitActiveWorkout) return;
+  let pre='';
+  if(fitSessionPR){
+    pre=`<div class="pr-reward"><div class="e">🎉</div><div><div style="font-size:14px;font-weight:900">رقم قياسي جديد!</div><div style="font-size:11.5px;color:var(--muted);margin-top:2px">${fitSessionPR.name} — ${fitSessionPR.weight}كجم × ${fitSessionPR.reps} 💪</div></div></div>`;
+  }
   if(!fitActiveWorkout.exercises.length){
-    el.innerHTML=`<div class="card" style="text-align:center;padding:20px;color:var(--muted)">
-      <div style="font-size:28px;margin-bottom:8px">💪</div>
-      <div>اضغط "+ تمرين" لإضافة تمرين</div>
-    </div>`;
+    el.innerHTML=pre+`<div class="awx" style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">💪</div><div style="font-size:13px">أضف أول تمرين بزر «＋ إضافة تمرين»</div></div>`;
     return;
   }
-  el.innerHTML=fitActiveWorkout.exercises.map((ex,ei)=>{
-    const doneSets=ex.sets.filter(s=>s.done).length;
-    return`<div class="card mb-10">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div>
-          <div style="font-weight:800;font-size:15px">${ex.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${ex.muscle} · ${doneSets}/${ex.sets.length} جلسة</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button type="button" class="btn btn-s btn-sm" onclick="addSetToExercise(${ei})">+ جلسة</button>
-          <button type="button" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" onclick="removeExercise(${ei})">✕</button>
-        </div>
+  el.innerHTML=pre+fitActiveWorkout.exercises.map((ex,ei)=>{
+    const done=ex.sets.filter(s=>s.done).length;
+    const lt=fitLastTime(ex.name);
+    const lastHint=lt?`آخر مرة: ${lt.weight}كجم × ${lt.reps}`:(ex.muscle||'تمرين جديد');
+    const curIdx=ex.sets.findIndex(s=>!s.done);
+    const rows=ex.sets.map((s,si)=>`
+      <div class="setr ${s.done?'done':(si===curIdx?'cur':'')}">
+        <div class="setn">${si+1}</div>
+        <div class="setf"><input type="number" inputmode="decimal" value="${s.weight}" placeholder="${lt?lt.weight:'0'}" onchange="updateSet(${ei},${si},'weight',this.value)"><span class="u">كجم</span></div>
+        <div class="setf"><input type="number" inputmode="numeric" value="${s.reps}" placeholder="${lt?lt.reps:'0'}" onchange="updateSet(${ei},${si},'reps',this.value)"><span class="u">عدة</span></div>
+        <button type="button" class="setc" onclick="doneSet(${ei},${si})">${s.done?'✓':''}</button>
+      </div>`).join('');
+    return `<div class="awx">
+      <div class="awx-head">
+        <div class="awx-ic">🏋️</div>
+        <div style="flex:1;min-width:0"><div class="awx-name">${ex.name}</div><div class="awx-last">${lastHint} · ${done}/${ex.sets.length} مجموعة</div></div>
+        <button type="button" class="awx-x" onclick="removeExercise(${ei})">✕</button>
       </div>
-      <!-- Sets header -->
-      <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px">
-        <div style="font-size:10px;color:var(--muted);text-align:center">#</div>
-        <div style="font-size:10px;color:var(--muted);text-align:center">التكرار</div>
-        <div style="font-size:10px;color:var(--muted);text-align:center">الوزن (كجم)</div>
-        <div style="font-size:10px;color:var(--muted);text-align:center">RPE</div>
-        <div></div>
-      </div>
-      ${ex.sets.map((s,si)=>`
-        <div style="display:grid;grid-template-columns:30px 1fr 1fr 60px 40px;gap:6px;margin-bottom:6px;align-items:center;opacity:${s.done?0.6:1}">
-          <div style="text-align:center;font-size:13px;font-weight:700;color:${s.done?'var(--green)':'var(--muted)'}">${si+1}</div>
-          <input type="number" class="fi" value="${s.reps}" placeholder="12" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
-            onchange="updateSet(${ei},${si},'reps',this.value)">
-          <input type="number" class="fi" value="${s.weight}" placeholder="0" style="padding:6px;font-size:14px;text-align:center;font-weight:700"
-            onchange="updateSet(${ei},${si},'weight',this.value)">
-          <select class="fi" style="padding:6px;font-size:12px" onchange="updateSet(${ei},${si},'rpe',this.value)">
-            <option value="">-</option>
-            ${[6,7,7.5,8,8.5,9,9.5,10].map(r=>`<option value="${r}" ${s.rpe==r?'selected':''}>${r}</option>`).join('')}
-          </select>
-          <button type="button" onclick="doneSet(${ei},${si})" style="width:36px;height:36px;border-radius:50%;border:2px solid ${s.done?'var(--green)':'var(--border)'};background:${s.done?'var(--green)':'transparent'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:${s.done?'white':'var(--muted)'}">
-            ${s.done?'✓':'○'}
-          </button>
-        </div>`).join('')}
-      <!-- Notes -->
-      <input type="text" class="fi" value="${ex.notes||''}" placeholder="ملاحظات..." style="width:100%;font-size:12px;margin-top:6px"
-        onchange="updateExNotes(${ei},this.value)">
+      <div class="seth"><div>مج</div><div>الوزن</div><div>العدّات</div><div></div></div>
+      ${rows}
+      <button type="button" class="awx-add" onclick="addSetToExercise(${ei})">+ مجموعة${lt?` · مقترح ${lt.weight}×${lt.reps}`:''}</button>
+      <input type="text" class="awx-notes" value="${(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="📝 ملاحظات (اختياري)" onchange="updateExNotes(${ei},this.value)">
     </div>`;
   }).join('');
 }
@@ -6352,6 +6370,8 @@ function checkPR(ex, set){
     fd.prs[key]={weight:set.weight,reps:set.reps,date:todayKey()};
     saveFitData(fd);
     showToast('🎉 رقم قياسي جديد! '+ex.name+' '+set.weight+'كجم x'+set.reps);
+    fitSessionPR={name:ex.name,weight:set.weight,reps:set.reps};
+    try{ renderActiveExercises(); }catch(e){}
   }
 }
 
