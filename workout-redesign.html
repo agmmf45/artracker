@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دقيق — تمارين</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1120;--app:#0F1729;--card:#161F33;--card2:#1B2540;
+  --ink:#F4F7FF;--muted:#8A97B4;--muted2:#5B6987;
+  --orange:#FF7A00;--blue:#3B82F6;--green:#10B981;--red:#EF4444;--violet:#8B5CF6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',system-ui,sans-serif;background:var(--bg);color:var(--ink);direction:rtl;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;}
+.app{width:100%;max-width:440px;min-height:100vh;background:radial-gradient(130% 50% at 100% -5%,rgba(255,122,0,.12),transparent 55%),radial-gradient(120% 45% at 0% 0%,rgba(59,130,246,.10),transparent 55%),var(--app);padding:22px 18px 120px;position:relative;overflow-x:hidden;}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.top .av{width:48px;height:48px;border-radius:15px;background:linear-gradient(150deg,#FF9A3D,#FF6A00);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 20px rgba(255,122,0,.4);}
+.top h1{font-size:21px;font-weight:900;}
+.top .sub{font-size:12px;color:var(--muted);font-weight:600;}
+.pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,122,0,.15);color:#FFB066;border-radius:99px;padding:7px 12px;font-size:13px;font-weight:800;margin-right:auto;}
+
+/* segmented toggle */
+.seg{display:flex;background:var(--card);border-radius:15px;padding:5px;gap:4px;margin-bottom:20px;}
+.seg button{flex:1;border:none;background:none;color:var(--muted);font-family:inherit;font-weight:800;font-size:13.5px;padding:11px;border-radius:11px;cursor:pointer;transition:.18s;}
+.seg button.on{background:linear-gradient(160deg,#FF9A3D,#FF6A00);color:#2a1400;box-shadow:0 5px 16px rgba(255,122,0,.4);}
+
+.eyebrow{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 2px 11px;}
+.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.3);margin-bottom:16px;}
+
+/* PRIMARY CTA */
+.start-cta{width:100%;border:none;cursor:pointer;border-radius:22px;padding:20px;margin-bottom:22px;
+  background:linear-gradient(135deg,#FF9A3D,#FF5E3A);color:#2a1000;text-align:right;
+  display:flex;align-items:center;gap:14px;box-shadow:0 16px 38px rgba(255,94,58,.45);position:relative;overflow:hidden;font-family:inherit;}
+.start-cta::after{content:"🏋️";position:absolute;left:-6px;bottom:-16px;font-size:84px;opacity:.18;}
+.start-cta .play{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.start-cta .ct{font-size:21px;font-weight:900;line-height:1.1;}
+.start-cta .cs{font-size:12.5px;font-weight:700;opacity:.8;margin-top:2px;}
+
+/* quick templates */
+.templates{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin:0 -18px 22px;padding-right:18px;padding-left:18px;scrollbar-width:none;}
+.templates::-webkit-scrollbar{display:none;}
+.tmpl{flex:0 0 auto;width:92px;border-radius:18px;padding:15px 10px;text-align:center;cursor:pointer;background:var(--card);border:1.5px solid transparent;transition:.15s;}
+.tmpl:active{transform:scale(.95);}
+.tmpl .ti{font-size:26px;}
+.tmpl .tn{font-size:13px;font-weight:800;margin-top:7px;}
+.tmpl .td{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.tmpl.add{background:transparent;border:1.5px dashed var(--border,#26344C);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+/* weekly consistency */
+.week{display:flex;justify-content:space-between;gap:6px;margin-top:4px;}
+.wd{flex:1;text-align:center;}
+.wd .dot{width:34px;height:34px;border-radius:11px;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--card2);color:var(--muted2);}
+.wd.done .dot{background:linear-gradient(160deg,#34E0A1,#10B981);color:#04241a;box-shadow:0 5px 14px rgba(16,185,129,.4);}
+.wd.today .dot{outline:2px solid #FFB066;outline-offset:1px;}
+.wd .dl{font-size:10px;color:var(--muted);}
+
+/* stats */
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:16px;}
+.st{background:var(--card);border-radius:18px;padding:15px 10px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.25);}
+.st .si{font-size:20px;}
+.st .sv{font-size:24px;font-weight:900;line-height:1;margin:5px 0 2px;}
+.st .sl{font-size:10.5px;color:var(--muted);font-weight:600;}
+.st.o .sv{color:#FFB066;} .st.b .sv{color:#86B6FF;} .st.v .sv{color:#C4B5FD;}
+
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:9px;height:96px;margin:6px 0 4px;}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+.chart .bar{width:100%;border-radius:7px 7px 4px 4px;background:linear-gradient(180deg,#3B82F6,#2563EB);opacity:.55;min-height:6px;}
+.chart .col.hi .bar{background:linear-gradient(180deg,#FFB152,#FF7A00);opacity:1;box-shadow:0 0 14px rgba(255,122,0,.55);}
+.chart .cl{font-size:10px;color:var(--muted);}
+.insight{display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.14);color:#5EEAB8;font-size:12px;font-weight:800;border-radius:99px;padding:6px 12px;margin-top:8px;}
+
+/* recent / repeat */
+.recent{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.recent:last-child{border-bottom:none;}
+.recent .ri{width:42px;height:42px;border-radius:13px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.recent .rt{font-weight:800;font-size:14px;} .recent .rs{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.btn-ghost{margin-right:auto;background:rgba(255,122,0,.14);color:#FFB066;border:none;font-family:inherit;font-weight:800;font-size:12.5px;padding:8px 15px;border-radius:11px;cursor:pointer;}
+
+/* ACTIVE WORKOUT */
+.aw-head{display:flex;align-items:center;gap:14px;background:linear-gradient(150deg,rgba(255,122,0,.18),rgba(255,122,0,.04)),var(--card);border-radius:20px;padding:16px 18px;margin-bottom:16px;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+.aw-timer{font-size:30px;font-weight:900;color:#FFB066;font-variant-numeric:tabular-nums;}
+.aw-head .awn{font-size:12px;color:var(--muted);font-weight:700;}
+.aw-fin{margin-right:auto;background:var(--green);color:#04241a;border:none;font-family:inherit;font-weight:900;font-size:13px;padding:11px 16px;border-radius:13px;cursor:pointer;box-shadow:0 6px 16px rgba(16,185,129,.4);}
+
+.ex-card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 10px 26px rgba(0,0,0,.28);}
+.ex-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.ex-ic{width:40px;height:40px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ex-name{font-size:16px;font-weight:900;}
+.ex-last{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.ex-menu{margin-right:auto;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+.set-head{display:grid;grid-template-columns:34px 1fr 1fr 44px;gap:8px;font-size:10.5px;color:var(--muted2);font-weight:800;padding:0 4px 6px;text-transform:uppercase;letter-spacing:.5px;}
+.set-row{display:grid;grid-template-columns:34px 1fr 1fr 44px;gap:8px;align-items:center;padding:6px 0;}
+.set-n{width:34px;height:34px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--muted);}
+.set-field{background:var(--card2);border-radius:11px;padding:9px;text-align:center;border:1.5px solid transparent;}
+.set-field .sv{font-size:19px;font-weight:900;}
+.set-field .su{font-size:10px;color:var(--muted);font-weight:700;margin-right:2px;}
+.set-check{width:40px;height:40px;border-radius:12px;border:2px solid var(--card2);background:var(--card2);color:var(--muted2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.set-row.done .set-n{background:rgba(16,185,129,.18);color:#5EEAB8;}
+.set-row.done .set-check{background:var(--green);border-color:var(--green);color:#04241a;}
+.set-row.done .set-field{opacity:.7;}
+.set-row.current .set-field{border-color:var(--orange);background:rgba(255,122,0,.08);}
+.set-row.current .set-n{background:rgba(255,122,0,.2);color:#FFB066;}
+.add-set{width:100%;margin-top:8px;background:transparent;border:1.5px dashed rgba(255,255,255,.14);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;padding:10px;border-radius:13px;cursor:pointer;}
+.swipe-hint{font-size:11px;color:var(--muted2);text-align:center;margin:2px 0 12px;}
+.aw-actions{display:flex;gap:10px;}
+.aw-actions button{flex:1;font-family:inherit;font-weight:800;font-size:14px;padding:14px;border-radius:15px;cursor:pointer;border:none;}
+.aw-add{background:var(--card);color:var(--ink);}
+.rest{position:sticky;bottom:84px;margin:0 auto 10px;width:fit-content;display:flex;align-items:center;gap:10px;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;font-weight:800;font-size:13px;padding:9px 16px;border-radius:99px;backdrop-filter:blur(8px);}
+
+/* toast / reward */
+.reward{background:linear-gradient(135deg,rgba(255,122,0,.18),rgba(139,92,246,.16));border:1px solid rgba(255,122,0,.25);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.reward .re{font-size:30px;}
+.reward .rt2{font-size:14px;font-weight:900;} .reward .rd2{font-size:11.5px;color:var(--muted);margin-top:1px;}
+
+/* bottom nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;display:flex;justify-content:space-around;padding:10px 8px calc(10px + env(safe-area-inset-bottom,0));background:rgba(13,19,34,.86);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.06);}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted2);font-size:10.5px;font-weight:800;}
+.nav a .ni{font-size:21px;opacity:.7;}
+.nav a.on{color:#FFB066;} .nav a.on .ni{opacity:1;transform:scale(1.15);}
+.hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="av">💪</div>
+    <div><h1>تمارينك</h1><div class="sub">جاهز للجلسة القادمة؟</div></div>
+    <span class="pill">🔥 12 يوم</span>
+  </div>
+
+  <div class="seg">
+    <button class="on" onclick="sw(0,this)">النظرة العامة</button>
+    <button onclick="sw(1,this)">التمرين الحالي</button>
+  </div>
+
+  <!-- ===== HUB ===== -->
+  <section id="hub">
+    <button class="start-cta">
+      <div class="play">▶</div>
+      <div><div class="ct">ابدأ تمرين</div><div class="cs">تمرين سريع · يبدأ فوراً بضغطة</div></div>
+    </button>
+
+    <div class="eyebrow">قوالب سريعة · بضغطة واحدة</div>
+    <div class="templates">
+      <div class="tmpl"><div class="ti">🫷</div><div class="tn">Push</div><div class="td">6 تمارين</div></div>
+      <div class="tmpl"><div class="ti">🫸</div><div class="tn">Pull</div><div class="td">5 تمارين</div></div>
+      <div class="tmpl"><div class="ti">🦵</div><div class="tn">Legs</div><div class="td">6 تمارين</div></div>
+      <div class="tmpl"><div class="ti">🏃</div><div class="tn">كارديو</div><div class="td">20 دقيقة</div></div>
+      <div class="tmpl add"><div class="ti">＋</div><div class="tn">جديد</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-weight:900;font-size:15px">📅 هذا الأسبوع</div>
+        <div style="font-size:12px;color:#5EEAB8;font-weight:800">4 من 5 أيام ✓</div>
+      </div>
+      <div class="week">
+        <div class="wd done"><div class="dot">✓</div><div class="dl">سبت</div></div>
+        <div class="wd done"><div class="dot">✓</div><div class="dl">أحد</div></div>
+        <div class="wd"><div class="dot">·</div><div class="dl">إثن</div></div>
+        <div class="wd done"><div class="dot">✓</div><div class="dl">ثلا</div></div>
+        <div class="wd done today"><div class="dot">✓</div><div class="dl">أرب</div></div>
+        <div class="wd"><div class="dot">·</div><div class="dl">خمي</div></div>
+        <div class="wd"><div class="dot">·</div><div class="dl">جمع</div></div>
+      </div>
+    </div>
+
+    <div class="stats3">
+      <div class="st o"><div class="si">⚡</div><div class="sv">4</div><div class="sl">تمارين/أسبوع</div></div>
+      <div class="st b"><div class="si">🏋️</div><div class="sv">18.4<span style="font-size:12px">ط</span></div><div class="sl">الحجم</div></div>
+      <div class="st v"><div class="si">🏆</div><div class="sv">3</div><div class="sl">أرقام قياسية</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-weight:900;font-size:15px">📈 الحجم الأسبوعي</div>
+        <div style="font-size:11px;color:var(--muted)">آخر 6 أسابيع</div>
+      </div>
+      <div class="chart">
+        <div class="col"><div class="bar" style="height:38%"></div><div class="cl">١</div></div>
+        <div class="col"><div class="bar" style="height:52%"></div><div class="cl">٢</div></div>
+        <div class="col"><div class="bar" style="height:46%"></div><div class="cl">٣</div></div>
+        <div class="col"><div class="bar" style="height:64%"></div><div class="cl">٤</div></div>
+        <div class="col"><div class="bar" style="height:72%"></div><div class="cl">٥</div></div>
+        <div class="col hi"><div class="bar" style="height:90%"></div><div class="cl">٦</div></div>
+      </div>
+      <span class="insight">📈 +12% عن الأسبوع الماضي — استمر!</span>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:900;font-size:15px;margin-bottom:6px">↩️ كرّر تمريناً</div>
+      <div class="recent">
+        <div class="ri">🫷</div>
+        <div><div class="rt">Push Day</div><div class="rs">أمس · 6 تمارين · 52 دقيقة</div></div>
+        <button class="btn-ghost">كرّر</button>
+      </div>
+      <div class="recent">
+        <div class="ri">🦵</div>
+        <div><div class="rt">Leg Day</div><div class="rs">قبل 3 أيام · 5 تمارين · 47 دقيقة</div></div>
+        <button class="btn-ghost">كرّر</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACTIVE ===== -->
+  <section id="active" class="hidden">
+    <div class="aw-head">
+      <div><div class="aw-timer">24:18</div><div class="awn">Push Day · 3 تمارين</div></div>
+      <button class="aw-fin">✅ إنهاء</button>
+    </div>
+
+    <div class="reward">
+      <div class="re">🎉</div>
+      <div><div class="rt2">رقم قياسي جديد!</div><div class="rd2">بنش بريس 82.5كجم — أثقل وزن لك 💪</div></div>
+    </div>
+
+    <div class="ex-card">
+      <div class="ex-head">
+        <div class="ex-ic">🏋️</div>
+        <div><div class="ex-name">بنش بريس</div><div class="ex-last">آخر مرة: 80كجم × 8 عدات</div></div>
+        <button class="ex-menu">⋯</button>
+      </div>
+      <div class="set-head"><span>مج</span><span>الوزن</span><span>العدّات</span><span></span></div>
+      <div class="set-row done">
+        <span class="set-n">1</span>
+        <div class="set-field"><span class="sv">80</span><span class="su">كجم</span></div>
+        <div class="set-field"><span class="sv">8</span><span class="su">عدة</span></div>
+        <button class="set-check" onclick="this.parentElement.classList.toggle('done')">✓</button>
+      </div>
+      <div class="set-row done">
+        <span class="set-n">2</span>
+        <div class="set-field"><span class="sv">80</span><span class="su">كجم</span></div>
+        <div class="set-field"><span class="sv">8</span><span class="su">عدة</span></div>
+        <button class="set-check" onclick="this.parentElement.classList.toggle('done')">✓</button>
+      </div>
+      <div class="set-row current">
+        <span class="set-n">3</span>
+        <div class="set-field"><span class="sv">82.5</span><span class="su">كجم</span></div>
+        <div class="set-field"><span class="sv">6</span><span class="su">عدة</span></div>
+        <button class="set-check" onclick="this.parentElement.classList.toggle('done')">✓</button>
+      </div>
+      <button class="add-set">+ مجموعة (مقترح: 82.5كجم × 6)</button>
+    </div>
+    <div class="swipe-hint">← اسحب أي مجموعة للحذف أو التكرار</div>
+
+    <div class="ex-card">
+      <div class="ex-head">
+        <div class="ex-ic">💪</div>
+        <div><div class="ex-name">تجديف بالبار</div><div class="ex-last">آخر مرة: 60كجم × 10 عدات</div></div>
+        <button class="ex-menu">⋯</button>
+      </div>
+      <div class="set-head"><span>مج</span><span>الوزن</span><span>العدّات</span><span></span></div>
+      <div class="set-row current">
+        <span class="set-n">1</span>
+        <div class="set-field"><span class="sv">60</span><span class="su">كجم</span></div>
+        <div class="set-field"><span class="sv">10</span><span class="su">عدة</span></div>
+        <button class="set-check" onclick="this.parentElement.classList.toggle('done')">✓</button>
+      </div>
+      <button class="add-set">+ مجموعة</button>
+    </div>
+
+    <div class="rest">⏳ استراحة · 1:30 · <span style="color:#fff">تخطّي</span></div>
+
+    <div class="aw-actions">
+      <button class="aw-add">＋ تمرين</button>
+      <button class="aw-fin" style="margin:0;flex:1.4">✅ إنهاء التمرين</button>
+    </div>
+  </section>
+
+  <nav class="nav">
+    <a><span class="ni">🏠</span>الرئيسية</a>
+    <a><span class="ni">🍽️</span>السعرات</a>
+    <a class="on"><span class="ni">🏋️</span>التمارين</a>
+    <a><span class="ni">👤</span>ملفي</a>
+  </nav>
+</div>
+<script>
+function sw(i,el){
+  document.getElementById('hub').classList.toggle('hidden',i!==0);
+  document.getElementById('active').classList.toggle('hidden',i!==1);
+  document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# خطوط ثمانية المصدر — غير مطلوبة (مضمّنة base64 داخل index.html) + احترام رخصة الخط
+fonts/
+
+# نسخة احتياطية محلية
+index.original.backup.html
+
+# ملفات النظام/المحرر
+.DS_Store
+Thumbs.db
+*.log

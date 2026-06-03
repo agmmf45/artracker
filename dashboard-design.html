@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دقيق — لوحة اليوم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1120;
+  --app:#0F1729;
+  --card:#161F33;
+  --card-soft:#1A2440;
+  --ink:#F4F7FF;
+  --muted:#8A97B4;
+  --muted2:#5B6987;
+  --orange:#FF7A00;
+  --blue:#3B82F6;
+  --green:#10B981;
+  --red:#EF4444;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Cairo',system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  direction:rtl;
+  -webkit-font-smoothing:antialiased;
+  display:flex;justify-content:center;
+  /* subtle retro pixel dot texture */
+  background-image:radial-gradient(rgba(255,255,255,.022) 1px, transparent 1.4px);
+  background-size:20px 20px;
+}
+.pix{font-family:'Press Start 2P',monospace;letter-spacing:0;}
+.num{font-family:'VT323',monospace;line-height:.85;font-weight:400;direction:ltr;unicode-bidi:isolate;}
+
+.app{
+  width:100%;max-width:440px;min-height:100vh;
+  position:relative;
+  padding:24px 18px 120px;
+  background:
+    radial-gradient(130% 55% at 100% -5%, rgba(255,122,0,.10), transparent 55%),
+    radial-gradient(130% 55% at 0% -5%, rgba(59,130,246,.12), transparent 55%),
+    var(--app);
+  overflow-x:hidden;
+}
+
+/* ───── HEADER ───── */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.avatar{
+  position:relative;width:54px;height:54px;flex-shrink:0;border-radius:16px;
+  background:conic-gradient(var(--orange) 0 64%, rgba(255,255,255,.10) 64% 100%);
+  padding:3px;
+}
+.avatar .face{
+  width:100%;height:100%;border-radius:13px;background:var(--card-soft);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.avatar .lvl{
+  position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  background:var(--orange);color:#1a1000;font-size:8px;padding:2px 6px;border-radius:7px;
+  box-shadow:0 3px 8px rgba(255,122,0,.5);white-space:nowrap;
+}
+.hi{flex:1;min-width:0;}
+.hi .greet{font-size:13px;color:var(--muted);font-weight:600;}
+.hi .name{font-size:21px;font-weight:900;margin-top:1px;}
+.coins{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.chiprow{display:flex;gap:7px;}
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--card);border-radius:99px;padding:6px 11px;
+  font-size:12px;font-weight:800;color:var(--ink);
+}
+.pill.flame{background:rgba(255,122,0,.14);color:#FFB066;}
+.pill.gem{background:rgba(59,130,246,.14);color:#86B6FF;}
+
+/* ───── XP BAR ───── */
+.xp{margin-bottom:20px;}
+.xp .xrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+.xp .xlab{font-size:12px;color:var(--muted);font-weight:700;}
+.xp .xval{font-size:13px;color:var(--muted);direction:ltr;}
+.xp .xval b{font-family:'VT323',monospace;font-size:18px;color:#FFB066;}
+
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;position:relative;}
+.bar > i{display:block;height:100%;border-radius:99px;position:relative;}
+/* retro segmented sheen */
+.bar > i::after{content:"";position:absolute;inset:0;border-radius:99px;
+  background:repeating-linear-gradient(90deg,transparent 0 8px,rgba(0,0,0,.28) 8px 10px);opacity:.5;}
+.bar.orange > i{background:linear-gradient(90deg,#FFB152,#FF7A00);box-shadow:0 0 14px rgba(255,122,0,.65);}
+.bar.blue > i{background:linear-gradient(90deg,#6BA5FF,#3B82F6);box-shadow:0 0 12px rgba(59,130,246,.6);}
+.bar.green > i{background:linear-gradient(90deg,#46D9A6,#10B981);box-shadow:0 0 12px rgba(16,185,129,.6);}
+.bar.red > i{background:linear-gradient(90deg,#FF7A7A,#EF4444);box-shadow:0 0 12px rgba(239,68,68,.6);}
+
+/* ───── DAY SELECTOR ───── */
+.days{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin:0 -18px 20px;padding-right:18px;padding-left:18px;scrollbar-width:none;}
+.days::-webkit-scrollbar{display:none;}
+.day{
+  flex:0 0 auto;width:52px;height:70px;border-radius:17px;background:var(--card);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;transition:transform .15s;
+}
+.day:active{transform:scale(.94);}
+.day .dn{font-size:11px;color:var(--muted);font-weight:700;}
+.day .dd{font-family:'VT323',monospace;font-size:24px;color:var(--ink);}
+.day.active{
+  background:linear-gradient(165deg,#5AA0FF,#3B82F6);
+  box-shadow:0 10px 24px rgba(59,130,246,.5);transform:translateY(-2px);
+}
+.day.active .dn{color:rgba(255,255,255,.9);}
+.day.active .dd{color:#fff;}
+.day.dot{position:relative;}
+.day.dot::after{content:"";position:absolute;bottom:7px;width:5px;height:5px;border-radius:50%;background:var(--orange);}
+
+/* ───── SECTION HEAD + TOGGLE ───── */
+.shead{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.shead h2{font-size:16px;font-weight:900;}
+.toggle{display:inline-flex;background:var(--card);border-radius:13px;padding:4px;gap:2px;}
+.toggle button{
+  border:none;background:none;color:var(--muted);font-family:inherit;font-weight:800;font-size:12px;
+  padding:7px 14px;border-radius:10px;cursor:pointer;transition:.18s;
+}
+.toggle button.on{background:linear-gradient(165deg,#5AA0FF,#3B82F6);color:#fff;box-shadow:0 5px 14px rgba(59,130,246,.45);}
+
+/* ───── HERO CARD ───── */
+.hero{
+  border-radius:24px;padding:22px 22px 20px;margin-bottom:16px;position:relative;overflow:hidden;
+  background:linear-gradient(155deg,rgba(255,122,0,.20),rgba(255,122,0,.04)),var(--card);
+  box-shadow:0 18px 44px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,122,0,.10);
+}
+.hero::before{content:"🔥";position:absolute;left:-10px;top:-18px;font-size:120px;opacity:.07;transform:rotate(-8deg);}
+.hero .eyebrow{font-size:12px;font-weight:800;color:#FFB066;display:flex;align-items:center;gap:6px;}
+.hero .big{display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;}
+.hero .big .n{font-family:'VT323',monospace;font-size:74px;line-height:.8;color:#fff;text-shadow:0 0 26px rgba(255,122,0,.55);}
+.hero .big .of{font-size:15px;color:var(--muted);font-weight:700;}
+.hero .barwrap{margin:14px 0 13px;}
+.hero .chips{display:flex;gap:8px;flex-wrap:wrap;}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;border-radius:99px;padding:6px 11px;}
+.tag.eat{background:rgba(255,255,255,.07);color:var(--ink);}
+.tag.burn{background:rgba(16,185,129,.16);color:#5EEAB8;}
+.tag.left{background:rgba(255,122,0,.16);color:#FFB066;}
+
+/* ───── STAT CARDS ───── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:18px;}
+.stat{border-radius:19px;padding:15px 13px;position:relative;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.32);}
+.stat .ic{font-size:24px;display:block;margin-bottom:9px;}
+.stat .lab{font-size:12.5px;font-weight:800;color:var(--ink);}
+.stat .v{display:flex;align-items:baseline;gap:3px;margin:3px 0 10px;}
+.stat .v .n{font-family:'VT323',monospace;font-size:32px;line-height:.8;}
+.stat .v .g{font-size:11px;color:var(--muted);font-weight:700;}
+.stat.blue{background:linear-gradient(160deg,rgba(59,130,246,.20),rgba(59,130,246,.05)),var(--card);}
+.stat.blue .v .n{color:#86B6FF;}
+.stat.green{background:linear-gradient(160deg,rgba(16,185,129,.20),rgba(16,185,129,.05)),var(--card);}
+.stat.green .v .n{color:#5EEAB8;}
+.stat.red{background:linear-gradient(160deg,rgba(239,68,68,.20),rgba(239,68,68,.05)),var(--card);}
+.stat.red .v .n{color:#FF9A9A;}
+.stat .badge{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--muted);}
+
+/* ───── QUESTS ───── */
+.quests{border-radius:22px;padding:18px;background:var(--card);box-shadow:0 12px 30px rgba(0,0,0,.3);}
+.quest{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.quest:last-child{border-bottom:none;padding-bottom:0;}
+.quest:first-of-type{padding-top:4px;}
+.q-ic{width:40px;height:40px;border-radius:12px;background:var(--card-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.quest.done .q-ic{background:rgba(16,185,129,.16);}
+.q-body{flex:1;min-width:0;}
+.q-title{font-size:13.5px;font-weight:800;}
+.quest.done .q-title{color:var(--muted);text-decoration:line-through;}
+.q-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
+.xp-pill{font-family:'Press Start 2P',monospace;font-size:8px;background:rgba(255,122,0,.16);color:#FFB066;padding:6px 8px;border-radius:9px;white-space:nowrap;}
+.quest.done .xp-pill{background:rgba(16,185,129,.16);color:#5EEAB8;}
+.q-check{width:24px;height:24px;border-radius:8px;border:2px solid rgba(255,255,255,.14);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;}
+.quest.done .q-check{background:var(--green);border-color:var(--green);}
+
+/* ───── FAB ───── */
+.fab{
+  position:fixed;bottom:88px;left:calc(50% - 220px + 20px);z-index:30;
+  width:60px;height:60px;border-radius:20px;border:none;cursor:pointer;
+  background:linear-gradient(160deg,#34E0A1,#10B981);
+  color:#04241a;font-size:32px;font-weight:900;line-height:1;
+  box-shadow:0 12px 28px rgba(16,185,129,.5), inset 0 2px 0 rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  animation:floaty 3s ease-in-out infinite;
+}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.fab:active{transform:scale(.92);}
+
+/* ───── BOTTOM NAV ───── */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:440px;z-index:20;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom,0));
+  background:rgba(13,19,34,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted2);font-size:10.5px;font-weight:800;flex:1;padding:6px 0;border-radius:12px;}
+.nav a .ni{font-size:21px;filter:grayscale(.4);opacity:.7;transition:.18s;}
+.nav a.on{color:#FFB066;}
+.nav a.on .ni{filter:none;opacity:1;transform:scale(1.18) translateY(-1px);}
+.nav a.on::before{content:"";position:absolute;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="top">
+    <div class="avatar">
+      <div class="face">🦊</div>
+      <div class="lvl pix">LV 12</div>
+    </div>
+    <div class="hi">
+      <div class="greet">مساء الخير 👋</div>
+      <div class="name">أحمد</div>
+    </div>
+    <div class="coins">
+      <div class="chiprow">
+        <span class="pill flame">🔥 <b>7</b></span>
+        <span class="pill gem">💎 <span dir="ltr">1,240</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- XP BAR -->
+  <div class="xp">
+    <div class="xrow">
+      <span class="xlab">⭐ نقاط الخبرة</span>
+      <span class="xval"><b>320</b> / 500 XP</span>
+    </div>
+    <div class="bar orange"><i style="width:64%"></i></div>
+  </div>
+
+  <!-- DAY SELECTOR -->
+  <div class="days">
+    <div class="day"><span class="dn">السبت</span><span class="dd">14</span></div>
+    <div class="day dot"><span class="dn">الأحد</span><span class="dd">15</span></div>
+    <div class="day"><span class="dn">الإثنين</span><span class="dd">16</span></div>
+    <div class="day dot"><span class="dn">الثلاثاء</span><span class="dd">17</span></div>
+    <div class="day active"><span class="dn">الأربعاء</span><span class="dd">18</span></div>
+    <div class="day"><span class="dn">الخميس</span><span class="dd">19</span></div>
+    <div class="day"><span class="dn">الجمعة</span><span class="dd">20</span></div>
+  </div>
+
+  <!-- SECTION HEAD + TOGGLE -->
+  <div class="shead">
+    <h2>سعراتك اليوم</h2>
+    <div class="toggle">
+      <button class="on">اليوم</button>
+      <button>الأسبوع</button>
+      <button>الشهر</button>
+    </div>
+  </div>
+
+  <!-- HERO CARD -->
+  <div class="hero">
+    <div class="eyebrow">🔥 السعرات المأكولة</div>
+    <div class="big">
+      <span class="n">1,450</span>
+      <span class="of">/ 2,000 سعرة</span>
+    </div>
+    <div class="barwrap"><div class="bar orange"><i style="width:72%"></i></div></div>
+    <div class="chips">
+      <span class="tag left">🎯 متبقي 550</span>
+      <span class="tag burn">🏃 محروق +360</span>
+      <span class="tag eat">🍽️ 3 وجبات</span>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats">
+    <div class="stat blue">
+      <span class="badge">45%</span>
+      <span class="ic">🍖</span>
+      <div class="lab">بروتين</div>
+      <div class="v"><span class="n">75</span><span class="g">/165ج</span></div>
+      <div class="bar blue"><i style="width:45%"></i></div>
+    </div>
+    <div class="stat green">
+      <span class="badge">52%</span>
+      <span class="ic">🌽</span>
+      <div class="lab">كارب</div>
+      <div class="v"><span class="n">115</span><span class="g">/220ج</span></div>
+      <div class="bar green"><i style="width:52%"></i></div>
+    </div>
+    <div class="stat red">
+      <span class="badge">40%</span>
+      <span class="ic">🥑</span>
+      <div class="lab">دهون</div>
+      <div class="v"><span class="n">29</span><span class="g">/73ج</span></div>
+      <div class="bar red"><i style="width:40%"></i></div>
+    </div>
+  </div>
+
+  <!-- QUESTS -->
+  <div class="quests">
+    <div class="shead" style="margin-bottom:6px">
+      <h2 style="font-size:15px">🎯 مهام اليوم</h2>
+      <span class="pill" style="background:rgba(255,255,255,.06);color:var(--muted)"><span class="num" style="font-size:16px;color:#FFB066">1</span>/3</span>
+    </div>
+    <div class="quest done">
+      <div class="q-ic">🍽️</div>
+      <div class="q-body"><div class="q-title">سجّل ٣ وجبات</div><div class="q-sub">اكتمل! أحسنت 🎉</div></div>
+      <span class="xp-pill">+50 XP</span>
+      <div class="q-check">✓</div>
+    </div>
+    <div class="quest">
+      <div class="q-ic">💧</div>
+      <div class="q-body"><div class="q-title">اشرب ٨ أكواب ماء</div><div class="q-sub">5 من 8 أكواب</div></div>
+      <span class="xp-pill">+20 XP</span>
+      <div class="q-check"></div>
+    </div>
+    <div class="quest">
+      <div class="q-ic">🏋️</div>
+      <div class="q-body"><div class="q-title">تمرين ٣٠ دقيقة</div><div class="q-sub">لم يبدأ بعد</div></div>
+      <span class="xp-pill">+80 XP</span>
+      <div class="q-check"></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" aria-label="إضافة">+</button>
+
+  <!-- BOTTOM NAV -->
+  <nav class="nav">
+    <a href="#"><span class="ni">🏠</span>الرئيسية</a>
+    <a href="#" class="on"><span class="ni">🍽️</span>السعرات</a>
+    <a href="#"><span class="ni">🏋️</span>التمارين</a>
+    <a href="#"><span class="ni">🏆</span>إنجازات</a>
+    <a href="#"><span class="ni">👤</span>ملفي</a>
+  </nav>
+
+</div>
+</body>
+</html>
