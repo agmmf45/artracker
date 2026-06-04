@@ -1,5 +1,5 @@
-// v4 - force clear all old caches
-const CACHE = 'artrk-v4';
+// v5 - force clear all old caches
+const CACHE = 'artrk-v5';
 
 self.addEventListener('install', e=>{
   self.skipWaiting();

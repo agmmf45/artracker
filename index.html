@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <script>
 if('serviceWorker' in navigator){
-  const sw='self.addEventListener("fetch",()=>{});';
-  const b=new Blob([sw],{type:'text/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(b)).catch(()=>{});
+  // امسح أي كاش قديم ثم سجّل sw.js (network-only) — يضمن دائماً أحدث نسخة
+  try{ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))); }catch(e){}
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 
 // ── PWA ──────────────────────────────────────
