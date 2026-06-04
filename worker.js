@@ -1,160 +1,227 @@
-// ── دقيق — Cloudflare Worker (/api/* handler) ──────────────────
-// باقي الطلبات (index.html، الأصول) تُخدَّم من ASSETS تلقائياً
-// run_worker_first: ["/api/*"]  →  هذا الملف يعالج طلبات API فقط
+// ════════════════════════════════════════════════
+//  ARTRK — Cloudflare Worker API (D1 backend)
+//  يعالج: التسجيل، الدخول، الجلسة، حفظ/تحميل البيانات، الأصدقاء
+// ════════════════════════════════════════════════
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' };
+const SESSION_DAYS = 60; // مدة بقاء الجلسة قبل أن تنتهي
 
-const json = (d, s = 200) =>
-  new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json', ...CORS } });
-
-const err = (msg, s = 400) => json({ ok: false, error: msg }, s);
-
-// ── تشفير كلمة السر (PBKDF2 — Web Crypto API) ──────────────────
-const enc = new TextEncoder();
-
-async function hashPassword(pw) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key  = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256' }, key, 256);
-  const b64  = (u8) => btoa(String.fromCharCode(...u8));
-  return b64(salt) + ':' + b64(new Uint8Array(bits));
+// ── أدوات مساعدة ──
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), { status, headers: JSON_HEADERS });
 }
 
-async function verifyPassword(pw, stored) {
-  try {
-    const [saltB64, hashB64] = stored.split(':');
-    const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
-    const key  = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256' }, key, 256);
-    const computed = btoa(String.fromCharCode(...new Uint8Array(bits)));
-    return computed === hashB64;
-  } catch { return false; }
+function uid() {
+  return crypto.randomUUID();
 }
 
-function makeToken() {
-  return [...crypto.getRandomValues(new Uint8Array(32))].map(b => b.toString(16).padStart(2, '0')).join('');
+function token() {
+  const a = new Uint8Array(32);
+  crypto.getRandomValues(a);
+  return [...a].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── مساعدات D1 ──────────────────────────────────────────────────
-const getUser   = (DB, email) => DB.prepare('SELECT * FROM users WHERE email=?').bind(email.toLowerCase()).first();
-const getUserId = (DB, id)    => DB.prepare('SELECT * FROM users WHERE id=?').bind(id).first();
-
-async function authUser(DB, authHeader) {
-  if (!authHeader?.startsWith('Bearer ')) return null;
-  const tok  = authHeader.slice(7);
-  const sess = await DB.prepare('SELECT * FROM sessions WHERE token=? AND expires_at>?').bind(tok, Date.now()).first();
-  return sess ? getUserId(DB, sess.user_id) : null;
+// تشفير كلمة السر باستخدام PBKDF2 (آمن)
+async function hashPassword(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
 }
 
-const EXP = () => Date.now() + 30 * 86_400_000; // 30 يوم
-
-async function createSession(DB, userId) {
-  const tok = makeToken();
-  await DB.prepare('INSERT INTO sessions (token,user_id,created_at,expires_at) VALUES (?,?,?,?)')
-          .bind(tok, userId, Date.now(), EXP()).run();
-  return tok;
+async function makePasswordRecord(password) {
+  const salt = token().slice(0, 16);
+  const hash = await hashPassword(password, salt);
+  return `${salt}:${hash}`;
 }
 
-function safeUser(u) { return { id: u.id, email: u.email, name: u.name, data: u.data }; }
-
-function emptyData(name) {
-  return JSON.stringify({
-    display_name: name,
-    code: Math.random().toString(36).slice(2, 8).toUpperCase(),
-    habits_list: [], done: {}, todos: [],
-    wallets: [], transactions: [], expenses: [],
-    _trophies: {}, notes: {}, reminders: [],
-    fitness: {}, nutrition: {},
-  });
+async function verifyPassword(password, record) {
+  const [salt, hash] = (record || '').split(':');
+  if (!salt || !hash) return false;
+  const test = await hashPassword(password, salt);
+  return test === hash;
 }
 
-// ── الراوتر ─────────────────────────────────────────────────────
+// التحقق من الجلسة عبر التوكن
+async function getUserFromToken(env, req) {
+  const auth = req.headers.get('Authorization') || '';
+  const t = auth.replace('Bearer ', '').trim();
+  if (!t) return null;
+  const row = await env.DB.prepare(
+    'SELECT s.user_id, u.email, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?'
+  ).bind(t).first();
+  if (!row) return null;
+  return { id: row.user_id, email: row.email, name: row.name };
+}
+
+// ── المعالج الرئيسي ──
 export default {
   async fetch(req, env) {
-    const { pathname: path } = new URL(req.url);
+    const url = new URL(req.url);
+    const path = url.pathname.replace(/^\/api\//, '');
 
-    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-    if (!path.startsWith('/api/')) return env.ASSETS.fetch(req);
-
-    const DB = env.DB;
-    if (!DB) return err('DB binding missing — check wrangler.jsonc', 500);
+    // CORS preflight (في حال احتجته)
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      });
+    }
 
     let body = {};
-    try { body = await req.json(); } catch {}
-
-    // ── /api/register ─────────────────────────────────────────
-    if (path === '/api/register') {
-      const { email, password, name } = body;
-      if (!email || !password) return err('البريد وكلمة السر مطلوبان');
-      if (await getUser(DB, email))  return err('هذا البريد مسجّل مسبقاً');
-
-      const id            = crypto.randomUUID();
-      const password_hash = await hashPassword(password);
-      const displayName   = name || email.split('@')[0];
-
-      await DB.prepare(
-        'INSERT INTO users (id,email,password_hash,name,data,updated_at) VALUES (?,?,?,?,?,?)'
-      ).bind(id, email.toLowerCase(), password_hash, displayName, emptyData(displayName), Date.now()).run();
-
-      const tok = await createSession(DB, id);
-      const user = await getUserId(DB, id);
-      return json({ ok: true, token: tok, user: safeUser(user) });
+    if (req.method === 'POST') {
+      try { body = await req.json(); } catch { body = {}; }
     }
 
-    // ── /api/login ────────────────────────────────────────────
-    if (path === '/api/login') {
-      const { email, password } = body;
-      if (!email || !password) return err('البريد وكلمة السر مطلوبان');
-      const user = await getUser(DB, email);
-      if (!user) return err('البريد أو كلمة السر غلط');
-      if (!(await verifyPassword(password, user.password_hash))) return err('البريد أو كلمة السر غلط');
+    try {
+      // ════════ التسجيل ════════
+      if (path === 'signup') {
+        const email = (body.email || '').trim().toLowerCase();
+        const password = body.password || '';
+        const name = (body.name || email).trim();
+        if (!email || !password) return json({ error: 'الإيميل وكلمة السر مطلوبة' }, 400);
+        if (password.length < 6) return json({ error: 'كلمة السر 6 أحرف على الأقل' }, 400);
 
-      const tok = await createSession(DB, user.id);
-      return json({ ok: true, token: tok, user: safeUser(user) });
+        const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+        if (existing) return json({ error: 'الإيميل مسجّل مسبقاً' }, 409);
+
+        const id = uid();
+        const pwRecord = await makePasswordRecord(password);
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          'INSERT INTO users (id, email, password_hash, name, data, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+        ).bind(id, email, pwRecord, name, '{}', now).run();
+
+        const t = token();
+        await env.DB.prepare(
+          'INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)'
+        ).bind(t, id, now, new Date(Date.now() + SESSION_DAYS * 864e5).toISOString()).run();
+
+        return json({ token: t, user: { id, email, name } });
+      }
+
+      // ════════ الدخول ════════
+      if (path === 'login') {
+        const email = (body.email || '').trim().toLowerCase();
+        const password = body.password || '';
+        if (!email || !password) return json({ error: 'الإيميل وكلمة السر مطلوبة' }, 400);
+
+        const u = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
+        if (!u) return json({ error: 'الإيميل غير مسجّل' }, 404);
+
+        const ok = await verifyPassword(password, u.password_hash);
+        if (!ok) return json({ error: 'كلمة السر غلط' }, 401);
+
+        const t = token();
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          'INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)'
+        ).bind(t, u.id, now, new Date(Date.now() + SESSION_DAYS * 864e5).toISOString()).run();
+
+        return json({ token: t, user: { id: u.id, email: u.email, name: u.name } });
+      }
+
+      // ════════ فحص الجلسة ════════
+      if (path === 'session') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'no session' }, 401);
+        return json({ user });
+      }
+
+      // ════════ الخروج ════════
+      if (path === 'logout') {
+        const auth = req.headers.get('Authorization') || '';
+        const t = auth.replace('Bearer ', '').trim();
+        if (t) await env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(t).run();
+        return json({ ok: true });
+      }
+
+      // ════════ تحميل بيانات المستخدم ════════
+      if (path === 'load') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const row = await env.DB.prepare('SELECT data FROM users WHERE id = ?').bind(user.id).first();
+        let data = {};
+        try { data = JSON.parse(row?.data || '{}'); } catch { data = {}; }
+        return json({ data });
+      }
+
+      // ════════ حفظ بيانات المستخدم ════════
+      if (path === 'save') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const data = body.data || {};
+        const name = body.name || user.name || user.email;
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          'UPDATE users SET data = ?, name = ?, updated_at = ? WHERE id = ?'
+        ).bind(JSON.stringify(data), name, now, user.id).run();
+        return json({ ok: true });
+      }
+
+      // ════════ كل المستخدمين (للأصدقاء) ════════
+      if (path === 'users') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const { results } = await env.DB.prepare('SELECT name, data, updated_at FROM users').all();
+        const users = (results || []).map(r => {
+          let d = {};
+          try { d = JSON.parse(r.data || '{}'); } catch {}
+          return { name: r.name, ...d, updated_at: r.updated_at };
+        });
+        return json({ users });
+      }
+
+      // ════════ معرّف مستخدم عبر كود الصديق ════════
+      if (path === 'user-by-code') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const code = body.code || '';
+        const { results } = await env.DB.prepare('SELECT id, data FROM users').all();
+        const found = (results || []).find(r => {
+          try { return JSON.parse(r.data || '{}').friend_code === code; } catch { return false; }
+        });
+        return json({ id: found?.id || null });
+      }
+
+      // ════════ تحديث بيانات صديق (لقبول الطلبات) ════════
+      if (path === 'update-user') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const targetId = body.targetId;
+        const data = body.data || {};
+        if (!targetId) return json({ error: 'targetId required' }, 400);
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          'UPDATE users SET data = ?, updated_at = ? WHERE id = ?'
+        ).bind(JSON.stringify(data), now, targetId).run();
+        return json({ ok: true });
+      }
+
+      // ════════ تغيير كلمة السر ════════
+      if (path === 'change-password') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const newPassword = body.newPassword || '';
+        if (newPassword.length < 6) return json({ error: 'كلمة السر 6 أحرف على الأقل' }, 400);
+        const pwRecord = await makePasswordRecord(newPassword);
+        await env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+          .bind(pwRecord, user.id).run();
+        return json({ ok: true });
+      }
+
+      return json({ error: 'not found: ' + path }, 404);
+
+    } catch (e) {
+      return json({ error: 'server error: ' + e.message }, 500);
     }
-
-    // ── /api/check ────────────────────────────────────────────
-    if (path === '/api/check') {
-      const user = await authUser(DB, req.headers.get('Authorization'));
-      if (!user) return err('غير مصادَق', 401);
-      const tok = await createSession(DB, user.id);
-      return json({ ok: true, token: tok, user: safeUser(user) });
-    }
-
-    // ── /api/save ─────────────────────────────────────────────
-    if (path === '/api/save') {
-      const user = await authUser(DB, req.headers.get('Authorization'));
-      if (!user) return err('غير مصادَق', 401);
-      const { data } = body;
-      if (!data) return err('data مطلوب');
-      const raw = typeof data === 'string' ? data : JSON.stringify(data);
-      await DB.prepare('UPDATE users SET data=?,updated_at=? WHERE id=?').bind(raw, Date.now(), user.id).run();
-      return json({ ok: true });
-    }
-
-    // ── /api/users ────────────────────────────────────────────
-    if (path === '/api/users') {
-      const user = await authUser(DB, req.headers.get('Authorization'));
-      if (!user) return err('غير مصادَق', 401);
-      const all = await DB.prepare('SELECT id,email,name,data FROM users').all();
-      return json({ ok: true, users: all.results });
-    }
-
-    // ── /api/reset ────────────────────────────────────────────
-    if (path === '/api/reset') {
-      const user = await authUser(DB, req.headers.get('Authorization'));
-      if (!user) return err('غير مصادَق', 401);
-      const { password } = body;
-      if (!password) return err('كلمة السر مطلوبة');
-      if (!(await verifyPassword(password, user.password_hash))) return err('كلمة السر غلط');
-      await DB.prepare('UPDATE users SET data=?,updated_at=? WHERE id=?').bind(emptyData(user.name), Date.now(), user.id).run();
-      return json({ ok: true });
-    }
-
-    return err('مسار غير موجود', 404);
-  },
+  }
 };
