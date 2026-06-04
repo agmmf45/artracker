@@ -4,6 +4,10 @@ fonts/
 # نسخة احتياطية محلية
 index.original.backup.html
 
+# أدوات توليد محلية (لا تُنشر)
+icon-gen.html
+save-server.js
+
 # ملفات النظام/المحرر
 .DS_Store
 Thumbs.db
