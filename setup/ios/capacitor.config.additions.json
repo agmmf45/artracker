@@ -1,0 +1,14 @@
+{
+  "_comment": "Merge these keys into the root capacitor.config.json",
+
+  "plugins": {
+    "BackgroundRunner": {
+      "label":     "com.daqeeq.healthsync.runner",
+      "src":       "health-sync/runner.js",
+      "event":     "healthSync",
+      "repeat":    true,
+      "interval":  30,
+      "autoStart": true
+    }
+  }
+}

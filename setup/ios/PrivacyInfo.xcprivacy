@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Apple Privacy Manifest — REQUIRED for App Store submission since iOS 17.
+  Path: ios/App/App/PrivacyInfo.xcprivacy
+
+  Apple will reject apps without this file if they access privacy-relevant APIs.
+  HealthKit data is classified as sensitive — must declare usage here.
+
+  Docs: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+-->
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyCollectedDataTypes</key>
+  <array>
+
+    <!-- Health & Fitness data -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeHealth</string>
+
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <!-- AppFunctionality: we sync data the user explicitly entered -->
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+      </array>
+    </dict>
+
+    <!-- Fitness data (steps, workouts) -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeFitness</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+      </array>
+    </dict>
+
+  </array>
+
+  <!-- Declare which privacy-sensitive APIs this app uses -->
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+
+    <!-- UserDefaults — used for sync cursor + dedup cache -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>CA92.1</string> <!-- App-defined user state storage -->
+      </array>
+    </dict>
+
+    <!-- File timestamp APIs — Capacitor uses these internally -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>C617.1</string>
+      </array>
+    </dict>
+
+  </array>
+
+  <!-- This app does NOT track users across apps/websites -->
+  <key>NSPrivacyTracking</key>
+  <false/>
+
+</dict>
+</plist>

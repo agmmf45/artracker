@@ -1,0 +1,11 @@
+<!--
+  Merge into: android/app/src/main/res/values/strings.xml
+  Arabic strings required for Health Connect integration.
+-->
+<resources>
+  <string name="privacy_policy_title">سياسة الخصوصية</string>
+  <string name="health_connect_rationale">
+    يستخدم دقيق Health Connect لمزامنة تمارينك، وزنك، وتغذيتك بشكل آمن على جهازك.
+    لا تُشارك بياناتك الصحية مع أي طرف خارجي.
+  </string>
+</resources>

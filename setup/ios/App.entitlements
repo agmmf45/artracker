@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements file for دقيق iOS app.
+  Path after cap add ios: ios/App/App/App.entitlements
+  (Xcode → Target → Signing & Capabilities → + HealthKit to create this automatically,
+   then verify these keys are present.)
+-->
+<plist version="1.0">
+<dict>
+  <!-- HealthKit entitlement — required for any HealthKit access -->
+  <key>com.apple.developer.healthkit</key>
+  <true/>
+
+  <!-- Background delivery — allows Health to wake your app when new data arrives -->
+  <key>com.apple.developer.healthkit.background-delivery</key>
+  <true/>
+
+  <!-- Required for Capacitor BackgroundRunner BGProcessingTask -->
+  <key>com.apple.developer.background-tasks.scheduler</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دقيق — Health Sync Tests</title>
+<style>
+  body { font-family: monospace; background: #0C1322; color: #F1F5F9; padding: 24px; line-height: 1.7; }
+  h1   { color: #38BDF8; font-size: 20px; margin-bottom: 16px; }
+  pre  { white-space: pre-wrap; font-size: 14px; }
+  .pass { color: #22C55E; } .fail { color: #F26D6D; } .info { color: #7C8BA5; }
+</style>
+</head>
+<body>
+<h1>🧪 Health Sync Test Suite</h1>
+<pre id="test-output"><span class="info">Loading…</span></pre>
+
+<!-- Engine must load before tests -->
+<script>window.Capacitor = null;</script>
+<script src="health-sync.js"></script>
+<script src="health-sync.test.js"></script>
+<script>
+  // Colorize output
+  var out = document.getElementById('test-output');
+  if (out) {
+    out.innerHTML = out.textContent
+      .replace(/✅[^\n]*/g,  function(m){ return '<span class="pass">'+m+'</span>'; })
+      .replace(/❌[^\n]*/g,  function(m){ return '<span class="fail">'+m+'</span>'; })
+      .replace(/📦[^\n]*/g,  function(m){ return '<b>'+m+'</b>'; })
+      .replace(/💥[^\n]*/g,  function(m){ return '<span class="fail">'+m+'</span>'; })
+      .replace(/🎉[^\n]*/g,  function(m){ return '<span class="pass"><b>'+m+'</b></span>'; });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Info.plist additions for HealthKit integration.
+  Merge these keys into ios/App/App/Info.plist after running: npx cap add ios
+
+  Apple will REJECT your app without these strings.
+  They appear in the system permission dialog shown to the user.
+-->
+<dict>
+  <!-- HealthKit: read permission rationale -->
+  <key>NSHealthShareUsageDescription</key>
+  <string>يستخدم دقيق Apple Health لمزامنة تمارينك، وزنك، وسعراتك — بياناتك تبقى على جهازك فقط.</string>
+
+  <!-- HealthKit: write permission rationale -->
+  <key>NSHealthUpdateUsageDescription</key>
+  <string>يحتاج دقيق حفظ جلسات التمرين والوزن في Apple Health حتى تظهر في تطبيقات الصحة الأخرى.</string>
+
+  <!-- Background App Refresh (required for BackgroundRunner) -->
+  <key>BGTaskSchedulerPermittedIdentifiers</key>
+  <array>
+    <string>com.daqeeq.healthsync.runner</string>
+  </array>
+
+  <!-- UIBackgroundModes: fetch enables periodic background wake -->
+  <key>UIBackgroundModes</key>
+  <array>
+    <string>fetch</string>
+    <string>processing</string>
+  </array>
+</dict>

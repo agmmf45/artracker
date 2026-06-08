@@ -216,17 +216,20 @@
   var ConflictResolver = (function () {
 
     function resolveWorkout(appRecord, healthRecord) {
-      // If the app record has a sourceId matching the health record, they're the same
-      if (appRecord.sourceId && appRecord.sourceId === (healthRecord.uuid || healthRecord.metadata && healthRecord.metadata.id)) {
+      // sourceId match → definitive duplicate (record came from this platform originally)
+      if (appRecord.sourceId && appRecord.sourceId === (
+            healthRecord.uuid ||
+            (healthRecord.metadata && healthRecord.metadata.id))) {
         return 'duplicate';
       }
-      // Same date, similar duration (±5 min) and same type → likely duplicate
+      // Same date + similar duration (±5 min) → likely the same session.
+      // We intentionally omit a name check: names differ across sources
+      // (e.g. app "Push" vs HealthKit "Traditional Strength Training").
       if (appRecord.date === healthRecord.date &&
-          Math.abs((appRecord.duration || 0) - (healthRecord.duration || 0)) <= 5 &&
-          appRecord.name === healthRecord.name) {
+          Math.abs((appRecord.duration || 0) - (healthRecord.duration || 0)) <= 5) {
         return 'duplicate';
       }
-      // Different records from the same day — keep both
+      // Different records — keep both
       return 'keep_both';
     }
 
@@ -576,6 +579,8 @@
         syncNutrition: true,
         syncWeight:    true,
         syncSteps:     true,
+        syncWater:     true,
+        syncHeartRate: true,
       },
       lastSyncAt:   null,
       lastError:    null,
@@ -863,10 +868,187 @@
       return added;
     }
 
+    // ── Pull: Steps (READ-ONLY from both platforms) ───────
+    // Apple Health does not allow third-party apps to write step count.
+    // Health Connect allows writing steps but we treat it as read-only
+    // to avoid inflating counts from our own data re-entry.
+    async function _pullSteps(since, until) {
+      if (!_state.prefs.syncSteps) return 0;
+      var plugin  = PlatformBridge.getHealthPlugin();
+      var plat    = _state.platform;
+      var added   = 0;
+
+      try {
+        var records = [];
+
+        if (plat === 'ios') {
+          // Aggregate by day using statistics collection query
+          var r = await plugin.queryStatisticsCollection({
+            quantityType:       'HKQuantityTypeIdentifierStepCount',
+            startDate:          since,
+            endDate:            until,
+            anchorDate:         since,
+            intervalComponents: { day: 1 },
+            statisticsOptions:  ['cumulativeSum'],
+          });
+          records = r && r.statistics ? r.statistics : [];
+        } else {
+          var r2 = await plugin.aggregateRecord({
+            type:            'Steps',
+            startTime:       since,
+            endTime:         until,
+            timeRangeSlicer: { type: 'duration', period: 'DAYS', duration: 1 },
+          });
+          records = r2 && r2.bucketByTime ? r2.bucketByTime : [];
+        }
+
+        if (!window.myData) return 0;
+        if (!window.myData.health_steps) window.myData.health_steps = {};
+
+        records.forEach(function (rec) {
+          var date, count;
+
+          if (plat === 'ios') {
+            date  = new Date(rec.startDate).toISOString().split('T')[0];
+            count = Math.round(rec.sumQuantity || rec.sum || 0);
+          } else {
+            date  = new Date(rec.startTime).toISOString().split('T')[0];
+            count = Math.round((rec.result && rec.result.count) || 0);
+          }
+
+          if (!date || count <= 0) return;
+
+          var hash = DedupGuard.buildHash('steps', DATA_TYPE.STEPS, null, date, count);
+          if (DedupGuard.isSeen(hash)) return;
+
+          // Keep the higher value for the day (authoritative source wins)
+          var existing = window.myData.health_steps[date] || 0;
+          if (count > existing) {
+            window.myData.health_steps[date] = count;
+            DedupGuard.markSeen(hash, 'pull', DATA_TYPE.STEPS);
+            added++;
+          }
+        });
+      } catch (err) {
+        console.warn('[HealthSync] pullSteps error:', err.message);
+      }
+      return added;
+    }
+
+    // ── Pull: Heart Rate (READ-ONLY, attached to workouts) ─
+    async function _pullHeartRate(since, until) {
+      var plugin = PlatformBridge.getHealthPlugin();
+      var plat   = _state.platform;
+
+      try {
+        var records = [];
+
+        if (plat === 'ios') {
+          var r = await plugin.querySampleType({
+            sampleType: 'HKQuantityTypeIdentifierHeartRate',
+            startDate: since, endDate: until, limit: 500, ascending: false,
+          });
+          records = r && r.samples ? r.samples : [];
+        } else {
+          var r2 = await plugin.readRecords({
+            type: 'HeartRate',
+            timeRangeFilter: { type: 'between', startTime: since, endTime: until },
+          });
+          records = r2 && r2.records ? r2.records : [];
+        }
+
+        if (!window.myData) return;
+        if (!window.myData.health_hr) window.myData.health_hr = {};
+
+        records.forEach(function (rec) {
+          var date, bpm;
+
+          if (plat === 'ios') {
+            date = new Date(rec.endDate).toISOString().split('T')[0];
+            bpm  = Math.round(rec.quantity || 0);
+          } else {
+            date = new Date(rec.time || rec.startTime).toISOString().split('T')[0];
+            bpm  = Math.round((rec.samples && rec.samples[0] && rec.samples[0].beatsPerMinute) || 0);
+          }
+
+          if (!date || bpm <= 0 || bpm > 300) return;
+
+          // Store as { avg, max, min } per day
+          var day = window.myData.health_hr[date] || { avg: 0, max: 0, min: 999, samples: 0 };
+          day.samples++;
+          day.max = Math.max(day.max, bpm);
+          day.min = Math.min(day.min, bpm);
+          day.avg = Math.round(((day.avg * (day.samples - 1)) + bpm) / day.samples);
+          window.myData.health_hr[date] = day;
+        });
+      } catch (err) {
+        console.warn('[HealthSync] pullHeartRate error:', err.message);
+      }
+    }
+
+    // ── Push + Pull: Water intake ─────────────────────────
+    async function _pushWater(nutritionLog) {
+      if (!_state.prefs.syncNutrition || !nutritionLog) return { pushed: 0 };
+      var plugin  = PlatformBridge.getHealthPlugin();
+      var plat    = _state.platform;
+      var pushed  = 0;
+
+      var dates = Object.keys(nutritionLog);
+      for (var di = 0; di < dates.length; di++) {
+        var date  = dates[di];
+        var meals = nutritionLog[date] || [];
+
+        // Aggregate water for the day (stored in meal items with type 'water')
+        var waterMl = meals.reduce(function (sum, m) {
+          return (m.type === 'water' || m.name === 'ماء' || m.name === 'water')
+            ? sum + (m.water_ml || m.cal || 0)   // cal field reused for ml in water entries
+            : sum;
+        }, 0);
+
+        if (waterMl <= 0) continue;
+
+        var hash = DedupGuard.buildHash('push', DATA_TYPE.WATER, null, date, waterMl);
+        if (DedupGuard.isSeen(hash)) continue;
+
+        try {
+          var ts = date + 'T12:00:00.000Z';
+
+          if (plat === 'ios') {
+            await plugin.saveQuantitySample({
+              type:  'HKQuantityTypeIdentifierDietaryWater',
+              value: waterMl / 1000,   // HealthKit uses liters
+              unit:  'liter',
+              date:  ts,
+            });
+          } else {
+            await plugin.insertRecords({ records: [{
+              type:      'Hydration',
+              startTime: ts,
+              endTime:   new Date(new Date(ts).getTime() + 60000).toISOString(),
+              volume:    { value: waterMl, unit: 'milliliters' },
+            }] });
+          }
+
+          DedupGuard.markSeen(hash, plat, DATA_TYPE.WATER);
+          _state.pendingHashes.push({ hash: hash, type: DATA_TYPE.WATER, source: plat });
+          pushed++;
+        } catch (err) {
+          console.warn('[HealthSync] pushWater error:', err.message);
+          SyncQueue.push(DATA_TYPE.WATER, 'push', { date: date, waterMl: waterMl });
+        }
+      }
+      return { pushed };
+    }
+
     // ── Queue handler ─────────────────────────────────────
     async function _executeQueuedOp(op) {
       if (op.type === DATA_TYPE.WORKOUT)    return _pushWorkouts([op.data]);
       if (op.type === DATA_TYPE.BODYWEIGHT) return _pushBodyWeight([op.data]);
+      if (op.type === DATA_TYPE.WATER) {
+        var wLog = {};
+        wLog[op.data.date] = [{ type: 'water', water_ml: op.data.waterMl }];
+        return _pushWater(wLog);
+      }
       if (op.type === DATA_TYPE.NUTRITION)  {
         var log = {};
         log[op.data.date] = [op.data.meal];
@@ -918,18 +1100,21 @@
         await SyncQueue.flushAll(_executeQueuedOp).catch(function () {});
 
         // ── 2. Push app data → health platform ───────────
-        var fd     = window.myData.fitness || {};
-        var nutri  = window.myData.nutrition || {};
+        var fd    = window.myData.fitness   || {};
+        var nutri = window.myData.nutrition || {};
 
-        var woRes  = await _pushWorkouts(fd.workouts || []);
+        var woRes  = await _pushWorkouts(fd.workouts   || []);
         var bwRes  = await _pushBodyWeight(fd.bodyweight || []);
-        var nuRes  = await _pushNutrition(nutri.log || {});
-        totalPushed = woRes.pushed + bwRes.pushed + nuRes.pushed;
+        var nuRes  = await _pushNutrition(nutri.log    || {});
+        var waRes  = await _pushWater(nutri.log        || {});
+        totalPushed = woRes.pushed + bwRes.pushed + nuRes.pushed + waRes.pushed;
 
         // ── 3. Pull health platform → app ────────────────
         var woAdded = await _pullWorkouts(since, until);
         var bwAdded = await _pullBodyWeight(since, until);
-        totalPulled = woAdded + bwAdded;
+        var stAdded = await _pullSteps(since, until);
+        await _pullHeartRate(since, until);          // mutates myData.health_hr in-place
+        totalPulled = woAdded + bwAdded + stAdded;
 
         // ── 4. Persist merged data ────────────────────────
         if (totalPulled > 0) {
@@ -963,6 +1148,78 @@
       return { pushed: totalPushed, pulled: totalPulled, error: errorMsg };
     }
 
+    // ── Consume BackgroundRunner payload (iOS) ────────────
+    // runner.js stores a payload in CapacitorKV while in the background.
+    // We read it on foreground and merge it into myData without a full sync.
+    async function consumeRunnerPayload() {
+      var KV = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorKV;
+      if (!KV) return 0;
+      try {
+        var stored = await KV.get({ key: 'daqeeq_bg_payload' });
+        if (!stored || !stored.value) return 0;
+        var payload = JSON.parse(stored.value);
+        await KV.remove({ key: 'daqeeq_bg_payload' });
+
+        if (!window.myData) return 0;
+        var added = 0;
+        var fd = window.myData.fitness || { workouts: [], bodyweight: [], programs: [], prs: {} };
+
+        // Merge workouts
+        (payload.workouts || []).forEach(function (rec) {
+          var wo = HealthMapper.healthKitWorkoutToApp(rec);
+          var hash = DedupGuard.buildHash('runner', DATA_TYPE.WORKOUT, wo.sourceId, wo.date, wo.duration);
+          if (DedupGuard.isSeen(hash)) return;
+          var dup = (fd.workouts || []).some(function (w) {
+            return ConflictResolver.resolveWorkout(w, wo) === 'duplicate';
+          });
+          if (!dup) {
+            fd.workouts = fd.workouts || [];
+            fd.workouts.push(wo);
+            DedupGuard.markSeen(hash, 'runner', DATA_TYPE.WORKOUT);
+            added++;
+          }
+        });
+
+        // Merge weights
+        (payload.weights || []).forEach(function (rec) {
+          var entry = HealthMapper.healthKitWeightToApp(rec);
+          if (!entry.w || entry.w < 20 || entry.w > 500) return;
+          var hash = DedupGuard.buildHash('runner', DATA_TYPE.BODYWEIGHT, entry.sourceId, entry.date, entry.w);
+          if (DedupGuard.isSeen(hash)) return;
+          var exists = (fd.bodyweight || []).some(function (e) { return e.date === entry.date; });
+          if (!exists) {
+            fd.bodyweight = fd.bodyweight || [];
+            fd.bodyweight.push(entry);
+            DedupGuard.markSeen(hash, 'runner', DATA_TYPE.BODYWEIGHT);
+            added++;
+          }
+        });
+
+        // Merge steps
+        if (!window.myData.health_steps) window.myData.health_steps = {};
+        (payload.steps || []).forEach(function (s) {
+          var date  = new Date(s.date).toISOString().split('T')[0];
+          var count = Math.round(s.count || 0);
+          if (!date || count <= 0) return;
+          if (count > (window.myData.health_steps[date] || 0)) {
+            window.myData.health_steps[date] = count;
+            added++;
+          }
+        });
+
+        window.myData.fitness = fd;
+        if (added > 0 && typeof window.saveMyData === 'function') {
+          await window.saveMyData();
+          try { window.renderFitDashboard && window.renderFitDashboard(); } catch (_) {}
+        }
+        console.info('[HealthSync] Runner payload merged:', added, 'records');
+        return added;
+      } catch (err) {
+        console.warn('[HealthSync] consumeRunnerPayload error:', err.message);
+        return 0;
+      }
+    }
+
     // ── Called once after login / app start ───────────────
     async function onAppStart() {
       if (!_state.prefs.enabled) return;
@@ -971,13 +1228,17 @@
       var granted = await PermissionManager.isGranted();
       if (!granted) return;
 
-      // Small delay so the app finishes rendering first
+      // 1. Instantly consume any payload the background runner collected
+      consumeRunnerPayload().catch(function () {});
+
+      // 2. Full sync after a short delay (UI renders first)
       setTimeout(function () {
         syncAll('startup').catch(function () {});
       }, 3000);
     }
 
     return {
+      consumeRunnerPayload,
       init,
       syncAll,
       onAppStart,

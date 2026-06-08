@@ -1,0 +1,55 @@
+<!--
+  AndroidManifest.xml additions for Health Connect integration.
+  Merge into: android/app/src/main/AndroidManifest.xml
+
+  Google will REJECT Play Store submissions without the privacy policy Activity.
+  Health Connect permissions are declared here AND in capacitor-health-connect plugin.
+-->
+
+<!-- Add inside <manifest> root: -->
+<uses-permission android:name="android.permission.health.READ_EXERCISE"/>
+<uses-permission android:name="android.permission.health.WRITE_EXERCISE"/>
+<uses-permission android:name="android.permission.health.READ_NUTRITION"/>
+<uses-permission android:name="android.permission.health.WRITE_NUTRITION"/>
+<uses-permission android:name="android.permission.health.READ_WEIGHT"/>
+<uses-permission android:name="android.permission.health.WRITE_WEIGHT"/>
+<uses-permission android:name="android.permission.health.READ_STEPS"/>
+<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+<uses-permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED"/>
+<uses-permission android:name="android.permission.health.READ_DISTANCE"/>
+<uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
+<uses-permission android:name="android.permission.health.READ_HYDRATION"/>
+<uses-permission android:name="android.permission.health.WRITE_HYDRATION"/>
+<!-- RECEIVE_BOOT_COMPLETED: re-register Health Connect background tasks after reboot -->
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+<!-- Add inside <application>: -->
+
+<!--
+  Privacy Policy Activity — REQUIRED by Google for Health Connect.
+  Create a simple WebView Activity or point to your privacy policy URL.
+  This Activity must handle the intent below.
+-->
+<activity
+    android:name=".PrivacyPolicyActivity"
+    android:exported="true"
+    android:label="@string/privacy_policy_title">
+  <intent-filter>
+    <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>
+  </intent-filter>
+</activity>
+
+<!--
+  Health Connect permission rationale intent for Android 14+.
+  Registers the package as a Health Connect data source.
+-->
+<activity-alias
+    android:name="ViewPermissionUsageActivity"
+    android:exported="true"
+    android:targetActivity=".PrivacyPolicyActivity"
+    android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+  <intent-filter>
+    <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
+    <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
+  </intent-filter>
+</activity-alias>
