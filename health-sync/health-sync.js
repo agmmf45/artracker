@@ -25,7 +25,6 @@
     WORKOUT:    'workout',
     NUTRITION:  'nutrition',
     BODYWEIGHT: 'bodyweight',
-    STEPS:      'steps',
     WATER:      'water',
   };
 
@@ -486,7 +485,6 @@
       'android.permission.health.READ_WEIGHT',
       'android.permission.health.READ_STEPS',
       'android.permission.health.READ_ACTIVE_CALORIES_BURNED',
-      'android.permission.health.READ_DISTANCE',
       'android.permission.health.READ_HYDRATION',
     ];
 
@@ -576,7 +574,6 @@
         syncWorkout:   true,
         syncNutrition: true,
         syncWeight:    true,
-        syncSteps:     true,
         syncWater:     true,
       },
       lastSyncAt:   null,
@@ -865,92 +862,18 @@
       return added;
     }
 
-    // ── Pull: Steps (READ-ONLY from both platforms) ───────
-    // Apple Health does not allow third-party apps to write step count.
-    // Health Connect allows writing steps but we treat it as read-only
-    // to avoid inflating counts from our own data re-entry.
-    async function _pullSteps(since, until) {
-      if (!_state.prefs.syncSteps) return 0;
-      var plugin  = PlatformBridge.getHealthPlugin();
-      var plat    = _state.platform;
-      var added   = 0;
+    // ── Push: Water intake → Health Platform ─────────────
+    // waterLog = myData.nutrition.water  e.g. { '2025-06-01': 1750 }
+    async function _pushWater(waterLog) {
+      if (!_state.prefs.syncWater || !waterLog) return { pushed: 0 };
+      var plugin = PlatformBridge.getHealthPlugin();
+      var plat   = _state.platform;
+      var pushed = 0;
 
-      try {
-        var records = [];
-
-        if (plat === 'ios') {
-          // Aggregate by day using statistics collection query
-          var r = await plugin.queryStatisticsCollection({
-            quantityType:       'HKQuantityTypeIdentifierStepCount',
-            startDate:          since,
-            endDate:            until,
-            anchorDate:         since,
-            intervalComponents: { day: 1 },
-            statisticsOptions:  ['cumulativeSum'],
-          });
-          records = r && r.statistics ? r.statistics : [];
-        } else {
-          var r2 = await plugin.aggregateRecord({
-            type:            'Steps',
-            startTime:       since,
-            endTime:         until,
-            timeRangeSlicer: { type: 'duration', period: 'DAYS', duration: 1 },
-          });
-          records = r2 && r2.bucketByTime ? r2.bucketByTime : [];
-        }
-
-        if (!window.myData) return 0;
-        if (!window.myData.health_steps) window.myData.health_steps = {};
-
-        records.forEach(function (rec) {
-          var date, count;
-
-          if (plat === 'ios') {
-            date  = new Date(rec.startDate).toISOString().split('T')[0];
-            count = Math.round(rec.sumQuantity || rec.sum || 0);
-          } else {
-            date  = new Date(rec.startTime).toISOString().split('T')[0];
-            count = Math.round((rec.result && rec.result.count) || 0);
-          }
-
-          if (!date || count <= 0) return;
-
-          var hash = DedupGuard.buildHash('steps', DATA_TYPE.STEPS, null, date, count);
-          if (DedupGuard.isSeen(hash)) return;
-
-          // Keep the higher value for the day (authoritative source wins)
-          var existing = window.myData.health_steps[date] || 0;
-          if (count > existing) {
-            window.myData.health_steps[date] = count;
-            DedupGuard.markSeen(hash, 'pull', DATA_TYPE.STEPS);
-            added++;
-          }
-        });
-      } catch (err) {
-        console.warn('[HealthSync] pullSteps error:', err.message);
-      }
-      return added;
-    }
-
-    // ── Push + Pull: Water intake ─────────────────────────
-    async function _pushWater(nutritionLog) {
-      if (!_state.prefs.syncNutrition || !nutritionLog) return { pushed: 0 };
-      var plugin  = PlatformBridge.getHealthPlugin();
-      var plat    = _state.platform;
-      var pushed  = 0;
-
-      var dates = Object.keys(nutritionLog);
+      var dates = Object.keys(waterLog);
       for (var di = 0; di < dates.length; di++) {
-        var date  = dates[di];
-        var meals = nutritionLog[date] || [];
-
-        // Aggregate water for the day (stored in meal items with type 'water')
-        var waterMl = meals.reduce(function (sum, m) {
-          return (m.type === 'water' || m.name === 'ماء' || m.name === 'water')
-            ? sum + (m.water_ml || m.cal || 0)   // cal field reused for ml in water entries
-            : sum;
-        }, 0);
-
+        var date    = dates[di];
+        var waterMl = waterLog[date] || 0;
         if (waterMl <= 0) continue;
 
         var hash = DedupGuard.buildHash('push', DATA_TYPE.WATER, null, date, waterMl);
@@ -958,11 +881,10 @@
 
         try {
           var ts = date + 'T12:00:00.000Z';
-
           if (plat === 'ios') {
             await plugin.saveQuantitySample({
               type:  'HKQuantityTypeIdentifierDietaryWater',
-              value: waterMl / 1000,   // HealthKit uses liters
+              value: waterMl / 1000,
               unit:  'liter',
               date:  ts,
             });
@@ -974,7 +896,6 @@
               volume:    { value: waterMl, unit: 'milliliters' },
             }] });
           }
-
           DedupGuard.markSeen(hash, plat, DATA_TYPE.WATER);
           _state.pendingHashes.push({ hash: hash, type: DATA_TYPE.WATER, source: plat });
           pushed++;
@@ -992,7 +913,7 @@
       if (op.type === DATA_TYPE.BODYWEIGHT) return _pushBodyWeight([op.data]);
       if (op.type === DATA_TYPE.WATER) {
         var wLog = {};
-        wLog[op.data.date] = [{ type: 'water', water_ml: op.data.waterMl }];
+        wLog[op.data.date] = op.data.waterMl;
         return _pushWater(wLog);
       }
       if (op.type === DATA_TYPE.NUTRITION)  {
@@ -1049,17 +970,16 @@
         var fd    = window.myData.fitness   || {};
         var nutri = window.myData.nutrition || {};
 
-        var woRes  = await _pushWorkouts(fd.workouts   || []);
+        var woRes  = await _pushWorkouts(fd.workouts    || []);
         var bwRes  = await _pushBodyWeight(fd.bodyweight || []);
-        var nuRes  = await _pushNutrition(nutri.log    || {});
-        var waRes  = await _pushWater(nutri.log        || {});
+        var nuRes  = await _pushNutrition(nutri.log     || {});
+        var waRes  = await _pushWater(nutri.water       || {});
         totalPushed = woRes.pushed + bwRes.pushed + nuRes.pushed + waRes.pushed;
 
         // ── 3. Pull health platform → app ────────────────
         var woAdded = await _pullWorkouts(since, until);
         var bwAdded = await _pullBodyWeight(since, until);
-        var stAdded = await _pullSteps(since, until);
-        totalPulled = woAdded + bwAdded + stAdded;
+        totalPulled = woAdded + bwAdded;
 
         // ── 4. Persist merged data ────────────────────────
         if (totalPulled > 0) {
@@ -1136,18 +1056,6 @@
             fd.bodyweight = fd.bodyweight || [];
             fd.bodyweight.push(entry);
             DedupGuard.markSeen(hash, 'runner', DATA_TYPE.BODYWEIGHT);
-            added++;
-          }
-        });
-
-        // Merge steps
-        if (!window.myData.health_steps) window.myData.health_steps = {};
-        (payload.steps || []).forEach(function (s) {
-          var date  = new Date(s.date).toISOString().split('T')[0];
-          var count = Math.round(s.count || 0);
-          if (!date || count <= 0) return;
-          if (count > (window.myData.health_steps[date] || 0)) {
-            window.myData.health_steps[date] = count;
             added++;
           }
         });

@@ -357,7 +357,6 @@
     assert('syncWorkout'   in initial, 'prefs.syncWorkout exists');
     assert('syncNutrition' in initial, 'prefs.syncNutrition exists');
     assert('syncWeight'    in initial, 'prefs.syncWeight exists');
-    assert('syncSteps'     in initial, 'prefs.syncSteps exists');
     assert('syncWater'     in initial, 'prefs.syncWater exists');
 
     // Save → read back

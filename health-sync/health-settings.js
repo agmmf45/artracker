@@ -101,46 +101,6 @@
   display: none; margin-right: 4px;
 }
 
-/* ── Steps Widget ── */
-#health-steps-widget {
-  display: none;
-  margin-bottom: 16px;
-}
-.steps-widget-inner {
-  padding: 16px 20px;
-}
-.steps-main-row {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.steps-icon-title { display: flex; align-items: center; gap: 8px; }
-.steps-icon       { font-size: 22px; }
-.steps-title      { font-size: 13px; font-weight: 800; color: var(--muted); }
-.steps-count      { font-size: 28px; font-weight: 900; line-height: 1; }
-.steps-count small { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 4px; }
-.steps-goal-bar   {
-  height: 6px; background: var(--border); border-radius: 3px;
-  overflow: hidden; margin-bottom: 10px;
-}
-.steps-goal-fill  {
-  height: 100%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--green));
-  transition: width 0.4s ease;
-}
-.steps-sparkline  {
-  display: flex; align-items: flex-end; gap: 4px; height: 36px;
-}
-.steps-bar-wrap   {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
-}
-.steps-bar        {
-  width: 100%; border-radius: 3px 3px 0 0;
-  background: var(--accent-light); min-height: 3px;
-  transition: height 0.3s;
-}
-.steps-bar.today  { background: var(--accent); }
-.steps-day-label  { font-size: 9px; color: var(--muted); font-weight: 700; }
 `;
 
   function _injectCSS() {
@@ -241,14 +201,6 @@
           </div>
           ${_makeToggle('hs-t-weight', prefs.syncWeight,
             function(v){ window.HealthSync.savePrefs({ syncWeight: v }); })}
-        </div>
-        <div class="hs-toggle-row">
-          <div>
-            <div class="hs-toggle-label">مزامنة الخطوات</div>
-            <div class="hs-toggle-sub">قراءة الخطوات اليومية من الجهاز</div>
-          </div>
-          ${_makeToggle('hs-t-steps', prefs.syncSteps,
-            function(v){ window.HealthSync.savePrefs({ syncSteps: v }); window.HealthSettings && window.HealthSettings.renderStepsWidget(); })}
         </div>
         <div class="hs-toggle-row">
           <div>
@@ -401,99 +353,13 @@
   // ─────────────────────────────────────────────────────────
   //  STEPS WIDGET  (injected into fitness page)
   // ─────────────────────────────────────────────────────────
-  var STEPS_GOAL = 10000;
-
-  function _todayKey() {
-    return new Date().toISOString().split('T')[0];
-  }
-
-  function _last7Keys() {
-    var keys = [];
-    for (var i = 6; i >= 0; i--) {
-      var d = new Date(Date.now() - i * 86400000);
-      keys.push(d.toISOString().split('T')[0]);
-    }
-    return keys;
-  }
-
-  function _shortDay(isoDate) {
-    var days = ['أح','إث','ثل','أر','خم','جم','سب'];
-    return days[new Date(isoDate + 'T12:00:00').getDay()];
-  }
-
-  function renderStepsWidget() {
-    var widget = document.getElementById('health-steps-widget');
-    if (!widget) return;
-
-    // Only show when HealthSync is connected AND steps data exists
-    var hs = window.HealthSync;
-    if (!hs || !hs.isCapacitor()) {
-      widget.style.display = 'none';
-      return;
-    }
-
-    var prefs = hs.getPrefs();
-    if (!prefs.enabled || !prefs.syncSteps) {
-      widget.style.display = 'none';
-      return;
-    }
-
-    var stepsMap = (window.myData && window.myData.health_steps) || {};
-    var today    = _todayKey();
-    var todaySteps = stepsMap[today] || 0;
-    var keys     = _last7Keys();
-    var maxSteps = Math.max.apply(null, keys.map(function (k) { return stepsMap[k] || 0; }).concat([1]));
-    var pct      = Math.min(100, Math.round((todaySteps / STEPS_GOAL) * 100));
-
-    var sparkBars = keys.map(function (k) {
-      var val    = stepsMap[k] || 0;
-      var height = maxSteps > 0 ? Math.max(3, Math.round((val / maxSteps) * 32)) : 3;
-      var cls    = k === today ? 'steps-bar today' : 'steps-bar';
-      return '<div class="steps-bar-wrap">' +
-        '<div class="' + cls + '" style="height:' + height + 'px"></div>' +
-        '<div class="steps-day-label">' + _shortDay(k) + '</div>' +
-        '</div>';
-    }).join('');
-
-    widget.style.display = 'block';
-    widget.innerHTML =
-      '<div class="card steps-widget-inner">' +
-        '<div class="steps-main-row">' +
-          '<div class="steps-icon-title">' +
-            '<span class="steps-icon">🚶</span>' +
-            '<span class="steps-title">خطوات اليوم</span>' +
-          '</div>' +
-          '<div class="steps-count">' +
-            todaySteps.toLocaleString('ar') +
-            '<small>/ ' + STEPS_GOAL.toLocaleString('ar') + '</small>' +
-          '</div>' +
-        '</div>' +
-        '<div class="steps-goal-bar">' +
-          '<div class="steps-goal-fill" style="width:' + pct + '%"></div>' +
-        '</div>' +
-        '<div class="steps-sparkline">' + sparkBars + '</div>' +
-      '</div>';
-  }
-
-  function _injectStepsWidget() {
-    if (document.getElementById('health-steps-widget')) return;
-    var statsRow = document.getElementById('fit-stats-row');
-    if (!statsRow) return;
-    var widget = document.createElement('div');
-    widget.id  = 'health-steps-widget';
-    // Insert directly after the stats row
-    statsRow.parentNode.insertBefore(widget, statsRow.nextSibling);
-  }
-
-  // ─────────────────────────────────────────────────────────
   //  PUBLIC API  (window.HealthSettings)
   // ─────────────────────────────────────────────────────────
   var HealthSettings = {
-    render:            render,
-    renderStepsWidget: renderStepsWidget,
-    onConnect:         onConnect,
-    onDisconnect:      onDisconnect,
-    onSyncNow:         onSyncNow,
+    render:       render,
+    onConnect:    onConnect,
+    onDisconnect: onDisconnect,
+    onSyncNow:    onSyncNow,
   };
 
   window.HealthSettings = HealthSettings;
@@ -505,9 +371,8 @@
     _injectCSS();
     _injectSyncDot();
     _injectCard();
-    _injectStepsWidget();
 
-    // Hook showPage to render relevant widgets
+    // Hook showPage
     var _origShowPage = window.showPage;
     if (typeof _origShowPage === 'function') {
       window.showPage = function (name) {
@@ -515,29 +380,13 @@
         if (name === 'profile') {
           setTimeout(render, 50);
         }
-        if (name === 'fitness') {
-          setTimeout(renderStepsWidget, 50);
-        }
         return result;
       };
     }
 
-    // Hook renderFitDashboard so steps update whenever the dash refreshes
-    var _origRenderFit = window.renderFitDashboard;
-    if (typeof _origRenderFit === 'function') {
-      window.renderFitDashboard = function () {
-        var result = _origRenderFit.apply(this, arguments);
-        renderStepsWidget();
-        return result;
-      };
-    }
-
-    // Initial renders if already on these pages
+    // Initial render if already on profile
     var profilePage = document.getElementById('page-profile');
     if (profilePage && profilePage.classList.contains('active')) render();
-
-    var fitnessPage = document.getElementById('page-fitness');
-    if (fitnessPage && fitnessPage.classList.contains('active')) renderStepsWidget();
   }
 
   if (document.readyState === 'loading') {
