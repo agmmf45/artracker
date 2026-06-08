@@ -1,7 +1,7 @@
 {
-  "name": "مساري - تتبع العادات",
-  "short_name": "مساري",
-  "description": "تطبيق تتبع العادات والمصاريف",
+  "name": "دقيق",
+  "short_name": "دقيق",
+  "description": "تتبع عاداتك اليومية",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
