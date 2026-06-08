@@ -2365,6 +2365,15 @@ setInterval(()=>{
   </div>
 </div>
 
+<!-- NUTRITION: MEAL DETAILS MODAL (لتحليلات الرؤية الغذائية) -->
+<div class="modal-ov" id="meal-detail-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <h3>📋 تفاصيل الوجبة</h3>
+    <div id="meal-detail-body" style="max-height:65vh;overflow-y:auto"></div>
+    <button type="button" class="btn btn-s" style="width:100%;margin-top:12px" onclick="closeModal('meal-detail-modal')">إغلاق</button>
+  </div>
+</div>
+
 <!-- RESET ACCOUNT MODAL -->
 <div class="modal-ov" id="reset-modal" onclick="if(event.target===this)closeModal('reset-modal')">
   <div class="modal-box" style="max-width:360px">
@@ -5601,8 +5610,9 @@ function saveBW(){
 // ── NUTRITION / CALORIES ──────────────────────
 const MEAL_TYPES=[['breakfast','🍳 فطور'],['lunch','🍗 غداء'],['dinner','🍽️ عشاء'],['snack','🍎 سناك']];
 let selectedNutriDate = todayKey();
-let nutriAIImage = null;       // {dataUrl, mediaType, data}
+let nutriAIImage = null;       // {dataUrl, thumbDataUrl, mediaType, data}
 let nutriAILastItems = [];
+let nutriAILastMeta = null;    // {mealName, cuisine, mealType, confidence, message}
 
 function getNutri(){
   if(!myData.nutrition) myData.nutrition={goal:2000,log:{}};
@@ -5699,15 +5709,25 @@ function renderNutrition(){
   document.getElementById('nutri-meals').innerHTML = MEAL_TYPES.map(([t,label])=>{
     const list=items.filter(x=>x.type===t);
     const sub=list.reduce((a,x)=>a+(+x.cal||0),0);
-    const rows = list.length ? list.map(x=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+    const rows = list.length ? list.map(x=>{
+      const isAI = x.source==='ai_vision' && x.confidence!=null;
+      const photo = isAI && x.analysisId && n.mealPhotos && n.mealPhotos[x.analysisId];
+      const thumb = photo ? `<img src="${photo}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)">` : '';
+      const badge = isAI ? `<span style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:99px;background:rgba(124,58,237,.16);color:#A78BFA;margin-inline-start:5px;white-space:nowrap">🔬 ${x.confidence}%</span>` : '';
+      const rowAttrs = isAI
+        ? `onclick="nutriShowMealDetails('${x.id}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"`
+        : `style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"`;
+      return `
+      <div ${rowAttrs}>
+        ${thumb}
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px">${x.name}</div>
+          <div style="font-weight:700;font-size:14px;display:flex;align-items:center;flex-wrap:wrap">${x.name}${badge}</div>
           <div style="font-size:11px;color:var(--muted)">${x.cal} سعرة · ب ${x.p||0} · ك ${x.c||0} · د ${x.f||0}</div>
         </div>
         <div style="font-weight:800;font-size:13px">${x.cal}</div>
-        <button type="button" onclick="nutriDeleteMeal('${x.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px">✕</button>
-      </div>`).join('') : `<div style="color:var(--muted);font-size:12px;padding:6px 0">— لا شيء —</div>`;
+        <button type="button" onclick="event.stopPropagation();nutriDeleteMeal('${x.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px">✕</button>
+      </div>`;
+    }).join('') : `<div style="color:var(--muted);font-size:12px;padding:6px 0">— لا شيء —</div>`;
     return `<div class="nutri-mealcard">
       <div class="flex-b" style="margin-bottom:6px">
         <div style="font-weight:800;font-size:15px">${label} <span style="color:var(--muted);font-size:12px;font-weight:600">${sub} سعرة</span></div>
@@ -5802,7 +5822,14 @@ function nutriSaveMeal(){
 }
 function nutriDeleteMeal(id){
   const n=getNutri();
-  n.log[selectedNutriDate]=(n.log[selectedNutriDate]||[]).filter(x=>x.id!==id);
+  const list=n.log[selectedNutriDate]||[];
+  const removed=list.find(x=>x.id===id);
+  n.log[selectedNutriDate]=list.filter(x=>x.id!==id);
+  // نظّف صورة التحليل المشتركة إن لم يعد أي صنف (في أي تاريخ) يشير إليها
+  if(removed&&removed.analysisId&&n.mealPhotos&&n.mealPhotos[removed.analysisId]){
+    const stillUsed=Object.keys(n.log).some(d=>(n.log[d]||[]).some(x=>x.analysisId===removed.analysisId));
+    if(!stillUsed) delete n.mealPhotos[removed.analysisId];
+  }
   saveMyData();
   renderNutrition();
 }
@@ -5830,7 +5857,15 @@ function nutriAIPhotoPicked(e){
       const canvas=document.createElement('canvas'); canvas.width=width; canvas.height=height;
       canvas.getContext('2d').drawImage(img,0,0,width,height);
       const dataUrl=canvas.toDataURL('image/jpeg',0.8);
-      nutriAIImage={ dataUrl, mediaType:'image/jpeg', data:dataUrl.split(',')[1] };
+
+      // نسخة مصغّرة لحفظها مع سجل الوجبة (لتقليل حجم البيانات المُزامنة عبر D1)
+      const tmax=480; let tw=img.width, th=img.height;
+      if(tw>tmax||th>tmax){ const tr=Math.min(tmax/tw,tmax/th); tw=Math.round(tw*tr); th=Math.round(th*tr); }
+      const tcanvas=document.createElement('canvas'); tcanvas.width=tw; tcanvas.height=th;
+      tcanvas.getContext('2d').drawImage(img,0,0,tw,th);
+      const thumbDataUrl=tcanvas.toDataURL('image/jpeg',0.55);
+
+      nutriAIImage={ dataUrl, thumbDataUrl, mediaType:'image/jpeg', data:dataUrl.split(',')[1] };
       const prev=document.getElementById('nutri-ai-preview');
       prev.style.display='block';
       prev.innerHTML=`<img src="${dataUrl}" style="max-width:100%;max-height:160px;border-radius:12px;border:1px solid var(--border)"><div style="font-size:11px;color:var(--muted);margin-top:4px">تم اختيار الصورة ✓</div>`;
@@ -5847,21 +5882,41 @@ async function sendNutriAI(){
   btn.disabled=true; btn.textContent='⏳ جاري التحليل...';
   res.style.display='none';
 
-  const prompt=`أنت خبير تغذية. حلّل الطعام الموجود في ${nutriAIImage?'الصورة':'الوصف'}${text&&nutriAIImage?' مع الوصف':''} وقدّر السعرات والماكروز بدقة معقولة.
+  const prompt=`أنت "محلل الرؤية الغذائية" — نظام ذكاء اصطناعي متخصص في التعرف على الأطعمة وتقدير الأحجام والسعرات والقيم الغذائية بأعلى دقة ممكنة، مدمج داخل تطبيق تتبع تغذية.
+
+حلّل الطعام الموجود في ${nutriAIImage?'الصورة':'الوصف'}${text&&nutriAIImage?' ومعها وصف المستخدم':''} باتّباع هذه الخطوات، ثم أجب بصيغة JSON فقط (بدون أي نص خارجي أو backticks):
 ${text?'وصف المستخدم: "'+text+'"':''}
-أجب بـ JSON فقط بدون أي نص آخر:
+
+1) **التعرف على الطعام**: حدّد كل عنصر ظاهر — الطبق الرئيسي، الأطباق الجانبية، الصلصات، المشروبات، والإضافات/الزينة — ونوع المطبخ إن أمكن، ونوع الوجبة (فطور/غداء/عشاء/سناك).
+2) **تقدير الحجم/الوزن**: استعن بحجم الطبق أو الكوب أو الأدوات الظاهرة وبالمنظور لتقدير وزن كل عنصر بالجرام، وأعطِ ثلاث قيم لكل عنصر: الأقل والأرجح والأعلى.
+3) **استنتاج طريقة الطهي** (مشوي/مقلي/مخبوز/مسلوق/نيء/قلي هوائي) واضبط حساب السعرات بناءً عليها.
+4) **حساب القيم الغذائية**: لكل عنصر احسب السعرات والبروتين والكارب والدهون والألياف والسكر والصوديوم.
+5) **إدارة عدم اليقين**: أعطِ كل عنصر، وللوجبة كاملة، درجة ثقة من 0 إلى 100. كن متحفظاً ولا تقدّم تخميناً كحقيقة مؤكدة — وعند الشك بشأن وجبة تجارية أو "مصنّفة صحياً" بصرياً، احسب على الأساس التجاري الأعلى سعرات (صوصات/زيوت/سكريات قد تكون مخفية) بدل التقليل من القيم.
+
+أجب حصراً بهذا القالب:
 {
-  "items":[{"name":"اسم الطعام بالعربي","cal":السعرات,"protein":جرامات,"carbs":جرامات,"fat":جرامات}],
-  "message":"ملاحظة قصيرة بالعربي عن الوجبة"
+  "mealName": "اسم عام للوجبة بالعربي",
+  "cuisine": "نوع المطبخ بالعربي أو null",
+  "mealType": "breakfast أو lunch أو dinner أو snack",
+  "confidence": رقم 0-100 (ثقتك العامة بكامل التحليل),
+  "items": [
+    {
+      "name": "اسم الصنف بالعربي",
+      "category": "main أو side أو sauce أو drink أو extra",
+      "cookingMethod": "اسم طريقة الطهي بالعربي أو null",
+      "confidence": رقم 0-100,
+      "weightG": {"low": رقم, "likely": رقم, "high": رقم},
+      "cal": رقم, "protein": رقم, "carbs": رقم, "fat": رقم, "fiber": رقم, "sugar": رقم, "sodium": رقم
+    }
+  ],
+  "message": "ملاحظة قصيرة بالعربي تلخص الوجبة، مع تنبيه إن كانت الثقة منخفضة"
 }
-قواعد:
-- cal بالسعرة الحرارية (kcal)، protein/carbs/fat بالجرام، كلها أرقام صحيحة.
-- إذا في أصناف متعددة أضف عنصراً لكل صنف.
-- قدّر الكمية من الصورة إن وُجدت.
-- عند استقبال صورة أطعمة/مشروبات، صنف المكونات المرصودة بدقة.
-- كسر خداع التسويق: إذا كانت الوجبة تجارية أو مصنفة كـ "صحية/بروتين" وهي مليئة بالزيوت أو السكريات، احتسب السعرات بناءً على المكونات التجارية القياسية الأعلى في السعرات.
-- فرضية السيناريو الأسوأ: افترض دائماً وجود كميات مخفية من الزيوت، الزبدة، أو الصوصات عند الشك، واحتسب الحد الرقمي الأعلى للسعرات والماكروز (بروتين، كارب، دهون، وسكريات صريحة).
-- تقدير حجم الحصة: قارن الوجبة بحجم الأواني المحيطة بصرياً وافترض الحجم الأكبر تجارياً.`;
+
+قواعد صارمة:
+- كل الأرقام أعداد صحيحة: السعرات بـ kcal، البروتين/الكارب/الدهون/الألياف/السكر بالجرام، الصوديوم بالملغم، والوزن بالجرام.
+- أضف عنصراً مستقلاً لكل صنف ظاهر مهما كان صغيراً (صلصة، مشروب، خبز، تتبيلة...).
+- لا تختلق تفاصيل: إذا كانت الصورة غير واضحة أو الوصف ناقص، اخفض قيمة confidence وأشِر إلى ذلك في "message".
+- لا نص خارج كائن JSON، ولا أي backticks أو شروحات إضافية.`;
 
   const content = nutriAIImage
     ? [ {type:'image', source:{type:'base64', media_type:nutriAIImage.mediaType, data:nutriAIImage.data}}, {type:'text', text:prompt} ]
@@ -5870,7 +5925,7 @@ ${text?'وصف المستخدم: "'+text+'"':''}
   try{
     const resp=await fetch('https://artrk-ai.agmmf45.workers.dev',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, system:'أنت مساعد يجيب بـ JSON فقط بدون أي نص إضافي أو backticks.', messages:[{role:'user', content}] })
+      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:2200, system:'أنت نظام رؤية حاسوبية لتحليل الوجبات الغذائية بدقة عالية. أجب بكائن JSON صِرف فقط، مطابقاً للقالب المطلوب تماماً، وبدون أي نص أو backticks أو شروحات خارج الكائن.', messages:[{role:'user', content}] })
     });
     const data=await resp.json();
     if(data.error){ throw new Error(data.error.message||JSON.stringify(data.error)); }
@@ -5884,28 +5939,97 @@ ${text?'وصف المستخدم: "'+text+'"':''}
   }
   btn.disabled=false; btn.textContent='✨ حلّل';
 }
+const NUTRI_CAT_LABELS={main:'🍛 رئيسي',side:'🥗 جانبي',sauce:'🥣 صلصة',drink:'🥤 مشروب',extra:'➕ إضافة'};
+function nutriConfColor(c){ c=+c||0; return c>=70?'var(--green)':c>=40?'#F59E0B':'var(--red)'; }
+function nutriConfBadge(c){
+  const v=Math.max(0,Math.min(100,Math.round(+c||0)));
+  return `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;background:${nutriConfColor(v)}26;color:${nutriConfColor(v)};white-space:nowrap">🎯 ثقة ${v}%</span>`;
+}
+function nutriClampNum(v,d){ d=d||0; const n=Math.round(+v); return isFinite(n)?Math.max(0,n):d; }
+
 function showNutriAIResult(data){
   const res=document.getElementById('nutri-ai-result');
-  const items=data.items||[];
+  const items=(data.items||[]).map(function(it){
+    const cat=['main','side','sauce','drink','extra'].indexOf(it.category)>=0?it.category:'main';
+    const wg=it.weightG||{};
+    return {
+      name:(it.name||'صنف').toString().slice(0,80),
+      category:cat,
+      cookingMethod:it.cookingMethod&&it.cookingMethod!=='null'?it.cookingMethod.toString().slice(0,30):null,
+      confidence:Math.max(0,Math.min(100,nutriClampNum(it.confidence,50))),
+      weightG:{ low:nutriClampNum(wg.low,0), likely:nutriClampNum(wg.likely,0), high:nutriClampNum(wg.high,0) },
+      cal:nutriClampNum(it.cal), protein:nutriClampNum(it.protein), carbs:nutriClampNum(it.carbs), fat:nutriClampNum(it.fat),
+      fiber:nutriClampNum(it.fiber), sugar:nutriClampNum(it.sugar), sodium:nutriClampNum(it.sodium)
+    };
+  });
   nutriAILastItems=items;
+  nutriAILastMeta={
+    mealName:(data.mealName||'وجبة').toString().slice(0,60),
+    cuisine:data.cuisine&&data.cuisine!=='null'?data.cuisine.toString().slice(0,30):null,
+    mealType:['breakfast','lunch','dinner','snack'].indexOf(data.mealType)>=0?data.mealType:null,
+    confidence:Math.max(0,Math.min(100,nutriClampNum(data.confidence,50))),
+    message:(data.message||'').toString().slice(0,300)
+  };
+
+  // إن اقترح التحليل نوع وجبة، اختره تلقائياً في الشرائح
+  if(nutriAILastMeta.mealType) nutriPickType('nutri-ai-type-chips', nutriAILastMeta.mealType);
+
   let html='';
-  if(data.message){ html+=`<div style="background:linear-gradient(135deg,#dcfce7,#ede9fe);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;color:#166534;margin-bottom:12px">✨ ${data.message}</div>`; }
   if(!items.length){
-    html+='<div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">ما قدرت أحلل — جرّب صورة أوضح أو وصف أدق</div>';
-  } else {
-    const total=items.reduce((a,x)=>a+(+x.cal||0),0);
-    html+=`<div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${items.length} صنف · إجمالي ${total} سعرة</div>`;
-    items.forEach((it,i)=>{
-      html+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1px solid var(--border)">
-        <input type="checkbox" id="nutri-ai-it-${i}" checked style="width:18px;height:18px;cursor:pointer">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700">${it.name||'صنف'}</div>
-          <div style="font-size:11px;color:var(--muted)">${(+it.cal||0)} سعرة · ب ${(+it.protein||0)} · ك ${(+it.carbs||0)} · د ${(+it.fat||0)}</div>
-        </div>
-      </div>`;
-    });
-    html+=`<button type="button" class="btn btn-p" style="width:100%;margin-top:6px" onclick="nutriApplyAI()">✅ أضف المحدد</button>`;
+    html='<div style="text-align:center;color:var(--muted);padding:16px;font-size:13px">ما قدرت أحلل — جرّب صورة أوضح أو وصف أدق</div>';
+    res.innerHTML=html; res.style.display='block';
+    return;
   }
+
+  const total=items.reduce((a,x)=>({cal:a.cal+x.cal,p:a.p+x.protein,c:a.c+x.carbs,f:a.f+x.fat,fi:a.fi+x.fiber,su:a.su+x.sugar,so:a.so+x.sodium}),{cal:0,p:0,c:0,f:0,fi:0,su:0,so:0});
+
+  // بطاقة عنوان: اسم الوجبة + المطبخ + ثقة عامة + ملاحظة
+  html+=`<div style="background:linear-gradient(135deg,#dcfce7,#ede9fe);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+      <div style="font-weight:800;font-size:15px">🍽️ ${nutriAILastMeta.mealName}</div>
+      ${nutriConfBadge(nutriAILastMeta.confidence)}
+    </div>
+    ${nutriAILastMeta.cuisine?`<div style="font-size:11px;color:#6d28d9;font-weight:700">🌍 مطبخ ${nutriAILastMeta.cuisine}</div>`:''}
+    ${nutriAILastMeta.message?`<div style="font-size:12px;color:#166534;font-weight:600;margin-top:5px;line-height:1.5">✨ ${nutriAILastMeta.message}</div>`:''}
+  </div>`;
+
+  // إجمالي الوجبة — كل القيم الغذائية
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+    <span style="font-size:11px;font-weight:800;padding:5px 10px;border-radius:99px;background:rgba(255,122,0,.16);color:#FFB066">🔥 ${total.cal} سعرة</span>
+    <span style="font-size:11px;font-weight:800;padding:5px 10px;border-radius:99px;background:rgba(96,165,250,.16);color:#60A5FA">🍖 بروتين ${total.p}ج</span>
+    <span style="font-size:11px;font-weight:800;padding:5px 10px;border-radius:99px;background:rgba(94,234,184,.16);color:#5EEAB8">🌽 كارب ${total.c}ج</span>
+    <span style="font-size:11px;font-weight:800;padding:5px 10px;border-radius:99px;background:rgba(248,113,113,.16);color:#F87171">🥑 دهون ${total.f}ج</span>
+    <span style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;background:var(--surface2);color:var(--muted)">🌾 ألياف ${total.fi}ج · 🍬 سكر ${total.su}ج · 🧂 صوديوم ${total.so}ملغ</span>
+  </div>`;
+
+  // بطاقة لكل صنف: تصنيف، ثقة، طريقة طهي، وزن منخفض/أرجح/أعلى، قيم غذائية كاملة، نسبة من إجمالي السعرات
+  items.forEach((it,i)=>{
+    const pct = total.cal>0 ? Math.round(it.cal/total.cal*100) : 0;
+    html+=`<div style="padding:10px 12px;background:var(--surface2);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:flex-start;gap:9px">
+        <input type="checkbox" id="nutri-ai-it-${i}" checked style="width:18px;height:18px;cursor:pointer;margin-top:3px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px">
+            <div style="font-weight:700;font-size:14px">${it.name}</div>
+            <div style="font-weight:800;font-size:14px;white-space:nowrap">${it.cal} سعرة</div>
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface);color:var(--muted)">${NUTRI_CAT_LABELS[it.category]}</span>
+            ${it.cookingMethod?`<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface);color:var(--muted)">🔥 ${it.cookingMethod}</span>`:''}
+            ${nutriConfBadge(it.confidence)}
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7">
+            ⚖️ الوزن التقديري: <b style="color:var(--text)">${it.weightG.likely}جم</b> <span style="opacity:.7">(${it.weightG.low}–${it.weightG.high}جم)</span><br>
+            🍖 بروتين ${it.protein}ج · 🌽 كارب ${it.carbs}ج · 🥑 دهون ${it.fat}ج · 🌾 ألياف ${it.fiber}ج · 🍬 سكر ${it.sugar}ج · 🧂 صوديوم ${it.sodium}ملغ
+          </div>
+          <div style="height:6px;background:var(--surface);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#7C3AED,#FF7A00);border-radius:99px"></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${pct}% من إجمالي سعرات الوجبة</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html+=`<button type="button" class="btn btn-p" style="width:100%;margin-top:6px" onclick="nutriApplyAI()">✅ أضف المحدد</button>`;
   res.innerHTML=html;
   res.style.display='block';
 }
@@ -5913,11 +6037,36 @@ function nutriApplyAI(){
   const type=nutriSelectedType('nutri-ai-type-chips');
   const n=getNutri();
   if(!n.log[selectedNutriDate]) n.log[selectedNutriDate]=[];
+  if(!n.mealPhotos) n.mealPhotos={};
+
+  const meta=nutriAILastMeta||{};
+  // نحفظ الصورة مرّة واحدة فقط ونربطها بكل الأصناف المختارة عبر analysisId
+  // (بدل تكرارها في كل صنف) لتقليل حجم البيانات المُزامنة عبر D1.
+  const analysisId='ai_'+Date.now();
+  const hasPhoto=!!(nutriAIImage&&nutriAIImage.thumbDataUrl);
+  if(hasPhoto) n.mealPhotos[analysisId]=nutriAIImage.thumbDataUrl;
+
+  const stamp=Date.now();
   let added=0;
   nutriAILastItems.forEach((it,i)=>{
     const cb=document.getElementById('nutri-ai-it-'+i);
     if(cb&&cb.checked){
-      n.log[selectedNutriDate].push({ id:'meal_'+Date.now()+'_'+i, type, name:it.name||'صنف', cal:Math.round(+it.cal||0), p:Math.round(+it.protein||0), c:Math.round(+it.carbs||0), f:Math.round(+it.fat||0) });
+      n.log[selectedNutriDate].push({
+        id:'meal_'+stamp+'_'+i,
+        type, name:it.name||'صنف',
+        cal:it.cal, p:it.protein, c:it.carbs, f:it.fat,
+        // ── بيانات تحليل الرؤية الغذائية (محلل دقيق الذكي) ──
+        source:'ai_vision',
+        analysisId: hasPhoto ? analysisId : null,
+        mealName: meta.mealName||null,
+        cuisine: meta.cuisine||null,
+        category: it.category||'main',
+        cookingMethod: it.cookingMethod||null,
+        confidence: it.confidence,
+        weightG: it.weightG,
+        fiber: it.fiber, sugar: it.sugar, sodium: it.sodium,
+        analyzedAt: stamp
+      });
       added++;
     }
   });
@@ -5926,6 +6075,90 @@ function nutriApplyAI(){
   document.getElementById('nutri-ai-modal').classList.remove('open');
   renderNutrition();
   showToast('✅ أُضيف '+added+' صنف');
+}
+
+// ── MEAL DETAILS PAGE (لتحليلات الرؤية الغذائية) ──
+function _nutriFindLoggedItem(id){
+  const n=getNutri();
+  let item=null, dateKey=null;
+  Object.keys(n.log||{}).forEach(d=>{
+    const f=(n.log[d]||[]).find(x=>x.id===id);
+    if(f){ item=f; dateKey=d; }
+  });
+  return { n, item, dateKey };
+}
+
+function nutriShowMealDetails(id){
+  const { n, item } = _nutriFindLoggedItem(id);
+  if(!item){ showToast('لم يُعثر على الصنف'); return; }
+
+  const photo = item.analysisId && n.mealPhotos && n.mealPhotos[item.analysisId];
+  const wg = item.weightG || {};
+  const dt = item.analyzedAt ? new Date(item.analyzedAt) : null;
+  let dtStr = '';
+  try{ dtStr = dt ? dt.toLocaleString('ar', {dateStyle:'medium', timeStyle:'short'}) : ''; }catch(e){ dtStr = dt ? dt.toLocaleString() : ''; }
+
+  const chips = [
+    item.cuisine ? `🌍 ${item.cuisine}` : null,
+    item.category ? (NUTRI_CAT_LABELS[item.category]||item.category) : null,
+    item.cookingMethod ? `🔥 ${item.cookingMethod}` : null,
+    dtStr ? `🕒 ${dtStr}` : null
+  ].filter(Boolean).map(t=>`<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--muted)">${t}</span>`).join('');
+
+  const body=document.getElementById('meal-detail-body');
+  body.innerHTML=`
+    ${photo?`<img src="${photo}" style="width:100%;max-height:220px;object-fit:cover;border-radius:14px;margin-bottom:12px;border:1px solid var(--border)" alt="صورة الوجبة">`:''}
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
+      <div style="font-weight:800;font-size:17px">${item.mealName||item.name}</div>
+      ${item.confidence!=null?nutriConfBadge(item.confidence):''}
+    </div>
+    ${chips?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${chips}</div>`:''}
+    <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">🍽️ ${item.name}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--surface2);border-radius:10px;padding:9px 11px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700">🔥 سعرات</div>
+        <div style="font-size:18px;font-weight:800">${item.cal}<span style="font-size:11px;color:var(--muted)"> سعرة</span></div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:9px 11px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700">⚖️ الوزن التقديري</div>
+        <div style="font-size:18px;font-weight:800">${wg.likely||'—'}<span style="font-size:11px;color:var(--muted)"> جم</span></div>
+        ${(wg.low&&wg.high)?`<div style="font-size:10px;color:var(--muted)">المدى: ${wg.low}–${wg.high}جم</div>`:''}
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text);line-height:2.1;background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:14px">
+      🍖 بروتين <b>${item.p||0}</b>ج &nbsp;·&nbsp; 🌽 كارب <b>${item.c||0}</b>ج &nbsp;·&nbsp; 🥑 دهون <b>${item.f||0}</b>ج<br>
+      🌾 ألياف <b>${item.fiber!=null?item.fiber:'—'}</b>ج &nbsp;·&nbsp; 🍬 سكر <b>${item.sugar!=null?item.sugar:'—'}</b>ج &nbsp;·&nbsp; 🧂 صوديوم <b>${item.sodium!=null?item.sodium:'—'}</b>ملغ
+    </div>
+    ${item.confidence!=null&&item.confidence<60?`<div style="font-size:11px;color:#92400E;background:#FEF3C7;border-radius:10px;padding:8px 11px;margin-bottom:12px;font-weight:700">⚠️ درجة ثقة منخفضة — التقدير قد يحتاج تعديلاً يدوياً، خصوصاً الوزن والسعرات.</div>`:''}
+    <div style="display:flex;gap:8px">
+      ${wg.likely?`<button type="button" class="btn btn-s" style="flex:1" onclick="nutriAdjustMealWeight('${item.id}')">⚖️ عدّل الكمية</button>`:''}
+      <button type="button" class="btn btn-s" style="flex:1;color:var(--red)" onclick="nutriDeleteMeal('${item.id}');closeModal('meal-detail-modal')">🗑️ حذف</button>
+    </div>
+  `;
+  document.getElementById('meal-detail-modal').classList.add('open');
+}
+
+function nutriAdjustMealWeight(id){
+  const { item } = _nutriFindLoggedItem(id);
+  if(!item || !item.weightG || !item.weightG.likely){ showToast('لا يوجد وزن مسجَّل لهذا الصنف'); return; }
+  const cur = item.weightG.likely;
+  const input = prompt('الوزن الحالي '+cur+' جم — أدخل الوزن الجديد بالجرام:', String(cur));
+  if(input===null) return;
+  const nw = parseInt(input,10);
+  if(!nw || nw<=0 || nw>5000){ showToast('وزن غير صالح'); return; }
+  const ratio = nw/cur;
+  ['cal','p','c','f','fiber','sugar','sodium'].forEach(k=>{
+    if(item[k]!=null) item[k]=Math.max(0,Math.round(item[k]*ratio));
+  });
+  item.weightG = {
+    low:  Math.max(0,Math.round((item.weightG.low ||cur)*ratio)),
+    likely: nw,
+    high: Math.max(0,Math.round((item.weightG.high||cur)*ratio))
+  };
+  saveMyData();
+  renderNutrition();
+  nutriShowMealDetails(id);
+  showToast('✅ عُدّلت الكمية وأُعيد حساب القيم الغذائية');
 }
 
 // ── WORKOUT START ──
