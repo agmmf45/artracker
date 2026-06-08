@@ -467,7 +467,6 @@
       'HKQuantityTypeIdentifierStepCount',
       'HKQuantityTypeIdentifierActiveEnergyBurned',
       'HKQuantityTypeIdentifierDistanceWalkingRunning',
-      'HKQuantityTypeIdentifierHeartRate',
     ];
 
     var IOS_WRITE_TYPES = [
@@ -488,7 +487,6 @@
       'android.permission.health.READ_STEPS',
       'android.permission.health.READ_ACTIVE_CALORIES_BURNED',
       'android.permission.health.READ_DISTANCE',
-      'android.permission.health.READ_HEART_RATE',
       'android.permission.health.READ_HYDRATION',
     ];
 
@@ -580,7 +578,6 @@
         syncWeight:    true,
         syncSteps:     true,
         syncWater:     true,
-        syncHeartRate: true,
       },
       lastSyncAt:   null,
       lastError:    null,
@@ -935,57 +932,6 @@
       return added;
     }
 
-    // ── Pull: Heart Rate (READ-ONLY, attached to workouts) ─
-    async function _pullHeartRate(since, until) {
-      var plugin = PlatformBridge.getHealthPlugin();
-      var plat   = _state.platform;
-
-      try {
-        var records = [];
-
-        if (plat === 'ios') {
-          var r = await plugin.querySampleType({
-            sampleType: 'HKQuantityTypeIdentifierHeartRate',
-            startDate: since, endDate: until, limit: 500, ascending: false,
-          });
-          records = r && r.samples ? r.samples : [];
-        } else {
-          var r2 = await plugin.readRecords({
-            type: 'HeartRate',
-            timeRangeFilter: { type: 'between', startTime: since, endTime: until },
-          });
-          records = r2 && r2.records ? r2.records : [];
-        }
-
-        if (!window.myData) return;
-        if (!window.myData.health_hr) window.myData.health_hr = {};
-
-        records.forEach(function (rec) {
-          var date, bpm;
-
-          if (plat === 'ios') {
-            date = new Date(rec.endDate).toISOString().split('T')[0];
-            bpm  = Math.round(rec.quantity || 0);
-          } else {
-            date = new Date(rec.time || rec.startTime).toISOString().split('T')[0];
-            bpm  = Math.round((rec.samples && rec.samples[0] && rec.samples[0].beatsPerMinute) || 0);
-          }
-
-          if (!date || bpm <= 0 || bpm > 300) return;
-
-          // Store as { avg, max, min } per day
-          var day = window.myData.health_hr[date] || { avg: 0, max: 0, min: 999, samples: 0 };
-          day.samples++;
-          day.max = Math.max(day.max, bpm);
-          day.min = Math.min(day.min, bpm);
-          day.avg = Math.round(((day.avg * (day.samples - 1)) + bpm) / day.samples);
-          window.myData.health_hr[date] = day;
-        });
-      } catch (err) {
-        console.warn('[HealthSync] pullHeartRate error:', err.message);
-      }
-    }
-
     // ── Push + Pull: Water intake ─────────────────────────
     async function _pushWater(nutritionLog) {
       if (!_state.prefs.syncNutrition || !nutritionLog) return { pushed: 0 };
@@ -1113,7 +1059,6 @@
         var woAdded = await _pullWorkouts(since, until);
         var bwAdded = await _pullBodyWeight(since, until);
         var stAdded = await _pullSteps(since, until);
-        await _pullHeartRate(since, until);          // mutates myData.health_hr in-place
         totalPulled = woAdded + bwAdded + stAdded;
 
         // ── 4. Persist merged data ────────────────────────

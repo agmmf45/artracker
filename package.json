@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@capacitor/core": "^6.0.0",
+    "@capacitor/background-task": "^6.0.0",
+    "@capacitor/background-runner": "^1.0.0",
     "@capacitor-community/health-kit": "^3.0.0",
     "capacitor-health-connect": "^3.0.0"
   },

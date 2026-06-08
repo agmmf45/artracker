@@ -21,6 +21,14 @@
     "HealthKit": {
       "healthSharePermission": "يحتاج دقيق قراءة بياناتك الصحية لمزامنتها",
       "healthUpdatePermission": "يحتاج دقيق حفظ بياناتك في Apple Health"
+    },
+    "BackgroundRunner": {
+      "label":     "com.daqeeq.healthsync.runner",
+      "src":       "health-sync/runner.js",
+      "event":     "healthSync",
+      "repeat":    true,
+      "interval":  30,
+      "autoStart": true
     }
   }
 }

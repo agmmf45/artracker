@@ -359,7 +359,6 @@
     assert('syncWeight'    in initial, 'prefs.syncWeight exists');
     assert('syncSteps'     in initial, 'prefs.syncSteps exists');
     assert('syncWater'     in initial, 'prefs.syncWater exists');
-    assert('syncHeartRate' in initial, 'prefs.syncHeartRate exists');
 
     // Save → read back
     HS.savePrefs({ syncWorkout: false, syncWeight: false });
