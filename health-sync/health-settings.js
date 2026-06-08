@@ -101,6 +101,11 @@
   display: none; margin-right: 4px;
 }
 
+/* Workout source badge */
+.hs-source-badge {
+  font-size: 13px; margin-left: 5px;
+  vertical-align: middle; cursor: default;
+}
 `;
 
   function _injectCSS() {
@@ -351,7 +356,34 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  //  STEPS WIDGET  (injected into fitness page)
+  //  WORKOUT SOURCE BADGES
+  //  Annotates history cards with 🍎 / 🤖 after renderFitHistory runs.
+  // ─────────────────────────────────────────────────────────
+  function _addSourceBadges() {
+    var fd       = window.getFitData ? window.getFitData() : (window.myData && window.myData.fitness) || {};
+    var workouts = (fd.workouts || []).slice().reverse();   // same order as rendered cards
+    var cards    = document.querySelectorAll('#fit-history-list .card');
+
+    workouts.forEach(function (w, i) {
+      var card = cards[i];
+      if (!card) return;
+      if (card.querySelector('.hs-source-badge')) return;   // already annotated
+
+      var icon  = w.source === 'healthkit' ? '🍎' : w.source === 'health_connect' ? '🤖' : '';
+      var label = w.source === 'healthkit' ? 'Apple Health' : 'Google Health Connect';
+      if (!icon) return;
+
+      var nameDiv = card.querySelector('div > div');   // first child div inside card
+      if (nameDiv) {
+        var badge = document.createElement('span');
+        badge.className = 'hs-source-badge';
+        badge.title     = label;
+        badge.textContent = icon;
+        nameDiv.appendChild(badge);
+      }
+    });
+  }
+
   // ─────────────────────────────────────────────────────────
   //  PUBLIC API  (window.HealthSettings)
   // ─────────────────────────────────────────────────────────
@@ -380,6 +412,16 @@
         if (name === 'profile') {
           setTimeout(render, 50);
         }
+        return result;
+      };
+    }
+
+    // Hook renderFitHistory to annotate imported workouts with source badge
+    var _origRFH = window.renderFitHistory;
+    if (typeof _origRFH === 'function') {
+      window.renderFitHistory = function () {
+        var result = _origRFH.apply(this, arguments);
+        setTimeout(_addSourceBadges, 0);
         return result;
       };
     }

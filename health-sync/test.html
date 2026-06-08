@@ -19,17 +19,21 @@
 <script>window.Capacitor = null;</script>
 <script src="health-sync.js"></script>
 <script src="health-sync.test.js"></script>
+<!-- Water tracker + its tests -->
+<script src="../water-tracker.js"></script>
+<script src="water-tracker.test.js"></script>
 <script>
-  // Colorize output
-  var out = document.getElementById('test-output');
-  if (out) {
+  // Colorize output after all sync tests have run
+  setTimeout(function () {
+    var out = document.getElementById('test-output');
+    if (!out) return;
     out.innerHTML = out.textContent
       .replace(/✅[^\n]*/g,  function(m){ return '<span class="pass">'+m+'</span>'; })
       .replace(/❌[^\n]*/g,  function(m){ return '<span class="fail">'+m+'</span>'; })
       .replace(/📦[^\n]*/g,  function(m){ return '<b>'+m+'</b>'; })
       .replace(/💥[^\n]*/g,  function(m){ return '<span class="fail">'+m+'</span>'; })
       .replace(/🎉[^\n]*/g,  function(m){ return '<span class="pass"><b>'+m+'</b></span>'; });
-  }
+  }, 600);
 </script>
 </body>
 </html>
