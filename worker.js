@@ -218,6 +218,90 @@ export default {
         return json({ ok: true });
       }
 
+      // ════════ سجّل حدث مزامنة صحية ════════
+      if (path === 'health/sync-log') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+
+        const platform = (body.platform || '').toLowerCase();
+        if (!['healthkit', 'health_connect'].includes(platform)) {
+          return json({ error: 'invalid platform' }, 400);
+        }
+
+        const now = new Date().toISOString();
+        const id = uid();
+
+        // Upsert sync state row
+        await env.DB.prepare(`
+          INSERT INTO health_sync
+            (id, user_id, platform, last_sync_at, last_pull_cursor, status,
+             records_pushed, records_pulled, error_msg, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(user_id, platform) DO UPDATE SET
+            last_sync_at     = excluded.last_sync_at,
+            last_pull_cursor = COALESCE(excluded.last_pull_cursor, last_pull_cursor),
+            status           = excluded.status,
+            error_msg        = excluded.error_msg,
+            records_pushed   = records_pushed + excluded.records_pushed,
+            records_pulled   = records_pulled + excluded.records_pulled,
+            updated_at       = excluded.updated_at
+        `).bind(
+          id,
+          user.id,
+          platform,
+          body.synced_at || now,
+          body.pull_cursor || null,
+          body.status || 'idle',
+          body.pushed  || 0,
+          body.pulled  || 0,
+          body.error   || null,
+          now,
+          now
+        ).run();
+
+        // Persist server-side dedup hashes sent from client
+        const hashes = Array.isArray(body.dedup_hashes) ? body.dedup_hashes.slice(0, 200) : [];
+        if (hashes.length) {
+          const stmt = env.DB.prepare(`
+            INSERT OR IGNORE INTO sync_dedup (record_hash, user_id, data_type, source, synced_at)
+            VALUES (?, ?, ?, ?, ?)
+          `);
+          await env.DB.batch(
+            hashes.map(h => stmt.bind(h.hash, user.id, h.type || 'unknown', h.source || platform, now))
+          );
+        }
+
+        return json({ ok: true });
+      }
+
+      // ════════ حالة المزامنة ════════
+      if (path === 'health/status') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+
+        const { results } = await env.DB.prepare(
+          'SELECT platform, last_sync_at, status, records_pushed, records_pulled, error_msg FROM health_sync WHERE user_id = ?'
+        ).bind(user.id).all();
+
+        return json({ sync: results || [] });
+      }
+
+      // ════════ التحقق من التكرار على السيرفر ════════
+      if (path === 'health/check-dedup') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+
+        const hashes = Array.isArray(body.hashes) ? body.hashes.slice(0, 500) : [];
+        if (!hashes.length) return json({ seen: [] });
+
+        const placeholders = hashes.map(() => '?').join(',');
+        const { results } = await env.DB.prepare(
+          `SELECT record_hash FROM sync_dedup WHERE user_id = ? AND record_hash IN (${placeholders})`
+        ).bind(user.id, ...hashes).all();
+
+        return json({ seen: (results || []).map(r => r.record_hash) });
+      }
+
       return json({ error: 'not found: ' + path }, 404);
 
     } catch (e) {

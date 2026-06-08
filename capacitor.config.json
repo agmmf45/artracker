@@ -1,0 +1,26 @@
+{
+  "appId": "com.daqeeq.app",
+  "appName": "دقيق",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile",
+    "limitsNavigationsToAppBoundDomains": true
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "daqeeq.keystore",
+      "keystoreAlias": "daqeeq"
+    }
+  },
+  "plugins": {
+    "HealthKit": {
+      "healthSharePermission": "يحتاج دقيق قراءة بياناتك الصحية لمزامنتها",
+      "healthUpdatePermission": "يحتاج دقيق حفظ بياناتك في Apple Health"
+    }
+  }
+}

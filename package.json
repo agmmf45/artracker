@@ -1,0 +1,24 @@
+{
+  "name": "daqeeq",
+  "version": "1.0.0",
+  "description": "تطبيق دقيق — تتبع العادات والصحة",
+  "private": true,
+  "scripts": {
+    "build:ios":     "npx cap sync ios",
+    "build:android": "npx cap sync android",
+    "open:ios":      "npx cap open ios",
+    "open:android":  "npx cap open android",
+    "db:migrate":    "npx wrangler d1 execute artracker-db --file=db/migrations/001_health_sync.sql",
+    "db:migrate:remote": "npx wrangler d1 execute artracker-db --remote --file=db/migrations/001_health_sync.sql"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor-community/health-kit": "^3.0.0",
+    "capacitor-health-connect": "^3.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}
