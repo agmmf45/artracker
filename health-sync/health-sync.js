@@ -776,7 +776,7 @@
       }
 
       var added = 0;
-      var fd    = window.myData && window.myData.fitness ? window.myData.fitness : { workouts: [], bodyweight: [], programs: [], prs: {} };
+      var fd    = window.getFitData ? window.getFitData() : { workouts: [], bodyweight: [], programs: [], prs: {} };
 
       records.forEach(function (rec) {
         var wo    = plat === 'ios'
@@ -785,10 +785,8 @@
         var hash  = DedupGuard.buildHash('pull', DATA_TYPE.WORKOUT, wo.sourceId, wo.date, wo.duration);
         if (DedupGuard.isSeen(hash)) return;
 
-        // Conflict check against existing app workouts
         var existing = (fd.workouts || []).find(function (w) {
-          var resolution = ConflictResolver.resolveWorkout(w, wo);
-          return resolution === 'duplicate';
+          return ConflictResolver.resolveWorkout(w, wo) === 'duplicate';
         });
         if (existing) { DedupGuard.markSeen(hash, 'pull', DATA_TYPE.WORKOUT); return; }
 
@@ -799,7 +797,6 @@
         added++;
       });
 
-      if (window.myData) window.myData.fitness = fd;
       return added;
     }
 
@@ -827,23 +824,20 @@
       }
 
       var added = 0;
-      var fd    = window.myData && window.myData.fitness ? window.myData.fitness : { workouts: [], bodyweight: [], programs: [], prs: {} };
+      var fd    = window.getFitData ? window.getFitData() : { workouts: [], bodyweight: [], programs: [], prs: {} };
 
       records.forEach(function (rec) {
         var entry = plat === 'ios'
           ? HealthMapper.healthKitWeightToApp(rec)
           : HealthMapper.healthConnectWeightToApp(rec);
-        if (!entry.w || entry.w < 20 || entry.w > 500) return; // sanity check
+        if (!entry.w || entry.w < 20 || entry.w > 500) return;
 
         var hash = DedupGuard.buildHash('pull', DATA_TYPE.BODYWEIGHT, entry.sourceId, entry.date, entry.w);
         if (DedupGuard.isSeen(hash)) return;
 
-        var existing = (fd.bodyweight || []).find(function (e) {
-          return e.date === entry.date;
-        });
+        var existing = (fd.bodyweight || []).find(function (e) { return e.date === entry.date; });
         if (existing) {
-          var res = ConflictResolver.resolveBodyWeight(existing, entry);
-          if (res === 'take_health') {
+          if (ConflictResolver.resolveBodyWeight(existing, entry) === 'take_health') {
             existing.w = entry.w;
             existing.recordedAt = entry.recordedAt;
           }
@@ -858,7 +852,6 @@
         added++;
       });
 
-      if (window.myData) window.myData.fitness = fd;
       return added;
     }
 
@@ -953,7 +946,7 @@
       if (!_state.prefs.enabled)       return { skipped: 'disabled' };
       if (_state.running)              return { skipped: 'already_running' };
       if (!PlatformBridge.isCapacitor()) return { skipped: 'web_mode' };
-      if (!window.myData)              return { skipped: 'no_data' };
+      if (typeof window.getFitData !== 'function') return { skipped: 'no_data' };
 
       _state.running = true;
       HealthSyncUI.setSyncStatus('syncing');
@@ -967,8 +960,8 @@
         await SyncQueue.flushAll(_executeQueuedOp).catch(function () {});
 
         // ── 2. Push app data → health platform ───────────
-        var fd    = window.myData.fitness   || {};
-        var nutri = window.myData.nutrition || {};
+        var fd    = window.getFitData();
+        var nutri = window.getNutri ? window.getNutri() : {};
 
         var woRes  = await _pushWorkouts(fd.workouts    || []);
         var bwRes  = await _pushBodyWeight(fd.bodyweight || []);
@@ -1025,9 +1018,9 @@
         var payload = JSON.parse(stored.value);
         await KV.remove({ key: 'daqeeq_bg_payload' });
 
-        if (!window.myData) return 0;
+        if (typeof window.getFitData !== 'function') return 0;
         var added = 0;
-        var fd = window.myData.fitness || { workouts: [], bodyweight: [], programs: [], prs: {} };
+        var fd = window.getFitData();
 
         // Merge workouts
         (payload.workouts || []).forEach(function (rec) {
@@ -1060,7 +1053,6 @@
           }
         });
 
-        window.myData.fitness = fd;
         if (added > 0 && typeof window.saveMyData === 'function') {
           await window.saveMyData();
           try { window.renderFitDashboard && window.renderFitDashboard(); } catch (_) {}

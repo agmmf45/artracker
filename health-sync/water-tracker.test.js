@@ -47,13 +47,18 @@
   }
 
   // ── Helpers ─────────────────────────────────────────────
+  // _n is the live nutrition object for this test run.
+  // Assertions read from it via n() helper.
+  var _currentN = null;
+
   function freshMyData() {
-    window.myData = {
-      nutrition: { goal: 2000, log: {}, water: {}, waterLog: {}, waterGoal: 2000 },
-      fitness: {}
-    };
+    _currentN = { goal: 2000, log: {}, water: {}, waterLog: {}, waterGoal: 2000 };
+    window.getNutri   = function () { return _currentN; };
     window.saveMyData = function () { return Promise.resolve(); };
   }
+
+  // Shorthand for assertions
+  function n() { return _currentN; }
 
   function todayKey() { return new Date().toISOString().split('T')[0]; }
 
@@ -63,16 +68,16 @@
     if (!WT) { wtAssert(false, 'WaterTracker not found on window'); return; }
 
     freshMyData();
-    var n = WT._getData();
-    wtAssert(!!n,                        '_getData returns nutrition object');
-    wtAssert(typeof n.water    === 'object', '_getData creates water map');
-    wtAssert(typeof n.waterLog === 'object', '_getData creates waterLog map');
+    var d = WT._getData();
+    wtAssert(!!d,                           '_getData returns nutrition object');
+    wtAssert(typeof d.water    === 'object', '_getData creates water map');
+    wtAssert(typeof d.waterLog === 'object', '_getData creates waterLog map');
 
-    window.myData = {};
-    var n2 = WT._getData();
-    wtAssert(!!n2,                   '_getData creates nutrition if missing');
-    wtEqual(n2.water,    {},         'water starts empty');
-    wtEqual(n2.waterLog, {},         'waterLog starts empty');
+    // When getNutri unavailable — returns null
+    var origGetNutri = window.getNutri;
+    window.getNutri = undefined;
+    wtAssert(WT._getData() === null, '_getData returns null when getNutri missing');
+    window.getNutri = origGetNutri;
   });
 
   suite('addWater accumulates correctly', function () {
@@ -83,15 +88,15 @@
     var day = todayKey();
 
     WT.add(250);
-    wtEqual(window.myData.nutrition.water[day], 250, 'add 250 → total 250');
+    wtEqual(n().water[day], 250, 'add 250 → total 250');
 
     WT.add(330);
-    wtEqual(window.myData.nutrition.water[day], 580, 'add 330 → total 580');
+    wtEqual(n().water[day], 580, 'add 330 → total 580');
 
-    var log = window.myData.nutrition.waterLog[day];
-    wtEqual(log.length,   2,   'two log entries after two adds');
-    wtEqual(log[0].ml,  250,   'first entry ml = 250');
-    wtEqual(log[1].ml,  330,   'second entry ml = 330');
+    var log = n().waterLog[day];
+    wtEqual(log.length,  2,   'two log entries after two adds');
+    wtEqual(log[0].ml, 250,   'first entry ml = 250');
+    wtEqual(log[1].ml, 330,   'second entry ml = 330');
     wtAssert(typeof log[0].time === 'string' && log[0].time.length > 0, 'entry has time string');
   });
 
@@ -102,17 +107,17 @@
     freshMyData();
     var day = todayKey();
     WT.add(500);
-    var before = window.myData.nutrition.water[day];
+    var before = n().water[day];
 
-    WT.add(0);      wtEqual(window.myData.nutrition.water[day], before, 'add 0 rejected');
-    WT.add(-100);   wtEqual(window.myData.nutrition.water[day], before, 'add negative rejected');
-    WT.add(6000);   wtEqual(window.myData.nutrition.water[day], before, 'add >5000 rejected');
-    WT.add('abc');  wtEqual(window.myData.nutrition.water[day], before, 'add non-numeric rejected');
+    WT.add(0);      wtEqual(n().water[day], before, 'add 0 rejected');
+    WT.add(-100);   wtEqual(n().water[day], before, 'add negative rejected');
+    WT.add(6000);   wtEqual(n().water[day], before, 'add >5000 rejected');
+    WT.add('abc');  wtEqual(n().water[day], before, 'add non-numeric rejected');
 
     WT.add(1);
-    wtEqual(window.myData.nutrition.water[day], before + 1,       'add 1 (min) accepted');
+    wtEqual(n().water[day], before + 1,        'add 1 (min) accepted');
     WT.add(5000);
-    wtEqual(window.myData.nutrition.water[day], before + 1 + 5000,'add 5000 (max) accepted');
+    wtEqual(n().water[day], before + 1 + 5000, 'add 5000 (max) accepted');
   });
 
   suite('removeEntry decrements correctly', function () {
@@ -123,24 +128,24 @@
     var day = todayKey();
     WT.add(200); WT.add(500); WT.add(300);
 
-    wtEqual(window.myData.nutrition.water[day], 1000, 'setup: total 1000');
-    wtEqual(window.myData.nutrition.waterLog[day].length, 3, 'setup: 3 entries');
+    wtEqual(n().water[day],          1000, 'setup: total 1000');
+    wtEqual(n().waterLog[day].length,   3, 'setup: 3 entries');
 
-    WT.removeEntry(day, 1);  // remove 500
-    wtEqual(window.myData.nutrition.water[day], 500, 'remove 500 → total 500');
-    wtEqual(window.myData.nutrition.waterLog[day].length, 2, '2 entries remain');
-    wtEqual(window.myData.nutrition.waterLog[day][0].ml, 200, 'entry[0]=200');
-    wtEqual(window.myData.nutrition.waterLog[day][1].ml, 300, 'entry[1]=300');
+    WT.removeEntry(day, 1);
+    wtEqual(n().water[day],          500, 'remove 500 → total 500');
+    wtEqual(n().waterLog[day].length,  2, '2 entries remain');
+    wtEqual(n().waterLog[day][0].ml, 200, 'entry[0]=200');
+    wtEqual(n().waterLog[day][1].ml, 300, 'entry[1]=300');
 
-    WT.removeEntry(day, 0);  // remove 200
-    wtEqual(window.myData.nutrition.water[day], 300, 'remove 200 → total 300');
+    WT.removeEntry(day, 0);
+    wtEqual(n().water[day], 300, 'remove 200 → total 300');
 
-    WT.removeEntry(day, 0);  // remove 300 → zero
-    wtEqual(window.myData.nutrition.water[day], 0, 'all removed → total 0');
-    wtEqual(window.myData.nutrition.waterLog[day].length, 0, 'log empty');
+    WT.removeEntry(day, 0);
+    wtEqual(n().water[day],          0, 'all removed → total 0');
+    wtEqual(n().waterLog[day].length, 0, 'log empty');
 
-    WT.removeEntry(day, 0);  // out of bounds — no-op
-    wtEqual(window.myData.nutrition.water[day], 0, 'out-of-bounds remove: total stays 0');
+    WT.removeEntry(day, 0);
+    wtEqual(n().water[day], 0, 'out-of-bounds remove: total stays 0');
   });
 
   suite('goal setting', function () {
@@ -150,8 +155,8 @@
     freshMyData();
     wtEqual(WT._goal(), 2000, 'default goal 2000ml');
 
-    window.myData.nutrition.waterGoal = 2500;
-    wtEqual(WT._goal(), 2500, 'reads waterGoal from myData');
+    n().waterGoal = 2500;
+    wtEqual(WT._goal(), 2500, 'reads waterGoal from nutrition object');
 
     [500, 1000, 1500, 2000, 2500, 3000].forEach(function (v) {
       wtAssert(v >= 100 && v <= 10000, 'preset ' + v + ' in valid range');
@@ -183,17 +188,16 @@
     if (!WT) { wtAssert(false, 'WaterTracker not found'); return; }
 
     freshMyData();
-    window.myData.nutrition.water[WT._dayKey(1)] = 1800;
-    window.myData.nutrition.water[WT._dayKey(2)] = 2200;
+    n().water[WT._dayKey(1)] = 1800;
+    n().water[WT._dayKey(2)] = 2200;
 
-    var n = WT._getData();
-    wtEqual(n.water[WT._dayKey(1)], 1800, 'yesterday = 1800');
-    wtEqual(n.water[WT._dayKey(2)], 2200, '2 days ago = 2200');
-    wtEqual(n.water[WT._dayKey(0)] || 0, 0, 'today starts at 0');
+    wtEqual(n().water[WT._dayKey(1)], 1800, 'yesterday = 1800');
+    wtEqual(n().water[WT._dayKey(2)], 2200, '2 days ago = 2200');
+    wtEqual(n().water[WT._dayKey(0)] || 0, 0, 'today starts at 0');
 
     WT.add(400);
-    wtEqual(n.water[WT._dayKey(0)], 400,  'today = 400 after add');
-    wtEqual(n.water[WT._dayKey(1)], 1800, 'yesterday unaffected');
+    wtEqual(n().water[WT._dayKey(0)], 400,  'today = 400 after add');
+    wtEqual(n().water[WT._dayKey(1)], 1800, 'yesterday unaffected');
   });
 
   // ── Summary ──────────────────────────────────────────────

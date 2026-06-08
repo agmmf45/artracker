@@ -167,9 +167,10 @@
   }
 
   function _getData() {
-    if (!window.myData) return null;
-    var n = window.myData.nutrition;
-    if (!n) { window.myData.nutrition = { goal: 2000, log: {} }; n = window.myData.nutrition; }
+    // myData is declared as `let` in index.html — not on window.
+    // getNutri() IS a function declaration → available as window.getNutri.
+    if (typeof window.getNutri !== 'function') return null;
+    var n = window.getNutri();
     if (!n.water)    n.water    = {};
     if (!n.waterLog) n.waterLog = {};
     return n;
