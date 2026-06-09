@@ -426,10 +426,11 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 }
 .page{display:none;}
 .page.active{display:block;}
-.page.slide-in-left{animation:slide-left 0.25s ease;}
-.page.slide-in-right{animation:slide-right 0.25s ease;}
+.page.slide-in-left{animation:slide-left 0.18s ease;}
+.page.slide-in-right{animation:slide-right 0.18s ease;}
 @keyframes slide-left{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slide-right{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.page.slide-in-left,.page.slide-in-right{animation:none !important;}}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);}
@@ -2886,6 +2887,7 @@ async function loadMyData(){
 async function saveMyData(){
   if(!currentUser) return;
   applyDefaults();
+  _pageRendered.clear(); // force re-render on next visit after data changes
   saveToCache(currentUser.id); // always save locally first
 
   try{
@@ -2937,8 +2939,10 @@ async function startApp(user){
     return;
   }
 
-  // Show default page
-  try{ showPage('stats', document.getElementById('tab-stats')); }catch(e){}
+  // Show initial page — respect deep-link hash if present (#/stats, #/nutrition, …)
+  const _hashPage=(location.hash||'').replace(/^#\//,'');
+  const _initPage=PAGE_ORDER.includes(_hashPage)?_hashPage:'stats';
+  try{ showPage(_initPage, document.getElementById('tab-'+_initPage)); }catch(e){}
 
   // Render
   try{ document.getElementById('sidebar-name').textContent = myData.display_name||''; }catch(e){}
@@ -3946,6 +3950,10 @@ function toggleSubtask(habitId, subId, e){
   saveMyData(); renderHabits(); renderStreaks();
 }
 const PAGE_ORDER=['habits','todo','stats','expenses','trophies','profile','friends','fitness','nutrition'];
+const _scrollPos={};        // saved window.scrollY per page name
+const _pageRendered=new Set(); // pages already rendered (cleared on saveMyData)
+let _navFromHistory=false;  // true when showPage is called from popstate
+let _historyReady=false;    // false = use replaceState on first nav
 
 // ── PIXEL-ART NAV ICONS ───────────────────────
 function pixelSVG(rows,pal,size){
@@ -4048,38 +4056,53 @@ function renderSubtabs(name){
 function showPage(name,tabEl,dir){
   const prev=document.querySelector('.page.active');
   const prevName=prev?prev.id.replace('page-',''):null;
-  // auto-detect direction if not passed
+  // Save scroll position of outgoing page
+  if(prevName) _scrollPos[prevName]=window.scrollY||0;
+  // Auto-detect direction if not passed
   if(!dir&&prevName){
     const pi=PAGE_ORDER.indexOf(prevName),ni=PAGE_ORDER.indexOf(name);
     dir=ni>pi?'left':'right';
   }
+  // Update browser history (first nav uses replaceState, later ones pushState)
+  if(!_navFromHistory){
+    if(!_historyReady){ history.replaceState({page:name},'','#/'+name); _historyReady=true; }
+    else { history.pushState({page:name},'','#/'+name); }
+  }
+  _navFromHistory=false;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active','slide-in-left','slide-in-right'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.top-tab').forEach(n=>n.classList.remove('active'));
   const next=document.getElementById('page-'+name);
   if(!next) return;
   next.classList.add('active');
-  // Fix scroll position when switching pages
-  try { window.scrollTo(0, 0); } catch(e) {}
+  // Restore saved scroll position after paint (rAF avoids layout thrash)
+  const _savedScroll=_scrollPos[name]||0;
+  requestAnimationFrame(()=>{ try{window.scrollTo(0,_savedScroll);}catch(e){} });
   if(dir==='left') next.classList.add('slide-in-left');
   else if(dir==='right') next.classList.add('slide-in-right');
   if(tabEl)tabEl.classList.add('active');
-  // group-based nav highlight + sub-tabs
+  // Group-based nav highlight + sub-tabs
   const grp=PAGE_GROUP[name];
   if(grp){
     groupLastPage[grp]=name;
     document.querySelectorAll(`.nav-item[data-g="${grp}"], .top-tab[data-g="${grp}"]`).forEach(n=>n.classList.add('active'));
   }
   renderSubtabs(name);
-  if(name==='stats'){renderStats();try{renderCalendar();}catch(e){}try{initNotes();}catch(e){}}
-  if(name==='friends')refreshAll();
-  if(name==='profile'){renderProfilePage();renderFriendsList();}
-  if(name==='todo')renderTodos();
-  if(name==='expenses'){renderWallets();renderWalletStats();}
-  if(name==='fitness'){initFitness();}
-  if(name==='nutrition'){try{renderNutrition();}catch(e){}}
-  if(name==='habits'){try{renderHabits();}catch(e){}}
-  if(name==='trophies')renderTrophies();
+  // Render page content — cache to skip re-render on return visits
+  // (cache is cleared by saveMyData so data changes always refresh)
+  if(name==='friends'){
+    refreshAll(); // always re-fetch: network data may have changed
+  } else if(!_pageRendered.has(name)){
+    if(name==='stats'){renderStats();try{renderCalendar();}catch(e){}try{initNotes();}catch(e){}}
+    if(name==='profile'){renderProfilePage();renderFriendsList();}
+    if(name==='todo')renderTodos();
+    if(name==='expenses'){renderWallets();renderWalletStats();}
+    if(name==='fitness'){initFitness();}
+    if(name==='nutrition'){try{renderNutrition();}catch(e){}}
+    if(name==='habits'){try{renderHabits();}catch(e){}}
+    if(name==='trophies')renderTrophies();
+    _pageRendered.add(name);
+  }
 }
 
 
@@ -4358,28 +4381,44 @@ const _origApplyTheme=applyTheme;
 
 
 // ── SWIPE NAVIGATION ──────────────────────────
+// Navigates between the 4 bottom-nav GROUPS (not all 9 sub-pages).
+// RTL: swipe left (dx < 0) = next group; swipe right (dx > 0) = previous group.
+// One swipe = exactly one step; lock flag prevents multi-step jumps.
 (function(){
-  let sx=0,sy=0;
-  document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  const GROUP_ORDER=['daily','board','me','fit'];
+  let sx=0,sy=0,_locked=false;
+  document.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+  },{passive:true});
   document.addEventListener('touchend',e=>{
+    if(_locked) return;
     const dx=e.changedTouches[0].clientX-sx;
     const dy=Math.abs(e.changedTouches[0].clientY-sy);
-    if(Math.abs(dx)<55||dy>100)return;
-    // ignore if touch started on a modal or fab
-    if(e.target.closest('.modal-ov'))return;
+    if(Math.abs(dx)<50||dy>80) return;             // threshold + vertical guard
+    if(e.target.closest('.modal-ov')) return;       // ignore touches inside modals
     const cur=document.querySelector('.page.active');
-    if(!cur)return;
-    const idx=PAGE_ORDER.indexOf(cur.id.replace('page-',''));
-    if(idx===-1)return;
-    if(dx>0&&idx>0){
-      // swipe right in RTL → previous
-      showPage(PAGE_ORDER[idx-1],document.getElementById('tab-'+PAGE_ORDER[idx-1]),'right');
-    }else if(dx<0&&idx<PAGE_ORDER.length-1){
-      // swipe left in RTL → next
-      showPage(PAGE_ORDER[idx+1],document.getElementById('tab-'+PAGE_ORDER[idx+1]),'left');
-    }
+    if(!cur) return;
+    const curGroup=PAGE_GROUP[cur.id.replace('page-','')];
+    const gi=GROUP_ORDER.indexOf(curGroup);
+    if(gi===-1) return;
+    // RTL: left-swipe (dx<0) advances to next group, right-swipe goes back
+    const ni=Math.max(0,Math.min(GROUP_ORDER.length-1, gi+(dx<0?1:-1)));
+    if(ni===gi) return;                             // already at boundary — clamp
+    _locked=true;
+    const tg=GROUP_ORDER[ni];
+    const tp=groupLastPage[tg]||GROUPS[tg].pages[0][0];
+    showPage(tp,document.getElementById('tab-'+tp),dx<0?'left':'right');
+    setTimeout(()=>{ _locked=false; },220);         // unlock after transition
   },{passive:true});
 })();
+
+// ── BACK / FORWARD BUTTON ─────────────────────
+window.addEventListener('popstate',function(e){
+  const name=e.state&&e.state.page;
+  if(!name||!PAGE_ORDER.includes(name)) return;
+  _navFromHistory=true; // tell showPage: don't push another history entry
+  showPage(name,document.getElementById('tab-'+name));
+});
 
 
 function updateTopBar(){
