@@ -397,33 +397,39 @@
   // ─────────────────────────────────────────────
   //  Card templates
   // ─────────────────────────────────────────────
+  const DIFF_COLOR = { beginner:'var(--green)', intermediate:'#f59e0b', expert:'var(--red)' };
+
   function _exMiniCard(ex) {
+    const diff  = (ex.difficulty || '').toLowerCase();
+    const color = DIFF_COLOR[diff] || 'var(--muted)';
     return `<div class="exdb-mini-card">
-      ${ex.gifUrl
-        ? `<img src="${ex.gifUrl}" alt="${ex.name}" loading="lazy" class="exdb-mini-gif">`
-        : `<div class="exdb-mini-gif exdb-mini-ph">💪</div>`}
+      <div class="exdb-mini-ico" style="color:${color}">💪</div>
       <div class="exdb-mini-lbl">${ex.name}</div>
+      ${diff ? `<div class="exdb-mini-diff" style="color:${color}">${diff}</div>` : ''}
     </div>`;
   }
 
   function _exCard(ex, i) {
     const vids    = findCurated(ex.name);
-    const hasMul  = ex.secondaryMuscles?.length;
     const hasInst = ex.instructions?.length;
+    const diff    = (ex.difficulty || '').toLowerCase();
+    const color   = DIFF_COLOR[diff] || 'var(--muted)';
+    const desc    = ex.description
+      ? ex.description.length > 110 ? ex.description.slice(0, 110) + '…' : ex.description
+      : '';
     return `
       <div class="exdb-ex-card">
-        <div class="exdb-ex-gif-w">
-          ${ex.gifUrl
-            ? `<img src="${ex.gifUrl}" alt="${ex.name}" loading="lazy" class="exdb-ex-gif">`
-            : `<div class="exdb-ex-gif exdb-gif-ph">💪</div>`}
-        </div>
-        <div class="exdb-ex-body">
-          <div class="exdb-ex-name">${ex.name}</div>
+        <div class="exdb-ex-body" style="width:100%">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <div class="exdb-ex-name">${ex.name}</div>
+            ${diff ? `<span class="exdb-diff-badge" style="background:color-mix(in srgb,${color} 15%,transparent);color:${color};border-color:color-mix(in srgb,${color} 30%,transparent)">${diff}</span>` : ''}
+          </div>
           <div class="exdb-ex-tags">
             <span class="exdb-tag exdb-tag-prim">${ex.target || ''}</span>
             ${(ex.secondaryMuscles || []).slice(0, 2).map(m => `<span class="exdb-tag">${m}</span>`).join('')}
             <span class="exdb-tag exdb-tag-eq">🏋 ${ex.equipment || 'body weight'}</span>
           </div>
+          ${desc ? `<div class="exdb-ex-desc">${desc}</div>` : ''}
           ${hasInst ? `
             <div id="exdb-inst-${i}" style="display:none;margin:8px 0">
               ${ex.instructions.map((s, n) => `
@@ -509,10 +515,10 @@
 .exdb-ov-prev{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
 .exdb-ov-loading{grid-column:1/-1;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;padding:8px 0;}
 .exdb-mini-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;
-  padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:5px;}
-.exdb-mini-gif{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--surface);}
-.exdb-mini-ph{display:flex;align-items:center;justify-content:center;font-size:24px;}
+  padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.exdb-mini-ico{font-size:26px;line-height:1;}
 .exdb-mini-lbl{font-size:9px;font-weight:700;text-align:center;line-height:1.3;text-transform:capitalize;}
+.exdb-mini-diff{font-size:8px;font-weight:700;text-transform:capitalize;}
 .exdb-more-btn{width:100%;padding:10px;background:none;border:1.5px solid var(--border);
   border-radius:12px;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
 
@@ -520,13 +526,13 @@
 .exdb-count{font-size:11px;color:var(--muted);margin-bottom:10px;}
 .exdb-count strong{color:var(--accent);}
 .exdb-ex-list{display:flex;flex-direction:column;gap:10px;}
-.exdb-ex-card{display:flex;gap:12px;background:var(--surface2);
-  border:1.5px solid var(--border);border-radius:14px;padding:12px;overflow:hidden;}
-.exdb-ex-gif-w{flex-shrink:0;width:80px;height:80px;border-radius:10px;overflow:hidden;background:var(--surface);}
-.exdb-ex-gif{width:80px;height:80px;object-fit:cover;display:block;}
-.exdb-gif-ph{display:flex;align-items:center;justify-content:center;font-size:28px;}
-.exdb-ex-body{flex:1;min-width:0;}
-.exdb-ex-name{font-size:13px;font-weight:800;text-transform:capitalize;margin-bottom:6px;line-height:1.3;}
+.exdb-ex-card{background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:14px;padding:12px;overflow:hidden;}
+.exdb-ex-body{min-width:0;}
+.exdb-ex-name{font-size:13px;font-weight:800;text-transform:capitalize;line-height:1.3;}
+.exdb-diff-badge{font-size:9px;font-weight:800;padding:3px 8px;border-radius:99px;
+  border:1px solid;white-space:nowrap;flex-shrink:0;text-transform:capitalize;}
+.exdb-ex-desc{font-size:11px;color:var(--muted);line-height:1.55;margin:6px 0 4px;}
 .exdb-ex-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
 .exdb-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--surface);border:1px solid var(--border);}
 .exdb-tag-prim{background:color-mix(in srgb,var(--accent) 15%,transparent);
