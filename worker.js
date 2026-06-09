@@ -136,6 +136,71 @@ export default {
         return json({ user });
       }
 
+      // ════════ Google Sign-In ════════
+      if (path === 'auth/google') {
+        const idToken = (body.idToken || '').trim();
+        if (!idToken) return json({ error: 'no token' }, 400);
+
+        // Verify the Google ID token server-side
+        const verifyRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+        );
+        if (!verifyRes.ok) return json({ error: 'فشل التحقق من Google' }, 401);
+        const info = await verifyRes.json();
+
+        // Reject tokens with errors or wrong audience
+        if (info.error_description) return json({ error: info.error_description }, 401);
+        if (info.aud !== env.GOOGLE_CLIENT_ID) return json({ error: 'invalid audience' }, 401);
+
+        const googleId   = info.sub;
+        const email      = (info.email  || '').trim().toLowerCase();
+        const name       = (info.name   || email.split('@')[0] || 'مستخدم').trim();
+        const picture    = info.picture || null;
+        const now        = new Date().toISOString();
+
+        // 1. Look up by google_id first
+        let user = await env.DB.prepare(
+          'SELECT id, email, name FROM users WHERE google_id = ?'
+        ).bind(googleId).first();
+
+        // 2. Fallback: match by email (links an existing email/password account)
+        if (!user && email) {
+          user = await env.DB.prepare(
+            'SELECT id, email, name FROM users WHERE email = ?'
+          ).bind(email).first();
+        }
+
+        if (!user) {
+          // New user — create account (no password)
+          const id = uid();
+          await env.DB.prepare(
+            `INSERT INTO users
+               (id, email, name, google_id, profile_picture, last_login_at, password_hash, data, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(id, email, name, googleId, picture, now, 'google:', '{}', now).run();
+          user = { id, email, name };
+        } else {
+          // Existing user — link google_id + refresh profile
+          await env.DB.prepare(
+            `UPDATE users
+             SET google_id = ?, profile_picture = ?, last_login_at = ?, updated_at = ?
+             WHERE id = ?`
+          ).bind(googleId, picture, now, now, user.id).run();
+        }
+
+        // Create session
+        const t = token();
+        await env.DB.prepare(
+          'INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)'
+        ).bind(t, user.id, now, new Date(Date.now() + SESSION_DAYS * 864e5).toISOString()).run();
+
+        return json({
+          ok: true,
+          token: t,
+          user: { id: user.id, email, name, profile_picture: picture }
+        });
+      }
+
       // ════════ الخروج ════════
       if (path === 'logout') {
         const auth = req.headers.get('Authorization') || '';

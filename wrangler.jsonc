@@ -13,5 +13,8 @@
       "database_name": "artracker-db",
       "database_id": "17468068-0e8d-4bbe-9daa-485e8cd088ec"
     }
-  ]
+  ],
+  "vars": {
+    "GOOGLE_CLIENT_ID": "YOUR_GOOGLE_CLIENT_ID_HERE"
+  }
 }
