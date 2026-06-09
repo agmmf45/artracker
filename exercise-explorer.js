@@ -399,11 +399,20 @@
   // ─────────────────────────────────────────────
   const DIFF_COLOR = { beginner:'var(--green)', intermediate:'#f59e0b', expert:'var(--red)' };
 
+  function _imgSrc(id, res) {
+    return `/api/exercise-image?id=${encodeURIComponent(id)}&res=${res}`;
+  }
+
   function _exMiniCard(ex) {
     const diff  = (ex.difficulty || '').toLowerCase();
     const color = DIFF_COLOR[diff] || 'var(--muted)';
+    const src   = ex.id ? _imgSrc(ex.id, 90) : '';
     return `<div class="exdb-mini-card">
-      <div class="exdb-mini-ico" style="color:${color}">💪</div>
+      ${src
+        ? `<img src="${src}" alt="${ex.name}" loading="lazy" class="exdb-mini-gif"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : ''}
+      <div class="exdb-mini-ico" style="color:${color};display:${src ? 'none' : 'block'}">💪</div>
       <div class="exdb-mini-lbl">${ex.name}</div>
       ${diff ? `<div class="exdb-mini-diff" style="color:${color}">${diff}</div>` : ''}
     </div>`;
@@ -417,9 +426,17 @@
     const desc    = ex.description
       ? ex.description.length > 110 ? ex.description.slice(0, 110) + '…' : ex.description
       : '';
+    const src = ex.id ? _imgSrc(ex.id, 180) : '';
     return `
-      <div class="exdb-ex-card">
-        <div class="exdb-ex-body" style="width:100%">
+      <div class="exdb-ex-card" style="display:flex;gap:12px">
+        <div class="exdb-ex-gif-w" style="flex-shrink:0">
+          ${src
+            ? `<img src="${src}" alt="${ex.name}" loading="lazy" class="exdb-ex-gif"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : ''}
+          <div class="exdb-gif-ph" style="display:${src ? 'none' : 'flex'}">💪</div>
+        </div>
+        <div class="exdb-ex-body">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
             <div class="exdb-ex-name">${ex.name}</div>
             ${diff ? `<span class="exdb-diff-badge" style="background:color-mix(in srgb,${color} 15%,transparent);color:${color};border-color:color-mix(in srgb,${color} 30%,transparent)">${diff}</span>` : ''}
@@ -516,6 +533,7 @@
 .exdb-ov-loading{grid-column:1/-1;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;padding:8px 0;}
 .exdb-mini-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;
   padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.exdb-mini-gif{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--surface);display:block;}
 .exdb-mini-ico{font-size:26px;line-height:1;}
 .exdb-mini-lbl{font-size:9px;font-weight:700;text-align:center;line-height:1.3;text-transform:capitalize;}
 .exdb-mini-diff{font-size:8px;font-weight:700;text-transform:capitalize;}

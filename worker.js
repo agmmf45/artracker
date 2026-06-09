@@ -367,6 +367,56 @@ export default {
         return json({ seen: (results || []).map(r => r.record_hash) });
       }
 
+      // ════════ صور التمارين — proxy مع Cloudflare edge cache ════════
+      if (path === 'exercise-image') {
+        if (req.method !== 'GET') return new Response('', { status: 405 });
+
+        const exId  = (url.searchParams.get('id')  || '').trim();
+        const res   = (url.searchParams.get('res') || '180').trim();
+        const key   = (env.EXERCISEDB_KEY || '').trim();
+
+        if (!exId || !key) return new Response('', { status: 204 });
+
+        // Check Cloudflare's cache first
+        const cacheKey = new Request(
+          `https://exercisedb-img-cache/${exId}_${res}`,
+          { method: 'GET' }
+        );
+        const cache = caches.default;
+        const cached = await cache.match(cacheKey);
+        if (cached) return cached;
+
+        try {
+          const imgRes = await fetch(
+            `https://exercisedb.p.rapidapi.com/image?exerciseId=${encodeURIComponent(exId)}&resolution=${res}`,
+            { headers: {
+                'x-rapidapi-key':  key,
+                'x-rapidapi-host': 'exercisedb.p.rapidapi.com',
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          if (!imgRes.ok) return new Response('', { status: 204 });
+
+          const ct  = imgRes.headers.get('Content-Type') || 'image/gif';
+          const buf = await imgRes.arrayBuffer();
+
+          const resp = new Response(buf, {
+            status: 200,
+            headers: {
+              'Content-Type':  ct,
+              'Cache-Control': 'public, max-age=604800', // 7 أيام
+              'Access-Control-Allow-Origin': '*',
+            }
+          });
+          // Store in Cloudflare edge cache
+          await cache.put(cacheKey, resp.clone());
+          return resp;
+        } catch {
+          return new Response('', { status: 204 });
+        }
+      }
+
       // ════════ بيانات التمارين — proxy لـ ExerciseDB عبر RapidAPI ════════
       if (path === 'exercises') {
         if (req.method !== 'GET') return json({ error: 'GET only' }, 405);
