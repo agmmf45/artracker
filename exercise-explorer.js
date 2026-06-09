@@ -9,7 +9,8 @@
   'use strict';
 
   // ── Config ────────────────────────────────────────────────────
-  const API       = 'https://exercisedb.io/api';
+  // طلبات التمارين تمر عبر Worker (يتجنب مشاكل CORS)
+  const API_BASE  = '/api/exercises';
   const CACHE_KEY = 'artrk_exdb_v1_';
   const CACHE_TTL = 24 * 3600 * 1000; // 24 h
   const EX_LIMIT  = 15;
@@ -113,7 +114,7 @@
   }
 
   // ─────────────────────────────────────────────
-  //  ExerciseDB API
+  //  ExerciseDB API  (عبر Cloudflare Worker proxy — لا CORS)
   // ─────────────────────────────────────────────
   async function fetchExercises(muscle) {
     const map = MUS_MAP[muscle] || { target: muscle.toLowerCase(), bodyPart: muscle.toLowerCase() };
@@ -121,8 +122,10 @@
     const hit = cGet(ck);
     if (hit) return hit;
 
-    const tryFetch = async (url) => {
-      const r = await fetch(url, { signal: AbortSignal.timeout(7000) });
+    const tryFetch = async (param) => {
+      const r = await fetch(`${API_BASE}?${param}&limit=${EX_LIMIT}`, {
+        signal: AbortSignal.timeout(10000)
+      });
       if (!r.ok) throw new Error(r.status);
       const d = await r.json();
       if (!Array.isArray(d) || !d.length) throw new Error('empty');
@@ -130,11 +133,11 @@
     };
 
     try {
-      const data = await tryFetch(`${API}/exercises/target/${encodeURIComponent(map.target)}?limit=${EX_LIMIT}`);
+      const data = await tryFetch(`target=${encodeURIComponent(map.target)}`);
       cSet(ck, data); return data;
     } catch {
       try {
-        const data = await tryFetch(`${API}/exercises/bodyPart/${encodeURIComponent(map.bodyPart)}?limit=${EX_LIMIT}`);
+        const data = await tryFetch(`bodyPart=${encodeURIComponent(map.bodyPart)}`);
         cSet(ck, data); return data;
       } catch { return null; }
     }

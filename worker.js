@@ -367,6 +367,44 @@ export default {
         return json({ seen: (results || []).map(r => r.record_hash) });
       }
 
+      // ════════ بيانات التمارين — proxy لـ ExerciseDB عبر RapidAPI ════════
+      if (path === 'exercises') {
+        if (req.method !== 'GET') return json({ error: 'GET only' }, 405);
+
+        const target   = url.searchParams.get('target')   || '';
+        const bodyPart = url.searchParams.get('bodyPart') || '';
+        const limit    = Math.min(20, parseInt(url.searchParams.get('limit') || '15', 10));
+
+        const key = (env.EXERCISEDB_KEY || '').trim();
+        if (!key) {
+          // المفتاح غير مضاف بعد — أعد مصفوفة فارغة بدل خطأ 5xx
+          return json([]);
+        }
+
+        const base = 'https://exercisedb.p.rapidapi.com';
+        const apiPath = target
+          ? `/exercises/target/${encodeURIComponent(target)}?limit=${limit}&offset=0`
+          : bodyPart
+          ? `/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=${limit}&offset=0`
+          : null;
+
+        if (!apiPath) return json({ error: 'target or bodyPart required' }, 400);
+
+        try {
+          const res = await fetch(`${base}${apiPath}`, {
+            headers: {
+              'x-rapidapi-key':  key,
+              'x-rapidapi-host': 'exercisedb.p.rapidapi.com'
+            }
+          });
+          if (!res.ok) return json([]);          // رجّع فارغ — الـ client يعرض خطأ نظيف
+          const data = await res.json();
+          return json(Array.isArray(data) ? data : []);
+        } catch {
+          return json([]);
+        }
+      }
+
       return json({ error: 'not found: ' + path }, 404);
 
     } catch (e) {
