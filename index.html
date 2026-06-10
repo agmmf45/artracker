@@ -251,7 +251,7 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .top-tabs{
   display:flex;
   position:fixed;bottom:0;left:0;right:0;
-  background:rgba(21,30,48,0.92);
+  background:var(--nav-bg,rgba(21,30,48,0.92));
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-top:1px solid var(--border);
   z-index:500;
@@ -282,7 +282,7 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
   position:fixed;top:62px;right:230px;left:0;z-index:398;
   display:flex;gap:8px;align-items:center;
   padding:9px 28px;
-  background:rgba(12,19,34,0.85);
+  background:var(--topbar-bg,rgba(12,19,34,0.85));
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
   overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;
@@ -298,7 +298,7 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
   cursor:pointer;transition:all 0.18s;white-space:nowrap;
 }
 .subtab:hover{border-color:var(--accent);color:var(--accent);}
-.subtab.active{background:var(--accent);border-color:var(--accent);color:#06202E;box-shadow:0 3px 12px rgba(var(--accent-rgb),0.3);}
+.subtab.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#06202E);box-shadow:0 3px 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── NUTRITION / CALORIES ──────── */
 .nutri-datebar{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;}
@@ -528,8 +528,8 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .fi:focus,.fs:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.15);}
 .fi:focus,.fs:focus{outline:none;border-color:var(--accent);}
 .btn{padding:12px 22px;border:none;border-radius:var(--r-sm);font-family:'Thmanyah',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all 0.18s;}
-.btn-p{background:var(--accent);color:#06202E;box-shadow:0 4px 16px rgba(var(--accent-rgb),0.3);}
-.btn-p:active{transform:scale(0.97);} .btn-p:hover{background:#92400E;}
+.btn-p{background:var(--accent);color:var(--on-accent,#06202E);box-shadow:0 4px 16px rgba(var(--accent-rgb),0.3);}
+.btn-p:active{transform:scale(0.97);} .btn-p:hover{filter:brightness(1.1);}
 .btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
 .btn-s:active{transform:scale(0.97);}
 .btn-sm{padding:7px 14px;font-size:13px;}
@@ -630,7 +630,7 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .top-profile-bar{
   position:fixed;top:0;right:230px;left:0;
   z-index:400;
-  background:rgba(12,19,34,0.85);
+  background:var(--topbar-bg,rgba(12,19,34,0.85));
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
   padding:12px 20px;
@@ -846,7 +846,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v3.4 — Enhanced Pages CSS
+   v3.5 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1200,7 +1200,7 @@ body {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<!-- ARTRK v3.4 -->
+<!-- ARTRK v3.5 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1569,7 +1569,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.4</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.5</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -1898,7 +1898,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.4</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.5</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -7336,6 +7336,9 @@ try{ scheduleReminders(); }catch(e){}
     </div>
   </div>
 </div>
+
+<!-- ── PREMIUM THEMES ─────────────────────────── -->
+<script src="themes.js"></script>
 
 <!-- ── HEALTH SYNC ENGINE ─────────────────────── -->
 <script src="water-tracker.js"></script>
