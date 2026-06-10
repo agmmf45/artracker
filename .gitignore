@@ -8,6 +8,10 @@ index.original.backup.html
 icon-gen.html
 save-server.js
 
+# أدوات البناء والمحرر
+.wrangler/
+.claude/
+
 # ملفات النظام/المحرر
 .DS_Store
 Thumbs.db

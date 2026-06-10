@@ -1,0 +1,42 @@
+# لا تُنشر هذه الملفات كأصول عامة (server code, configs, dev tools, docs)
+# يستخدم صيغة .gitignore
+
+# كود السيرفر والإعدادات
+worker.js
+wrangler.jsonc
+package.json
+package-lock.json
+capacitor.config.json
+
+# قاعدة البيانات والهجرات
+db/
+
+# وثائق ومخططات داخلية
+IDEA.md
+README.md
+setup/
+
+# نسخ احتياطية وملفات تصميم قديمة
+*.backup.html
+index.original.backup.html
+archive/
+icon-gen.html
+save-server.js
+
+# اختبارات وأدوات التطوير
+health-sync/*.test.js
+health-sync/test.html
+
+# مستودع git وأدوات البناء — يجب ألا تُنشر إطلاقاً
+.git/
+.gitignore
+.gitattributes
+.wrangler/
+node_modules/
+
+# ملفات النظام والمحرر
+.claude/
+.assetsignore
+*.log
+.DS_Store
+Thumbs.db

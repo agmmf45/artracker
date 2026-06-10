@@ -15,7 +15,6 @@
     }
   ],
   "vars": {
-    "GOOGLE_CLIENT_ID": "715888666154-oq18fnen6emchams4nup3q67bkb118qo.apps.googleusercontent.com",
-    "EXERCISEDB_KEY": ""
+    "GOOGLE_CLIENT_ID": "715888666154-oq18fnen6emchams4nup3q67bkb118qo.apps.googleusercontent.com"
   }
 }

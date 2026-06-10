@@ -59,6 +59,30 @@ async function getUserFromToken(env, req) {
   return { id: row.user_id, email: row.email, name: row.name };
 }
 
+// ── أدوات بيانات المستخدم (لعمليات الأصدقاء على السيرفر) ──
+async function getDataById(env, id) {
+  const row = await env.DB.prepare('SELECT data FROM users WHERE id = ?').bind(id).first();
+  try { return JSON.parse(row?.data || '{}'); } catch { return {}; }
+}
+async function saveDataById(env, id, data) {
+  const now = new Date().toISOString();
+  await env.DB.prepare('UPDATE users SET data = ?, updated_at = ? WHERE id = ?')
+    .bind(JSON.stringify(data), now, id).run();
+}
+async function findUserByCode(env, code) {
+  if (!code) return null;
+  const { results } = await env.DB.prepare('SELECT id, data FROM users').all();
+  for (const r of (results || [])) {
+    try {
+      const d = JSON.parse(r.data || '{}');
+      if (d.friend_code === code) return { id: r.id, data: d };
+    } catch {}
+  }
+  return null;
+}
+function arrPush(arr, v) { arr = Array.isArray(arr) ? arr : []; if (!arr.includes(v)) arr.push(v); return arr; }
+function arrDrop(arr, v) { return (Array.isArray(arr) ? arr : []).filter(x => x !== v); }
+
 // ── المعالج الرئيسي ──
 export default {
   async fetch(req, env) {
@@ -232,42 +256,125 @@ export default {
         return json({ ok: true });
       }
 
-      // ════════ كل المستخدمين (للأصدقاء) ════════
+      // ════════ كل المستخدمين (للأصدقاء) — حقول عامة فقط ════════
+      // لا نرسل المصاريف/الأوزان/الملاحظات/التغذية. فقط ما تحتاجه شاشة الأصدقاء.
       if (path === 'users') {
         const user = await getUserFromToken(env, req);
         if (!user) return json({ error: 'unauthorized' }, 401);
+        const todayKey = new Date().toISOString().slice(0, 10);
         const { results } = await env.DB.prepare('SELECT name, data, updated_at FROM users').all();
         const users = (results || []).map(r => {
           let d = {};
           try { d = JSON.parse(r.data || '{}'); } catch {}
-          return { name: r.name, ...d, updated_at: r.updated_at };
+          // أرسل إنجاز اليوم فقط (لا كامل السجل التاريخي)
+          const doneToday = (d.done && d.done[todayKey]) ? { [todayKey]: d.done[todayKey] } : {};
+          return {
+            name: r.name,
+            updated_at: r.updated_at,
+            friend_code: d.friend_code || null,
+            display_name: d.display_name || null,
+            avatar_emoji: d.avatar_emoji || null,
+            avatar_color: d.avatar_color || null,
+            avatar_photo: d.avatar_photo || null,
+            status_note: d.status_note || null,
+            habits_list: Array.isArray(d.habits_list) ? d.habits_list : [],
+            done: doneToday,
+          };
         });
         return json({ users });
       }
 
-      // ════════ معرّف مستخدم عبر كود الصديق ════════
-      if (path === 'user-by-code') {
+      // ════════ طلب صداقة (على السيرفر — لا يكشف بيانات الطرف الآخر) ════════
+      if (path === 'friend/request') {
         const user = await getUserFromToken(env, req);
         if (!user) return json({ error: 'unauthorized' }, 401);
-        const code = body.code || '';
-        const { results } = await env.DB.prepare('SELECT id, data FROM users').all();
-        const found = (results || []).find(r => {
-          try { return JSON.parse(r.data || '{}').friend_code === code; } catch { return false; }
-        });
-        return json({ id: found?.id || null });
+        const code = (body.code || '').trim().toUpperCase();
+        if (!code) return json({ error: 'code required' }, 400);
+
+        const myData = await getDataById(env, user.id);
+        const myCode = myData.friend_code;
+        if (!myCode) return json({ error: 'no friend code' }, 400);
+        if (code === myCode) return json({ error: 'self' }, 400);
+        if ((myData.friends || []).includes(code)) return json({ ok: true, already: true });
+
+        const target = await findUserByCode(env, code);
+        if (!target) return json({ error: 'not found' }, 404);
+
+        // متبادل؟ الطرف الآخر أرسل لي طلباً مسبقاً → صداقة فورية
+        const mutual = (target.data.sent_requests || []).includes(myCode);
+        if (mutual) {
+          myData.friends = arrPush(myData.friends, code);
+          myData.incoming_requests = arrDrop(myData.incoming_requests, code);
+          target.data.friends = arrPush(target.data.friends, myCode);
+          target.data.sent_requests = arrDrop(target.data.sent_requests, myCode);
+        } else {
+          myData.sent_requests = arrPush(myData.sent_requests, code);
+          target.data.incoming_requests = arrPush(target.data.incoming_requests, myCode);
+        }
+        await saveDataById(env, user.id, myData);
+        await saveDataById(env, target.id, target.data);
+        return json({ ok: true, mutual, name: target.data.display_name || target.data.friend_code });
       }
 
-      // ════════ تحديث بيانات صديق (لقبول الطلبات) ════════
-      if (path === 'update-user') {
+      // ════════ قبول طلب صداقة ════════
+      if (path === 'friend/accept') {
         const user = await getUserFromToken(env, req);
         if (!user) return json({ error: 'unauthorized' }, 401);
-        const targetId = body.targetId;
-        const data = body.data || {};
-        if (!targetId) return json({ error: 'targetId required' }, 400);
-        const now = new Date().toISOString();
-        await env.DB.prepare(
-          'UPDATE users SET data = ?, updated_at = ? WHERE id = ?'
-        ).bind(JSON.stringify(data), now, targetId).run();
+        const code = (body.code || '').trim().toUpperCase();
+        if (!code) return json({ error: 'code required' }, 400);
+
+        const myData = await getDataById(env, user.id);
+        const myCode = myData.friend_code;
+        myData.friends = arrPush(myData.friends, code);
+        myData.incoming_requests = arrDrop(myData.incoming_requests, code);
+        await saveDataById(env, user.id, myData);
+
+        const target = await findUserByCode(env, code);
+        if (target) {
+          target.data.friends = arrPush(target.data.friends, myCode);
+          target.data.sent_requests = arrDrop(target.data.sent_requests, myCode);
+          await saveDataById(env, target.id, target.data);
+        }
+        return json({ ok: true, name: target?.data?.display_name || code });
+      }
+
+      // ════════ رفض طلب صداقة ════════
+      if (path === 'friend/reject') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const code = (body.code || '').trim().toUpperCase();
+        if (!code) return json({ error: 'code required' }, 400);
+
+        const myData = await getDataById(env, user.id);
+        const myCode = myData.friend_code;
+        myData.incoming_requests = arrDrop(myData.incoming_requests, code);
+        await saveDataById(env, user.id, myData);
+
+        const target = await findUserByCode(env, code);
+        if (target) {
+          target.data.sent_requests = arrDrop(target.data.sent_requests, myCode);
+          await saveDataById(env, target.id, target.data);
+        }
+        return json({ ok: true });
+      }
+
+      // ════════ إزالة صديق (من الطرفين) ════════
+      if (path === 'friend/remove') {
+        const user = await getUserFromToken(env, req);
+        if (!user) return json({ error: 'unauthorized' }, 401);
+        const code = (body.code || '').trim().toUpperCase();
+        if (!code) return json({ error: 'code required' }, 400);
+
+        const myData = await getDataById(env, user.id);
+        const myCode = myData.friend_code;
+        myData.friends = arrDrop(myData.friends, code);
+        await saveDataById(env, user.id, myData);
+
+        const target = await findUserByCode(env, code);
+        if (target) {
+          target.data.friends = arrDrop(target.data.friends, myCode);
+          await saveDataById(env, target.id, target.data);
+        }
         return json({ ok: true });
       }
 
