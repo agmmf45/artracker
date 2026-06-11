@@ -855,7 +855,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v3.6 — Enhanced Pages CSS
+   v3.7 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1209,7 +1209,7 @@ body {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<!-- ARTRK v3.6 -->
+<!-- ARTRK v3.7 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1578,7 +1578,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.6</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.7</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -1907,7 +1907,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.6</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.7</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -2574,6 +2574,7 @@ setInterval(()=>{
       <h3 style="margin:0;font-size:17px">🔔 التذكيرات</h3>
       <span style="cursor:pointer;color:var(--muted);font-size:20px" onclick="closeModal('reminder-modal')">✕</span>
     </div>
+    <div id="notif-status" style="margin-bottom:14px"></div>
     <div id="reminders-list"></div>
     <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">+ تذكير جديد</div>
@@ -2593,7 +2594,7 @@ setInterval(()=>{
       <button type="button" class="btn btn-p btn-full" onclick="saveReminder()">حفظ التذكير</button>
     </div>
     <div style="margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:12px;font-size:11px;color:var(--muted);line-height:1.7">
-      💡 للحصول على إشعارات فعلية على جوالك، لازم تفعّل الإشعارات من المتصفح لما يطلب منك
+      💡 التذكيرات تعمل والتطبيق مفتوح في الخلفية. للإشعارات الموثوقة على الجوال: ثبّت التطبيق على الشاشة الرئيسية وفعّل الإشعارات.
     </div>
   </div>
 </div>
@@ -6964,14 +6965,72 @@ function getReminders(){ return myData.reminders || []; }
 
 function openReminderModal(){
   renderReminders();
+  renderNotifStatus();
   openModal('reminder-modal');
-  requestNotificationPermission();
 }
 
-function requestNotificationPermission(){
-  if('Notification' in window && Notification.permission === 'default'){
-    Notification.requestPermission();
+// يعرض إشعاراً عبر الـ Service Worker (يعمل على الجوال) مع fallback للمتصفح
+async function showAppNotification(title, opts){
+  opts = Object.assign({ icon:'icon-192.png?v=2', badge:'icon-192.png?v=2' }, opts||{});
+  try{
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.ready;
+      if(reg && reg.showNotification){ await reg.showNotification(title, opts); return true; }
+    }
+  }catch(e){}
+  // fallback (سطح المكتب فقط — new Notification يرمي خطأ على Android)
+  try{ new Notification(title, opts); return true; }catch(e){ return false; }
+}
+
+// يطلب إذن الإشعارات (يجب استدعاؤه من نقرة مستخدم). يُرجع الحالة النهائية.
+async function requestNotifPermission(){
+  if(!('Notification' in window)) return 'unsupported';
+  let perm = Notification.permission;
+  if(perm === 'default'){
+    try{ perm = await Notification.requestPermission(); }catch(e){ perm = Notification.permission; }
   }
+  return perm;
+}
+
+// بطاقة حالة الإشعارات داخل المودال (تفعيل / تجريبي / محظور)
+function renderNotifStatus(){
+  const el = document.getElementById('notif-status'); if(!el) return;
+  if(!('Notification' in window)){
+    el.innerHTML = '<div style="padding:11px 14px;background:var(--surface2);border-radius:12px;font-size:12px;color:var(--muted)">⚠️ متصفحك لا يدعم الإشعارات</div>';
+    return;
+  }
+  const p = Notification.permission;
+  if(p === 'granted'){
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--green-light);border:1px solid color-mix(in srgb,var(--green) 30%,transparent);border-radius:12px">'
+      + '<span style="font-size:18px">✅</span>'
+      + '<div style="flex:1;font-size:13px;font-weight:700;color:var(--green)">الإشعارات مفعّلة</div>'
+      + '<button type="button" class="btn btn-s btn-sm" style="font-size:12px;padding:6px 12px" onclick="notifTest()">🔔 تجربة</button>'
+      + '</div>';
+  } else if(p === 'denied'){
+    el.innerHTML = '<div style="padding:11px 14px;background:var(--red-light);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:12px;font-size:12px;color:var(--red);line-height:1.7">'
+      + '🚫 الإشعارات محظورة لهذا الموقع.<br>فعّلها يدوياً: اضغط القفل 🔒 بجانب العنوان ← الإشعارات ← السماح.'
+      + '</div>';
+  } else {
+    el.innerHTML = '<button type="button" class="btn btn-p btn-full" onclick="notifEnable()" style="display:flex;align-items:center;justify-content:center;gap:8px">'
+      + '🔔 تفعيل الإشعارات</button>'
+      + '<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">حتى تصلك تذكيراتك في وقتها</div>';
+  }
+}
+
+async function notifEnable(){
+  const p = await requestNotifPermission();
+  renderNotifStatus();
+  if(p === 'granted'){
+    showToast('✅ تم تفعيل الإشعارات');
+    showAppNotification('دقيق 🔔', { body:'تم تفعيل الإشعارات بنجاح!', tag:'welcome' });
+  } else if(p === 'denied'){
+    showToast('🚫 رُفض الإذن — فعّله من إعدادات المتصفح');
+  }
+}
+
+async function notifTest(){
+  const ok = await showAppNotification('دقيق 🔔', { body:'هذا إشعار تجريبي — كل شيء يعمل ✅', tag:'test', requireInteraction:false });
+  showToast(ok ? '📨 أُرسل إشعار تجريبي' : '❌ تعذّر إرسال الإشعار');
 }
 
 function toggleRDay(el){
@@ -7003,6 +7062,10 @@ function saveReminder(){
   renderReminders();
   showToast('✅ تم حفظ التذكير');
   scheduleReminders();
+  // اطلب الإذن تلقائياً عند حفظ أول تذكير (نقرة المستخدم تتيح الطلب)
+  if('Notification' in window && Notification.permission==='default'){
+    notifEnable();
+  }
 }
 
 function renderReminders(){
@@ -7064,7 +7127,7 @@ function checkReminders(){
     if(r.time !== currentTime) return;
     if(r.days.length > 0 && r.days.indexOf(currentDay) === -1) return;
     if('Notification' in window && Notification.permission === 'granted'){
-      new Notification('دقيق 🔔', { body: r.label, tag: r.id });
+      showAppNotification('دقيق 🔔', { body: r.label, tag: r.id });
     }
     showToast('🔔 ' + r.label);
   });

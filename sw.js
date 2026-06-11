@@ -4,7 +4,7 @@
 //  • الأصول الثابتة (خطوط/صور/JS/CSS): من الكاش فوراً + تحديث بالخلفية (SWR)
 //  • /api/* وأي طلب غير GET أو خارجي: شبكة مباشرة (لا كاش)
 // ════════════════════════════════════════════════
-const CACHE = 'artrk-v7';
+const CACHE = 'artrk-v8';
 const ASSET_RE = /\.(?:woff2|woff|ttf|png|jpg|jpeg|svg|webp|gif|ico|css|js)$/i;
 
 self.addEventListener('install', e => { self.skipWaiting(); });
@@ -60,4 +60,15 @@ self.addEventListener('fetch', e => {
 
   // الباقي: شبكة مع رجوع للكاش
   e.respondWith(fetch(req).catch(() => caches.match(req)));
+});
+
+// النقر على الإشعار → افتح/ركّز التطبيق
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      if (self.clients.openWindow) return self.clients.openWindow('/');
+    })
+  );
 });
