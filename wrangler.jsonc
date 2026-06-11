@@ -2,6 +2,11 @@
   "name": "artracker",
   "compatibility_date": "2024-09-23",
   "main": "worker.js",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "daqeeq.org", "custom_domain": true },
+    { "pattern": "www.daqeeq.org", "custom_domain": true }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
