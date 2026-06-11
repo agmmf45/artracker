@@ -290,15 +290,24 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 .subtabs::-webkit-scrollbar{display:none;}
 .subtabs:empty{display:none;}
 .subtab{
+  position:relative;z-index:1;
   flex:0 0 auto;
   padding:7px 18px;border-radius:99px;
-  border:1.5px solid var(--border);background:var(--surface2);
+  border:1.5px solid transparent;background:transparent;
   color:var(--muted);
   font-family:'Thmanyah',sans-serif;font-size:13px;font-weight:800;
-  cursor:pointer;transition:all 0.18s;white-space:nowrap;
+  cursor:pointer;transition:color .18s,transform .12s;white-space:nowrap;
 }
-.subtab:hover{border-color:var(--accent);color:var(--accent);}
-.subtab.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#06202E);box-shadow:0 3px 12px rgba(var(--accent-rgb),0.3);}
+.subtab:hover{color:var(--accent);}
+.subtab.active{color:var(--on-accent,#06202E);}
+.subtab:active{transform:scale(.94);}
+/* المؤشر المنزلق (segmented-control) — يُحرَّك عبر JS */
+.subtab-ind{
+  position:absolute;top:0;left:0;height:32px;border-radius:99px;
+  background:var(--accent);box-shadow:0 3px 12px rgba(var(--accent-rgb),0.35);
+  z-index:0;opacity:0;transform:translate(0,0);pointer-events:none;
+  transition:transform .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1),height .2s,opacity .2s;
+}
 
 /* ── NUTRITION / CALORIES ──────── */
 .nutri-datebar{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;}
@@ -427,10 +436,10 @@ body{font-family:'Thmanyah',sans-serif;background:var(--bg);color:var(--text);mi
 }
 .page{display:none;}
 .page.active{display:block;}
-.page.slide-in-left{animation:slide-left 0.18s ease;}
-.page.slide-in-right{animation:slide-right 0.18s ease;}
-@keyframes slide-left{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slide-right{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+.page.slide-in-left{animation:slide-left .26s cubic-bezier(.22,.61,.36,1);}
+.page.slide-in-right{animation:slide-right .26s cubic-bezier(.22,.61,.36,1);}
+@keyframes slide-left{from{opacity:0;transform:translateX(-34px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slide-right{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){
   .page.slide-in-left,.page.slide-in-right{animation:none !important;}
   /* أوقف الحركات الزخرفية اللانهائية لمن يفضّل تقليل الحركة */
@@ -846,7 +855,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v3.5 — Enhanced Pages CSS
+   v3.6 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1200,7 +1209,7 @@ body {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<!-- ARTRK v3.5 -->
+<!-- ARTRK v3.6 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1569,7 +1578,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.5</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.6</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -1898,7 +1907,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.5</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.6</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -4219,12 +4228,35 @@ function showGroup(g){
   const info=GROUPS[g]; if(!info) return;
   showPage(groupLastPage[g]||info.pages[0][0]);
 }
+let _subtabGroup=null; // المجموعة المبنيّة حالياً في شريط التبويبات
 function renderSubtabs(name){
   const bar=document.getElementById('subtabs'); if(!bar) return;
-  const info=GROUPS[PAGE_GROUP[name]];
-  if(!info||info.pages.length<2){ bar.innerHTML=''; return; }
-  bar.innerHTML=info.pages.map(([p,label])=>`<button type="button" class="subtab${p===name?' active':''}" onclick="showPage('${p}')">${label}</button>`).join('');
+  const grp=PAGE_GROUP[name];
+  const info=GROUPS[grp];
+  if(!info||info.pages.length<2){ bar.innerHTML=''; _subtabGroup=null; return; }
+  if(_subtabGroup!==grp){
+    // مجموعة جديدة → أعِد بناء الأزرار + المؤشر مرة واحدة
+    _subtabGroup=grp;
+    bar.innerHTML='<span class="subtab-ind" aria-hidden="true"></span>'+
+      info.pages.map(([p,label])=>`<button type="button" class="subtab${p===name?' active':''}" data-page="${p}" onclick="showPage('${p}')">${label}</button>`).join('');
+  } else {
+    // نفس المجموعة → بدّل النشط فقط (لا إعادة بناء = مؤشر منزلق سلس)
+    bar.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('active', b.dataset.page===name));
+  }
+  // قياس متزامن (offsetWidth يفرض reflow فيقرأ القيم الصحيحة فوراً)
+  positionSubtabIndicator();
 }
+function positionSubtabIndicator(){
+  const bar=document.getElementById('subtabs'); if(!bar) return;
+  const ind=bar.querySelector('.subtab-ind');
+  const act=bar.querySelector('.subtab.active');
+  if(!ind||!act){ if(ind) ind.style.opacity='0'; return; }
+  ind.style.opacity='1';
+  ind.style.width=act.offsetWidth+'px';
+  ind.style.height=act.offsetHeight+'px';
+  ind.style.transform=`translate(${act.offsetLeft}px,${act.offsetTop}px)`;
+}
+window.addEventListener('resize',()=>{ try{ positionSubtabIndicator(); }catch(e){} });
 function showPage(name,tabEl,dir){
   const prev=document.querySelector('.page.active');
   const prevName=prev?prev.id.replace('page-',''):null;
@@ -4524,35 +4556,62 @@ function renderTrophies(){
   document.getElementById('trophies-grid').innerHTML=html;
 }
 
-// ── SWIPE NAVIGATION ──────────────────────────
-// Navigates between the 4 bottom-nav GROUPS (not all 9 sub-pages).
-// RTL: swipe left (dx < 0) = next group; swipe right (dx > 0) = previous group.
-// One swipe = exactly one step; lock flag prevents multi-step jumps.
+// ── GESTURE NAVIGATION (centralized) ──────────────────────────
+// القاعدة: الشريط السفلي (المجموعات) = نقر فقط. السحب الأفقي يتنقّل بين
+// صفحات المجموعة الحالية فقط (محصور — لا يتجاوز المجموعة أبداً).
+// أولوية الإيماءات: محتوى الصفحة → القوائم الأفقية القابلة للتمرير →
+// تبويبات الأعلى. الشريط السفلي لا يستقبل سحباً إطلاقاً.
 (function(){
-  const GROUP_ORDER=['daily','board','fit','me'];
-  let sx=0,sy=0,_locked=false;
+  let sx=0,sy=0,st=0,_optOut=false,_locked=false;
+
+  // هل بدأ اللمس داخل منطقة يجب ألا تلتقط سحب التبويب؟
+  function isOptOut(target){
+    if(!target||!target.closest) return true;
+    // مودالات/حوارات، حقول إدخال، اللوحة القابلة للسحب، أي عنصر معلَّم
+    if(target.closest('.modal-ov,#app-dialog,#exdb-vid-panel,[data-noswipe],input,textarea,select,[contenteditable="true"]'))
+      return true;
+    // أي حاوية قابلة للتمرير الأفقي (قوائم/شرائح/كاروسيل) لها الأولوية
+    let el=target;
+    while(el && el!==document.body){
+      if(el.scrollWidth - el.clientWidth > 6){
+        const ox=getComputedStyle(el).overflowX;
+        if(ox==='auto'||ox==='scroll') return true;
+      }
+      el=el.parentElement;
+    }
+    return false;
+  }
+
+  // ينقل خطوة واحدة بين صفحات المجموعة الحالية (مع حصر عند الحدود)
+  function swipeActiveGroup(dir){ // dir: +1 التالي، -1 السابق (بترتيب RTL)
+    const cur=document.querySelector('.page.active'); if(!cur) return;
+    const name=cur.id.replace('page-','');
+    const grp=PAGE_GROUP[name]; if(!grp) return;
+    const pages=GROUPS[grp].pages;            // [[id,label],...] لهذه المجموعة فقط
+    const i=pages.findIndex(p=>p[0]===name); if(i===-1) return;
+    const ni=Math.max(0, Math.min(pages.length-1, i+dir));
+    if(ni===i) return;                        // عند الحدود → لا شيء (لا قفز لمجموعة أخرى)
+    const tp=pages[ni][0];
+    // RTL: dir>0 (سحب يسار) = الصفحة التالية تنزلق من اليسار
+    showPage(tp, document.getElementById('tab-'+tp), dir>0?'left':'right');
+  }
+
   document.addEventListener('touchstart',e=>{
-    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    if(e.touches.length!==1){ _optOut=true; return; } // تجاهل تعدد اللمس (zoom)
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now();
+    _optOut=isOptOut(e.target);
   },{passive:true});
+
   document.addEventListener('touchend',e=>{
-    if(_locked) return;
+    if(_optOut||_locked) return;
     const dx=e.changedTouches[0].clientX-sx;
-    const dy=Math.abs(e.changedTouches[0].clientY-sy);
-    if(Math.abs(dx)<50||dy>80) return;             // threshold + vertical guard
-    if(e.target.closest('.modal-ov')) return;       // ignore touches inside modals
-    const cur=document.querySelector('.page.active');
-    if(!cur) return;
-    const curGroup=PAGE_GROUP[cur.id.replace('page-','')];
-    const gi=GROUP_ORDER.indexOf(curGroup);
-    if(gi===-1) return;
-    // RTL: left-swipe (dx<0) advances to next group, right-swipe goes back
-    const ni=Math.max(0,Math.min(GROUP_ORDER.length-1, gi+(dx<0?1:-1)));
-    if(ni===gi) return;                             // already at boundary — clamp
+    const dy=e.changedTouches[0].clientY-sy;
+    const adx=Math.abs(dx), ady=Math.abs(dy);
+    // نية أفقية صارمة: مسافة كافية + هيمنة أفقية + سرعة سحب (لا تمرير بطيء)
+    if(adx<60 || adx < ady*1.4 || (Date.now()-st)>700) return;
     _locked=true;
-    const tg=GROUP_ORDER[ni];
-    const tp=groupLastPage[tg]||GROUPS[tg].pages[0][0];
-    showPage(tp,document.getElementById('tab-'+tp),dx<0?'left':'right');
-    setTimeout(()=>{ _locked=false; },220);         // unlock after transition
+    swipeActiveGroup(dx<0 ? +1 : -1);
+    setTimeout(()=>{ _locked=false; },240);
   },{passive:true});
 })();
 
