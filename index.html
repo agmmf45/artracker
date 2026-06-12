@@ -890,7 +890,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v3.9 — Enhanced Pages CSS
+   v4.0 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1239,13 +1239,81 @@ body {
   }
 }
 
+/* ══════════════════════════════════════════════════
+   ✨ UI REFINEMENT PASS (v4.0) — polish only, additive
+   ══════════════════════════════════════════════════ */
+:root{
+  /* spacing scale */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+  /* glow token (theme-aware) */
+  --glow-accent:0 0 18px color-mix(in srgb,var(--accent) 45%,transparent);
+}
+
+/* ── pressed/tap feedback everywhere ── */
+.btn:active,.chip:active,.todo-quick-btn:active,.streak-period-btn:active,
+.theme-card:active,.wallet-card:active,.muscle-card:active,.exercise-pick-item:active,
+.date-pick-btn:active,.w-emoji:active,.av-emoji:active,.av-color:active{
+  transform:scale(.96);
+}
+
+/* ── habit checkbox: bigger + satisfying check pop ── */
+.hr-check{width:30px;height:30px;transition:background .2s,border-color .2s,transform .2s;}
+.dq-pop{animation:dq-pop .42s cubic-bezier(.34,1.56,.64,1);}
+@keyframes dq-pop{0%{transform:scale(.55)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+
+/* ── streak fire: pulse when hot ── */
+.hr-streak.hot{animation:dq-fire 1.6s ease-in-out infinite;transform-origin:center;}
+@keyframes dq-fire{0%,100%{transform:scale(1);filter:none}50%{transform:scale(1.12);filter:drop-shadow(0 0 5px rgba(239,68,68,.7))}}
+
+/* ── progress / stat bars: smooth width + glow ── */
+.gbar>i,.bar-fill,.ws-cat-bar,.c-bar,#todo-progress-bar,#trophy-prog-bar{
+  transition:width .6s cubic-bezier(.22,.61,.36,1) !important;
+}
+
+/* ── calendar: clearer non-current-month + brighter activity dots ── */
+.cal-day.other-month{opacity:.45;}
+.cal-day.has-event::after{width:6px;height:6px;bottom:4px;box-shadow:0 0 5px var(--green);}
+.cal-day.has-todo::before{width:6px;height:6px;box-shadow:0 0 5px #F59E0B;}
+
+/* ── notification FAB: safe-area + auto-hide on scroll ── */
+.reminder-fab{
+  bottom:calc(86px + env(safe-area-inset-bottom,0)) !important;
+  transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .2s,box-shadow .2s;
+}
+.reminder-fab:active{transform:scale(.92);}
+.reminder-fab.fab-hidden{transform:translateY(140px) scale(.85);opacity:0;pointer-events:none;}
+/* مساحة أمان أسفل المحتوى حتى لا يحجب الـ FAB آخر عنصر */
+.main{padding-bottom:calc(140px + env(safe-area-inset-bottom,0)) !important;}
+
+/* ── empty states: more polish ── */
+.empty{padding:40px 18px;}
+.empty .empty-ico{font-size:46px;margin-bottom:12px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25));}
+.empty p{font-size:14px;line-height:1.7;}
+
+/* ── trophy unlock celebration glow ── */
+.trophy-card.unlocked{position:relative;}
+.trophy-card.unlocked::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 50%,transparent);
+}
+.toast.show{animation:dq-toast-in .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes dq-toast-in{0%{transform:translateX(-50%) translateY(14px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes dq-confetti{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx,0),105vh) rotate(var(--rot,360deg));opacity:.2}}
+
+/* ── respect reduced motion for all the above ── */
+@media(prefers-reduced-motion:reduce){
+  .dq-pop,.hr-streak.hot,.toast.show{animation:none !important;}
+  .gbar>i,.bar-fill,.ws-cat-bar,.c-bar,#todo-progress-bar,#trophy-prog-bar,.reminder-fab{transition:none !important;}
+  .btn:active,.chip:active{transform:none;}
+}
+
 </style>
 <!-- Google Identity Services (Sign-In) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#0C1322;min-height:100vh">دقيق يحتاج تفعيل JavaScript للعمل. فعّله من إعدادات المتصفح ثم أعد تحميل الصفحة.</div></noscript>
-<!-- ARTRK v3.9 -->
+<!-- ARTRK v4.0 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1614,7 +1682,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v3.9</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.0</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -1943,7 +2011,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v3.9</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.0</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -3225,8 +3293,16 @@ function isDone(id, dateKey){
 }
 function toggleHabit(id){
   if(!myData.done[selectedHabitsDate]) myData.done[selectedHabitsDate]={};
-  myData.done[selectedHabitsDate][id]=!myData.done[selectedHabitsDate][id];
+  const nowDone = myData.done[selectedHabitsDate][id]=!myData.done[selectedHabitsDate][id];
   saveMyData(); renderHabits(); renderStreaks();
+  // إحساس لمسي + نبضة "صح" مرضية على العنصر المُبدَّل فقط
+  if(nowDone){
+    try{ navigator.vibrate && navigator.vibrate(12); }catch(e){}
+    requestAnimationFrame(()=>{
+      const chk=document.querySelector(`.habit-row[data-hid="${id}"] .hr-check`);
+      if(chk){ chk.classList.remove('dq-pop'); void chk.offsetWidth; chk.classList.add('dq-pop'); }
+    });
+  }
 }
 async function deleteHabit(id,e){
   e.stopPropagation();
@@ -3293,7 +3369,7 @@ function renderHabits(){
           <div style="height:100%;width:${Math.round(pct*100)}%;background:${pct===1?'var(--green)':'var(--accent)'};border-radius:99px;transition:width 0.4s"></div>
         </div>`:''}
       </div>` : '';
-    return`<div class="habit-row ${done?'done':''}" onclick="toggleHabit('${h.id}')" style="background:${bgColor};border:1.5px solid ${borderColor};transition:all 0.3s">
+    return`<div class="habit-row ${done?'done':''}" data-hid="${h.id}" onclick="toggleHabit('${h.id}')" style="background:${bgColor};border:1.5px solid ${borderColor};transition:all 0.3s">
       <div class="hr-check">${done?'✓':subsTotal>0?`<span style="font-size:10px;font-weight:800;color:${pct>0?'var(--accent)':'var(--muted)'}">${subsDone}/${subsTotal}</span>`:''}</div>
       <div class="hr-icon">${h.icon}</div>
       <div class="hr-info" style="flex:1">
@@ -4536,6 +4612,27 @@ function showTrophyToast(t){
   toast.innerHTML=`🏆 فتحت تروفي: ${t.icon} ${t.name}!`;
   toast.classList.add('show');
   setTimeout(()=>toast.classList.remove('show'),3500);
+  try{ navigator.vibrate && navigator.vibrate([15,40,15]); }catch(e){}
+  try{ dqConfetti(); }catch(e){}
+}
+
+// احتفال قصير عند فتح إنجاز — جزيئات تتلاشى ذاتياً (تحترم تقليل الحركة)
+function dqConfetti(){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const colors=['#FBBF24','#34D399','#60A5FA','#F472B6','#A78BFA','#FB7185'];
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:99998;overflow:hidden';
+  for(let i=0;i<26;i++){
+    const p=document.createElement('i');
+    const sz=6+Math.random()*7, left=Math.random()*100, dx=(Math.random()*2-1)*160, dur=1.1+Math.random()*0.9;
+    p.style.cssText=`position:absolute;top:-16px;left:${left}%;width:${sz}px;height:${sz*0.5}px;`+
+      `background:${colors[i%colors.length]};border-radius:2px;opacity:.95;`+
+      `animation:dq-confetti ${dur}s cubic-bezier(.2,.6,.3,1) forwards;`+
+      `--dx:${dx}px;--rot:${Math.random()*720-360}deg;animation-delay:${Math.random()*0.15}s`;
+    wrap.appendChild(p);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(()=>wrap.remove(),2200);
 }
 
 function updateTrophyBadge(){
@@ -7170,6 +7267,25 @@ function checkReminders(){
 }
 
 try{ scheduleReminders(); }catch(e){}
+
+// ── زر التذكير العائم: يختفي عند التمرير لأسفل ويظهر عند التمرير لأعلى (لا يحجب القوائم) ──
+(function(){
+  let lastY=window.scrollY||0, ticking=false;
+  function onScroll(){
+    if(ticking) return; ticking=true;
+    requestAnimationFrame(()=>{
+      const fab=document.getElementById('reminder-fab');
+      if(fab){
+        const y=window.scrollY||0;
+        if(y>lastY+8 && y>120) fab.classList.add('fab-hidden');
+        else if(y<lastY-8) fab.classList.remove('fab-hidden');
+        lastY=y;
+      }
+      ticking=false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+})();
 
 </script>
 
