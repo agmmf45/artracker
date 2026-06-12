@@ -890,7 +890,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v4.2 — Enhanced Pages CSS
+   v4.3 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1338,7 +1338,7 @@ body {
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#0C1322;min-height:100vh">دقيق يحتاج تفعيل JavaScript للعمل. فعّله من إعدادات المتصفح ثم أعد تحميل الصفحة.</div></noscript>
-<!-- ARTRK v4.2 -->
+<!-- ARTRK v4.3 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1707,7 +1707,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.2</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.3</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -2042,7 +2042,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.2</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.3</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -4097,6 +4097,9 @@ function addTransaction(){
   if(curW && curW.type==='savings' && activeTxnSource){
     const src=myData.wallets.find(x=>x.id===activeTxnSource);
     if(src){
+      // معرّف رابط مشترك يربط حركة الادخار بحركة التحويل (حذف/تراجع متلازم)
+      const linkId='lk_'+Date.now();
+      txn.linkId=linkId;
       myData.transactions.unshift({
         id: Date.now()+1,
         walletId: src.id,
@@ -4105,7 +4108,8 @@ function addTransaction(){
         desc: `تحويل إلى ${curW.name}`,
         cat: '🔄 تحويل ادخار',
         date: selectedExpenseDate,
-        transferTo: curW.id
+        transferTo: curW.id,
+        linkId
       });
       transferred=true;
     }
@@ -4122,17 +4126,31 @@ function addTransaction(){
 
 function deleteTxn(id){
   const txns=myData.transactions||[];
-  const ti=txns.findIndex(t=>t.id===id);
-  if(ti===-1) return;
-  const removedTxn=txns[ti];
-  const ei=(myData.expenses||[]).findIndex(e=>e.id===id);
-  const removedExp=ei>-1?myData.expenses[ei]:null;
-  myData.transactions=txns.filter(t=>t.id!==id);
-  myData.expenses=(myData.expenses||[]).filter(e=>e.id!==id);
+  const target=txns.find(t=>t.id===id);
+  if(!target) return;
+  // الحركات المرتبطة (التحويل ↔ الادخار المقابل عبر linkId) تُحذف معاً
+  const link=target.linkId;
+  const removedTxns=[]; // {txn, idx}
+  txns.forEach((t,i)=>{
+    if(t.id===id || (link && t.linkId===link)) removedTxns.push({txn:t, idx:i});
+  });
+  const ids=new Set(removedTxns.map(r=>r.txn.id));
+  const removedExps=[];
+  (myData.expenses||[]).forEach((e,i)=>{ if(ids.has(e.id)) removedExps.push({exp:e, idx:i}); });
+
+  myData.transactions=txns.filter(t=>!ids.has(t.id));
+  myData.expenses=(myData.expenses||[]).filter(e=>!ids.has(e.id));
   saveMyData(); renderWallets(); renderTxnList();
-  showUndoToast('🗑 حُذفت الحركة', ()=>{
-    myData.transactions.splice(Math.min(ti,myData.transactions.length),0,removedTxn);
-    if(removedExp) myData.expenses.splice(Math.min(ei,myData.expenses.length),0,removedExp);
+
+  const msg = removedTxns.length>1 ? '🗑 حُذفت الحركة وتحويلها' : '🗑 حُذفت الحركة';
+  showUndoToast(msg, ()=>{
+    // أعد الإدراج بترتيب الفهارس الأصلي تصاعدياً
+    removedTxns.slice().sort((a,b)=>a.idx-b.idx).forEach(r=>{
+      myData.transactions.splice(Math.min(r.idx,myData.transactions.length),0,r.txn);
+    });
+    removedExps.slice().sort((a,b)=>a.idx-b.idx).forEach(r=>{
+      myData.expenses.splice(Math.min(r.idx,myData.expenses.length),0,r.exp);
+    });
     saveMyData(); renderWallets(); renderTxnList();
   });
 }
