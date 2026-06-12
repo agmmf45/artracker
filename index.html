@@ -890,7 +890,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v4.1 — Enhanced Pages CSS
+   v4.2 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1321,6 +1321,10 @@ body {
 .undo-toast .ut-btn:active{transform:scale(.93);}
 @media(prefers-reduced-motion:reduce){ .undo-toast{transition:opacity .15s;} }
 
+/* ── transfer transaction (تحويل للادخار) ── */
+.txn-ico.transfer{background:color-mix(in srgb,#8B5CF6 18%,transparent);}
+.txn-amount.transfer{color:#A78BFA;}
+
 /* ── respect reduced motion for all the above ── */
 @media(prefers-reduced-motion:reduce){
   .dq-pop,.hr-streak.hot,.toast.show{animation:none !important;}
@@ -1334,7 +1338,7 @@ body {
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#0C1322;min-height:100vh">دقيق يحتاج تفعيل JavaScript للعمل. فعّله من إعدادات المتصفح ثم أعد تحميل الصفحة.</div></noscript>
-<!-- ARTRK v4.1 -->
+<!-- ARTRK v4.2 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1703,7 +1707,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.1</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.2</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -1799,6 +1803,12 @@ setInterval(()=>{
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <input type="text" class="fi" id="txn-desc" placeholder="الوصف..." style="flex:2;min-width:120px">
           <input type="number" class="fi" id="txn-amount" placeholder="المبلغ" style="flex:1;min-width:80px">
+        </div>
+
+        <!-- مصدر الخصم (للمحافظ الادخارية فقط) — يحوّل المبلغ من محفظة عادية -->
+        <div id="txn-source-row" style="display:none;margin-top:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">💳 اخصم المبلغ من محفظة:</div>
+          <div id="txn-source-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
 
         <!-- Category (spend only) -->
@@ -2032,7 +2042,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.1</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.2</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -3856,6 +3866,7 @@ let activeWalletId = null;
 let activeTxnType = 'spend';
 let activeTxnCat = '🍔 أكل';
 let activeFilter = 'الكل';
+let activeTxnSource = null; // محفظة المصدر للخصم (للادخار) — null = بدون خصم
 
 function initWallets(){
   if(!myData.wallets) myData.wallets=[];
@@ -3890,7 +3901,8 @@ function renderWalletStats(){
     const wt=txns.filter(t=>t.walletId===w.id);
     return sum+(w.balance||0)+wt.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0)
       -wt.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0)
-      -wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
+      -wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0)
+      -wt.filter(t=>t.type==='transfer').reduce((a,b)=>a+b.amount,0);
   },0);
 
   document.getElementById('ws-total-balance').textContent = totalBalance.toLocaleString('ar');
@@ -3919,7 +3931,8 @@ function renderWalletStats(){
     const sp=wt.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
     const sv=wt.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
     const ad=wt.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
-    const bal=(w.balance||0)+ad-sp-sv;
+    const tr=wt.filter(t=>t.type==='transfer').reduce((a,b)=>a+b.amount,0);
+    const bal=(w.balance||0)+ad-sp-sv-tr;
     return`<div class="ws-wallet-row">
       <div class="ws-wallet-info">
         <span style="font-size:22px">${w.icon||'💰'}</span>
@@ -3950,7 +3963,8 @@ function renderWallets(){
     const spent = txns.filter(t=>t.type==='spend').reduce((a,b)=>a+b.amount,0);
     const saved = txns.filter(t=>t.type==='save').reduce((a,b)=>a+b.amount,0);
     const added = txns.filter(t=>t.type==='add').reduce((a,b)=>a+b.amount,0);
-    const balance = (w.balance||0) + added - spent - saved;
+    const transferred = txns.filter(t=>t.type==='transfer').reduce((a,b)=>a+b.amount,0);
+    const balance = (w.balance||0) + added - spent - saved - transferred;
     const isSelected = activeWalletId===w.id;
     const isSavings = w.type==='savings';
     const totalSaved = (w.balance||0) + saved + added;
@@ -3997,21 +4011,41 @@ function selectWallet(id){
   document.getElementById('txn-list-title').textContent = w.name;
   updateTxnDateLabel();
   renderTxnList();
-  // For savings wallet: auto-select save type, hide spend
+  // For savings wallet: auto-select save type, hide spend, show "deduct from" source
   if(w.type==='savings'){
     setTxnType('save', document.getElementById('txn-type-save'));
     document.getElementById('txn-type-spend').style.display='none';
     document.getElementById('txn-cat-row').style.display='none';
+    renderTxnSourceChips(id);
+    document.getElementById('txn-source-row').style.display='block';
   } else {
     setTxnType('spend', document.getElementById('txn-type-spend'));
     document.getElementById('txn-type-spend').style.display='';
     document.getElementById('txn-cat-row').style.display='';
+    document.getElementById('txn-source-row').style.display='none';
+    activeTxnSource=null;
   }
   document.getElementById('txn-desc').focus();
 }
 
+// شرائح اختيار محفظة المصدر للخصم (المحافظ العادية فقط، عدا المحفظة الادخارية الحالية)
+function renderTxnSourceChips(savingsId){
+  const box=document.getElementById('txn-source-chips'); if(!box) return;
+  activeTxnSource=null; // الافتراضي: بدون خصم
+  const regulars=(myData.wallets||[]).filter(w=>w.type!=='savings' && w.id!==savingsId);
+  let html=`<div class="chip active" data-src="" onclick="setTxnSource(this,'')">بدون خصم</div>`;
+  html+=regulars.map(w=>`<div class="chip" data-src="${w.id}" onclick="setTxnSource(this,'${w.id}')">${w.icon||'💰'} ${w.name}</div>`).join('');
+  box.innerHTML=html;
+}
+function setTxnSource(el, wid){
+  activeTxnSource = wid || null;
+  document.querySelectorAll('#txn-source-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
 function closeTxnForm(){
   activeWalletId=null;
+  activeTxnSource=null;
   renderWallets();
   document.getElementById('txn-form-card').style.display='none';
   document.getElementById('txn-list-card').style.display='none';
@@ -4056,13 +4090,34 @@ function addTransaction(){
     if(!myData.expenses) myData.expenses=[];
     myData.expenses.unshift({id:txn.id,name:desc,amount,cat:txn.cat,date:txn.date});
   }
+
+  // ── خصم من محفظة عادية (تحويل إلى الادخار) ──
+  const curW=myData.wallets.find(x=>x.id===activeWalletId);
+  let transferred=false;
+  if(curW && curW.type==='savings' && activeTxnSource){
+    const src=myData.wallets.find(x=>x.id===activeTxnSource);
+    if(src){
+      myData.transactions.unshift({
+        id: Date.now()+1,
+        walletId: src.id,
+        type: 'transfer',
+        amount,
+        desc: `تحويل إلى ${curW.name}`,
+        cat: '🔄 تحويل ادخار',
+        date: selectedExpenseDate,
+        transferTo: curW.id
+      });
+      transferred=true;
+    }
+  }
+
   saveMyData();
   checkAndUnlockTrophies();
   document.getElementById('txn-desc').value='';
   document.getElementById('txn-amount').value='';
   renderWallets();
   renderTxnList();
-  showToast('✅ تمت الإضافة');
+  showToast(transferred ? '✅ أُضيف وخُصم من المحفظة' : '✅ تمت الإضافة');
 }
 
 function deleteTxn(id){
@@ -4094,9 +4149,9 @@ function renderTxnList(){
   if(!txns.length){ el.innerHTML=`<div class="empty"><div class="empty-ico">🧾</div><p>لا توجد حركات</p></div>`; return; }
   el.innerHTML=txns.map(t=>{
     const {ar}=formatDateBilingual(t.date);
-    const icons={spend:'💸',save:'💰',add:'➕'};
-    const labels={spend:'إنفاق',save:'ادخار',add:'إيداع'};
-    const prefix={spend:'-',save:'-',add:'+'};
+    const icons={spend:'💸',save:'💰',add:'➕',transfer:'🔄'};
+    const labels={spend:'إنفاق',save:'ادخار',add:'إيداع',transfer:'تحويل'};
+    const prefix={spend:'-',save:'-',add:'+',transfer:'-'};
     return`<div class="txn-item">
       <div class="txn-ico ${t.type}">${icons[t.type]||'💸'}</div>
       <div class="txn-info">
