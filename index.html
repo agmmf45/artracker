@@ -890,7 +890,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v4.0 — Enhanced Pages CSS
+   v4.1 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1300,6 +1300,27 @@ body {
 @keyframes dq-toast-in{0%{transform:translateX(-50%) translateY(14px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
 @keyframes dq-confetti{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx,0),105vh) rotate(var(--rot,360deg));opacity:.2}}
 
+/* ── undo toast (تراجع عن الحذف) ── */
+.undo-toast{
+  position:fixed;left:50%;bottom:calc(82px + env(safe-area-inset-bottom,0));
+  transform:translateX(-50%) translateY(18px);
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);color:var(--text);
+  border:1px solid var(--border);border-radius:14px;
+  padding:9px 8px 9px 16px;box-shadow:var(--shadow-lg);
+  font-size:13.5px;font-weight:700;max-width:92vw;white-space:nowrap;
+  z-index:99999;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;
+}
+.undo-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.undo-toast .ut-btn{
+  background:color-mix(in srgb,var(--accent) 16%,transparent);
+  border:none;color:var(--accent);font-family:inherit;font-weight:900;font-size:13px;
+  cursor:pointer;padding:7px 13px;border-radius:9px;white-space:nowrap;transition:transform .12s;
+}
+.undo-toast .ut-btn:active{transform:scale(.93);}
+@media(prefers-reduced-motion:reduce){ .undo-toast{transition:opacity .15s;} }
+
 /* ── respect reduced motion for all the above ── */
 @media(prefers-reduced-motion:reduce){
   .dq-pop,.hr-streak.hot,.toast.show{animation:none !important;}
@@ -1313,7 +1334,7 @@ body {
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#0C1322;min-height:100vh">دقيق يحتاج تفعيل JavaScript للعمل. فعّله من إعدادات المتصفح ثم أعد تحميل الصفحة.</div></noscript>
-<!-- ARTRK v4.0 -->
+<!-- ARTRK v4.1 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1682,7 +1703,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.0</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.1</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -2011,7 +2032,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.0</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.1</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -2045,36 +2066,43 @@ setInterval(()=>{
       <div class="card mb-20" style="padding:16px">
 
         <!-- Quick input bar -->
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:center">
           <input type="text" class="fi" id="todo-input" placeholder="اكتب مهمة جديدة..." maxlength="100"
             onkeydown="if(event.key==='Enter')addTodo()"
             style="flex:1;font-size:15px;padding:12px 16px;">
+          <button type="button" class="btn btn-s" id="todo-adv-btn" onclick="toggleTodoAdv()" title="خيارات (أولوية/فئة/تاريخ)" style="padding:12px 13px;flex-shrink:0;font-size:16px">⚙️</button>
           <button class="btn btn-p" onclick="addTodo()" style="padding:12px 16px;white-space:nowrap;flex-shrink:0">+ إضافة</button>
         </div>
 
-        <!-- Quick tags row -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-          <span style="font-size:11px;font-weight:700;color:var(--muted)">الأولوية:</span>
-          <div class="todo-quick-btn active" id="pq-normal" onclick="setTodoPriority('normal',this)">عادية</div>
-          <div class="todo-quick-btn" id="pq-high" onclick="setTodoPriority('high',this)" style="--qc:#EF4444">مهمة !</div>
-          <div class="todo-quick-btn" id="pq-low" onclick="setTodoPriority('low',this)" style="--qc:#3B82F6">منخفضة</div>
-        </div>
+        <!-- ملخّص الخيارات المختارة عند الطيّ -->
+        <div id="todo-adv-summary" style="display:none;font-size:11px;color:var(--muted);margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-          <span style="font-size:11px;font-weight:700;color:var(--muted)">الفئة:</span>
-          <div class="todo-quick-btn active" id="cq-عام" onclick="setTodoCat('عام',this)">عام</div>
-          <div class="todo-quick-btn" id="cq-شغل" onclick="setTodoCat('شغل',this)">شغل</div>
-          <div class="todo-quick-btn" id="cq-دراسة" onclick="setTodoCat('دراسة',this)">دراسة</div>
-          <div class="todo-quick-btn" id="cq-تسوق" onclick="setTodoCat('تسوق',this)">تسوق</div>
-          <div class="todo-quick-btn" id="cq-صحة" onclick="setTodoCat('صحة',this)">صحة</div>
-          <div class="todo-quick-btn" id="cq-شخصي" onclick="setTodoCat('شخصي',this)">شخصي</div>
-        </div>
+        <!-- خيارات متقدّمة (مطويّة افتراضياً) -->
+        <div id="todo-adv" style="display:none;margin-top:14px">
+          <!-- Priority -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <span style="font-size:11px;font-weight:700;color:var(--muted)">الأولوية:</span>
+            <div class="todo-quick-btn active" id="pq-normal" onclick="setTodoPriority('normal',this)">عادية</div>
+            <div class="todo-quick-btn" id="pq-high" onclick="setTodoPriority('high',this)" style="--qc:#EF4444">مهمة !</div>
+            <div class="todo-quick-btn" id="pq-low" onclick="setTodoPriority('low',this)" style="--qc:#3B82F6">منخفضة</div>
+          </div>
 
-        <!-- Date (collapsed by default) -->
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:11px;font-weight:700;color:var(--muted)">التاريخ:</span>
-          <input type="date" class="fi" id="todo-due" style="flex:1;font-size:13px;padding:7px 12px;max-width:180px">
-          <span style="font-size:11px;color:var(--muted);cursor:pointer" onclick="document.getElementById('todo-due').value=''">مسح</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <span style="font-size:11px;font-weight:700;color:var(--muted)">الفئة:</span>
+            <div class="todo-quick-btn active" id="cq-عام" onclick="setTodoCat('عام',this)">عام</div>
+            <div class="todo-quick-btn" id="cq-شغل" onclick="setTodoCat('شغل',this)">شغل</div>
+            <div class="todo-quick-btn" id="cq-دراسة" onclick="setTodoCat('دراسة',this)">دراسة</div>
+            <div class="todo-quick-btn" id="cq-تسوق" onclick="setTodoCat('تسوق',this)">تسوق</div>
+            <div class="todo-quick-btn" id="cq-صحة" onclick="setTodoCat('صحة',this)">صحة</div>
+            <div class="todo-quick-btn" id="cq-شخصي" onclick="setTodoCat('شخصي',this)">شخصي</div>
+          </div>
+
+          <!-- Date -->
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;font-weight:700;color:var(--muted)">التاريخ:</span>
+            <input type="date" class="fi" id="todo-due" onchange="updateTodoAdvSummary()" style="flex:1;font-size:13px;padding:7px 12px;max-width:180px">
+            <span style="font-size:11px;color:var(--muted);cursor:pointer" onclick="document.getElementById('todo-due').value='';updateTodoAdvSummary()">مسح</span>
+          </div>
         </div>
 
         <!-- Hidden selects for compatibility -->
@@ -2718,6 +2746,12 @@ setInterval(()=>{
 
 <div class="toast" id="toast"></div>
 
+<!-- UNDO TOAST (تراجع عن الحذف) -->
+<div class="undo-toast" id="undo-toast">
+  <span class="ut-msg"></span>
+  <button type="button" class="ut-btn" onclick="doUndo()">↩ تراجع</button>
+</div>
+
 
 <style>
 
@@ -2776,6 +2810,24 @@ let datePickerTarget = 'habits';
 function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function todayKey(){ return dateKey(new Date()); }
 function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+
+// ── UNDO TOAST: حذف فوري مع إتاحة التراجع لمدة 5 ثوانٍ ──
+let _undoCb=null,_undoTimer=null;
+function showUndoToast(message, onUndo){
+  const t=document.getElementById('undo-toast'); if(!t){ if(onUndo===undefined) return; return; }
+  _undoCb=onUndo;
+  t.querySelector('.ut-msg').textContent=message;
+  t.classList.add('show');
+  try{ navigator.vibrate && navigator.vibrate(10); }catch(e){}
+  clearTimeout(_undoTimer);
+  _undoTimer=setTimeout(()=>{ t.classList.remove('show'); _undoCb=null; },5000);
+}
+function doUndo(){
+  clearTimeout(_undoTimer);
+  const t=document.getElementById('undo-toast'); if(t) t.classList.remove('show');
+  const cb=_undoCb; _undoCb=null;
+  if(cb){ try{ cb(); }catch(e){} showToast('↩ تم التراجع'); }
+}
 function showErr(id,msg){ const el=document.getElementById(id);el.textContent=msg;el.style.display='block'; }
 function hideErr(id){ document.getElementById(id).style.display='none'; }
 
@@ -3304,11 +3356,18 @@ function toggleHabit(id){
     });
   }
 }
-async function deleteHabit(id,e){
+function deleteHabit(id,e){
   e.stopPropagation();
-  if(!await confirmDialog('حذف هذه العادة؟', {danger:true, okText:'حذف'}))return;
-  myData.habits_list=getHabits().filter(h=>h.id!==id);
+  const list=getHabits();
+  const idx=list.findIndex(h=>h.id===id);
+  if(idx===-1) return;
+  const removed=list[idx];
+  myData.habits_list=list.filter(h=>h.id!==id);
   saveMyData(); renderHabits(); renderStreaks();
+  showUndoToast('🗑 حُذفت العادة', ()=>{
+    const arr=getHabits(); arr.splice(Math.min(idx,arr.length),0,removed);
+    myData.habits_list=arr; saveMyData(); renderHabits(); renderStreaks();
+  });
 }
 function getHabitStreak(habitId){
   const doneMap=myData.done||{};
@@ -4007,9 +4066,20 @@ function addTransaction(){
 }
 
 function deleteTxn(id){
-  myData.transactions=(myData.transactions||[]).filter(t=>t.id!==id);
+  const txns=myData.transactions||[];
+  const ti=txns.findIndex(t=>t.id===id);
+  if(ti===-1) return;
+  const removedTxn=txns[ti];
+  const ei=(myData.expenses||[]).findIndex(e=>e.id===id);
+  const removedExp=ei>-1?myData.expenses[ei]:null;
+  myData.transactions=txns.filter(t=>t.id!==id);
   myData.expenses=(myData.expenses||[]).filter(e=>e.id!==id);
   saveMyData(); renderWallets(); renderTxnList();
+  showUndoToast('🗑 حُذفت الحركة', ()=>{
+    myData.transactions.splice(Math.min(ti,myData.transactions.length),0,removedTxn);
+    if(removedExp) myData.expenses.splice(Math.min(ei,myData.expenses.length),0,removedExp);
+    saveMyData(); renderWallets(); renderTxnList();
+  });
 }
 
 function renderTxnList(){
@@ -4429,11 +4499,41 @@ function setTodoPriority(val, el){
   document.getElementById('todo-priority').value = val;
   document.querySelectorAll('[id^="pq-"]').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
+  updateTodoAdvSummary();
 }
 function setTodoCat(val, el){
   document.getElementById('todo-cat').value = val;
   document.querySelectorAll('[id^="cq-"]').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
+  updateTodoAdvSummary();
+}
+// ── منشئ المهام: طيّ/فتح الخيارات (أولوية/فئة/تاريخ) لإبقاء الشاشة مرتبة ──
+function toggleTodoAdv(){
+  const a=document.getElementById('todo-adv'); if(!a) return;
+  const open=a.style.display!=='none';
+  a.style.display=open?'none':'block';
+  const btn=document.getElementById('todo-adv-btn');
+  if(btn) btn.classList.toggle('active', !open);
+  updateTodoAdvSummary();
+}
+function updateTodoAdvSummary(){
+  const el=document.getElementById('todo-adv-summary'); if(!el) return;
+  const advOpen=document.getElementById('todo-adv')?.style.display!=='none';
+  const p=document.getElementById('todo-priority')?.value;
+  const c=document.getElementById('todo-cat')?.value;
+  const due=document.getElementById('todo-due')?.value;
+  const pl={high:'🔴 مهمة',low:'🔵 منخفضة'};
+  const parts=[];
+  if(p&&p!=='normal'&&pl[p]) parts.push(pl[p]);
+  if(c&&c!=='عام') parts.push('🏷️ '+c);
+  if(due) parts.push('📅 '+due);
+  // الملخّص يظهر فقط عند الطيّ ووجود خيارات غير افتراضية
+  if(!advOpen && parts.length){
+    el.innerHTML=parts.map(t=>`<span style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 9px">${t}</span>`).join('');
+    el.style.display='flex';
+  } else {
+    el.style.display='none';
+  }
 }
 function addTodo(){
   const text = document.getElementById('todo-input').value.trim();
@@ -4463,8 +4563,16 @@ function toggleTodo(id){
 }
 
 function deleteTodo(id){
-  myData.todos = (myData.todos||[]).filter(t=>t.id!==id);
+  const list=myData.todos||[];
+  const idx=list.findIndex(t=>t.id===id);
+  if(idx===-1) return;
+  const removed=list[idx];
+  myData.todos=list.filter(t=>t.id!==id);
   saveMyData(); renderTodos();
+  showUndoToast('🗑 حُذفت المهمة', ()=>{
+    myData.todos.splice(Math.min(idx,myData.todos.length),0,removed);
+    saveMyData(); renderTodos();
+  });
 }
 
 function renderTodos(){
@@ -5366,11 +5474,16 @@ function loadPastNote(key) {
   document.getElementById('daily-note-input').focus();
 }
 
-async function deleteNote(date) {
-  if (!await confirmDialog('تحذف هذه الملاحظة؟', {danger:true, okText:'حذف'})) return;
-  delete myData.daily_notes[date];
+function deleteNote(date) {
+  const notes=myData.daily_notes||{};
+  if(!(date in notes)) return;
+  const removed=notes[date];
+  delete notes[date];
   saveMyData();
   renderNotesHistory();
+  showUndoToast('🗑 حُذفت الملاحظة', ()=>{
+    myData.daily_notes[date]=removed; saveMyData(); renderNotesHistory();
+  });
 }
 
 
@@ -6140,16 +6253,20 @@ function nutriSaveMeal(){
 }
 function nutriDeleteMeal(id){
   const n=getNutri();
-  const list=n.log[selectedNutriDate]||[];
-  const removed=list.find(x=>x.id===id);
-  n.log[selectedNutriDate]=list.filter(x=>x.id!==id);
-  // نظّف صورة التحليل المشتركة إن لم يعد أي صنف (في أي تاريخ) يشير إليها
-  if(removed&&removed.analysisId&&n.mealPhotos&&n.mealPhotos[removed.analysisId]){
-    const stillUsed=Object.keys(n.log).some(d=>(n.log[d]||[]).some(x=>x.analysisId===removed.analysisId));
-    if(!stillUsed) delete n.mealPhotos[removed.analysisId];
-  }
+  const date=selectedNutriDate;
+  const list=n.log[date]||[];
+  const idx=list.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  const removed=list[idx];
+  n.log[date]=list.filter(x=>x.id!==id);
   saveMyData();
   renderNutrition();
+  // ملاحظة: نؤجّل تنظيف صورة التحليل لإتاحة التراجع (تكلفة تخزين ضئيلة)
+  showUndoToast('🗑 حُذف الصنف', ()=>{
+    const l=getNutri().log[date]||[];
+    l.splice(Math.min(idx,l.length),0,removed);
+    getNutri().log[date]=l; saveMyData(); renderNutrition();
+  });
 }
 
 // ── NUTRITION AI ANALYSIS (photo + text) ──────
@@ -7237,10 +7354,16 @@ function toggleReminder(id, btn){
 
 function deleteReminder(id){
   if(!myData.reminders) return;
+  const idx=myData.reminders.findIndex(function(r){ return r.id===id; });
+  if(idx===-1) return;
+  const removed=myData.reminders[idx];
   myData.reminders = myData.reminders.filter(function(r){ return r.id !== id; });
   saveMyData();
   renderReminders();
-  showToast('🗑 تم حذف التذكير');
+  showUndoToast('🗑 حُذف التذكير', function(){
+    myData.reminders.splice(Math.min(idx,myData.reminders.length),0,removed);
+    saveMyData(); renderReminders();
+  });
 }
 
 function scheduleReminders(){
