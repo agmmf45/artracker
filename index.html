@@ -890,7 +890,7 @@ body {
 
 
 /* ══════════════════════════════════════════════════
-   v4.4 — Enhanced Pages CSS
+   v4.5 — Enhanced Pages CSS
    ══════════════════════════════════════════════════ */
 
 /* ── ENHANCED EXPENSES ───────────────────────── */
@@ -1338,7 +1338,7 @@ body {
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#0C1322;min-height:100vh">دقيق يحتاج تفعيل JavaScript للعمل. فعّله من إعدادات المتصفح ثم أعد تحميل الصفحة.</div></noscript>
-<!-- ARTRK v4.4 -->
+<!-- ARTRK v4.5 -->
 
 <!-- EMERGENCY FALLBACK: if JS crashes or hangs, show auth after 8s -->
 <script>
@@ -1707,7 +1707,7 @@ setInterval(()=>{
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
-        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.4</div>
+        <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.5</div>
         <div>صنع بواسطة Ahmed Almalki</div>
       </div>
     </div>
@@ -2042,7 +2042,7 @@ setInterval(()=>{
 
           <!-- Logout -->
           <div class="card" style="background:var(--surface2);">
-            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.4</span></div>
+            <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.5</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
@@ -2290,10 +2290,10 @@ setInterval(()=>{
               <text x="177" y="170" class="ml" font-size="8">جانب</text>
 
               <!-- Quad L -->
-              <path d="M124,212 Q116,260 122,320 Q132,330 144,322 Q148,264 146,212 Q134,218 124,212 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <path d="M124,212 Q116,260 122,320 Q132,330 144,322 Q148,264 146,212 Q134,218 124,212 Z" class="mz" onclick="dashMuscleClick('فخذ')"/>
               <text x="134" y="270" class="ml">فخذ</text>
               <!-- Quad R -->
-              <path d="M176,212 Q184,260 178,320 Q168,330 156,322 Q152,264 154,212 Q166,218 176,212 Z" class="mz" onclick="dashMuscleClick('رجل')"/>
+              <path d="M176,212 Q184,260 178,320 Q168,330 156,322 Q152,264 154,212 Q166,218 176,212 Z" class="mz" onclick="dashMuscleClick('فخذ')"/>
               <text x="166" y="270" class="ml">فخذ</text>
 
               <!-- Shin L -->
@@ -2353,7 +2353,7 @@ setInterval(()=>{
               <text x="209" y="206" class="ml" font-size="8">ساعد</text>
 
               <!-- Lower back -->
-              <path d="M132,170 L168,170 Q170,194 166,214 Q150,222 134,214 Q130,194 132,170 Z" class="mz2" onclick="dashMuscleClick('ظهر')"/>
+              <path d="M132,170 L168,170 Q170,194 166,214 Q150,222 134,214 Q130,194 132,170 Z" class="mz2" onclick="dashMuscleClick('أسفل الظهر')"/>
               <text x="150" y="194" class="ml" font-size="8">أسفل الظهر</text>
 
               <!-- Glutes -->
@@ -5990,6 +5990,8 @@ const FIT_MUSCLES = {
   'ساق':['🦶 كالف ريز واقف','🪑 كالف ريز جالس','🏋️ ليج برس كالف','⬆️ سنجل ليج كالف','🐎 دونكي كالف ريز'],
   'أرداف':['🍑 هيب ثرست','🌉 جلوت بريدج','🏋️ رومانيان ديدليفت','⬆️ لانج','💪 بلغاريان سبليت','🔄 كيك باك','🏋️ سومو ديدليفت'],
   'خلفي الفخذ':['🔄 ليج كيرل','🏋️ رومانيان ديدليفت','🦵 ستيف ليج ديدليفت','🌅 جود مورنينج','⬆️ نورديك كيرل','🪑 سيتد ليج كيرل'],
+  'فخذ':['🦵 سكوات','🏋️ ليج برس','🪑 ليج إكستنشن','⬆️ لانج','🦵 هاك سكوات','🏋️ فرونت سكوات','💪 بلغاريان سبليت'],
+  'أسفل الظهر':['🌅 جود مورنينج','🔼 هايبر إكستنشن','🏋️ رومانيان ديدليفت','🦵 ستيف ليج ديدليفت','🧱 بلانك','🌉 جلوت بريدج'],
   'رجل':['🦵 سكوات','🏋️ ليج برس','⬆️ لانج','🔄 ليج كيرل','🦶 كالف ريز','🏋️ فرونت سكوات','💪 بلغاريان سبليت','🔄 ليج إكستنشن','🦵 هاك سكوات','🏋️ رومانيان ديدليفت'],
   'بطن':['🔄 كرنش','🏋️ بلانك','🔃 رشيان تويست','⬆️ ليج ريز','🔄 ماونتن كلايمبر','💪 ابـ رول آوت','🔄 سايد بلانك','⬆️ هانجنج ليج ريز'],
   'كارديو':['🏃 ركض','🚴 دراجة','🎿 إليبتيكال','🏊 سباحة','🪂 جامبينغ جاك','🏃 هيت','🚶 مشي سريع','🚣 رووينج'],
@@ -6763,13 +6765,13 @@ function addExerciseToWorkout(){
 // ── Muscle icons mapping
 const MUSCLE_ICONS = {
   'صدر':'🫁','ظهر':'🔙','كتف':'💪','بايسبس':'💪',
-  'ترايسبس':'🦾','ساعد':'🤜','ترابس':'🤷','رجل':'🦵',
-  'خلفي الفخذ':'🦵','أرداف':'🍑','ساق':'🦶','بطن':'🧱','كارديو':'🏃'
+  'ترايسبس':'🦾','ساعد':'🤜','ترابس':'🤷','رجل':'🦵','فخذ':'🦿',
+  'خلفي الفخذ':'🦵','أرداف':'🍑','ساق':'🦶','أسفل الظهر':'🔽','بطن':'🧱','كارديو':'🏃'
 };
 const MUSCLE_COLORS = {
   'صدر':'#EF4444','ظهر':'#3B82F6','كتف':'#F59E0B','بايسبس':'#10B981',
-  'ترايسبس':'#8B5CF6','ساعد':'#14B8A6','ترابس':'#0EA5E9','رجل':'#EC4899',
-  'خلفي الفخذ':'#D946EF','أرداف':'#F43F5E','ساق':'#A855F7','بطن':'#F97316','كارديو':'#06B6D4'
+  'ترايسبس':'#8B5CF6','ساعد':'#14B8A6','ترابس':'#0EA5E9','رجل':'#EC4899','فخذ':'#EC4899',
+  'خلفي الفخذ':'#D946EF','أرداف':'#F43F5E','ساق':'#A855F7','أسفل الظهر':'#2563EB','بطن':'#F97316','كارديو':'#06B6D4'
 };
 let _selectedMuscle = '';
 
@@ -7815,14 +7817,15 @@ try{ scheduleReminders(); }catch(e){}
 </div>
 
 <!-- ── PREMIUM THEMES ─────────────────────────── -->
-<script src="themes.js"></script>
+<!-- ?v يُحدَّث مع كل إصدار لتفادي كاش JS القديم (HTML شبكة-أولاً فيحمّل النسخة الجديدة) -->
+<script src="themes.js?v=4.5"></script>
 
 <!-- ── HEALTH SYNC ENGINE ─────────────────────── -->
-<script src="water-tracker.js"></script>
-<script src="exercise-explorer.js"></script>
-<script src="health-sync/health-sync.js"></script>
-<script src="health-sync/health-settings.js"></script>
-<script src="health-sync/background-sync.js"></script>
+<script src="water-tracker.js?v=4.5"></script>
+<script src="exercise-explorer.js?v=4.5"></script>
+<script src="health-sync/health-sync.js?v=4.5"></script>
+<script src="health-sync/health-settings.js?v=4.5"></script>
+<script src="health-sync/background-sync.js?v=4.5"></script>
 
 </body>
 </html>

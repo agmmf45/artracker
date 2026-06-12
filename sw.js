@@ -4,7 +4,7 @@
 //  • الأصول الثابتة (خطوط/صور/JS/CSS): من الكاش فوراً + تحديث بالخلفية (SWR)
 //  • /api/* وأي طلب غير GET أو خارجي: شبكة مباشرة (لا كاش)
 // ════════════════════════════════════════════════
-const CACHE = 'artrk-v8';
+const CACHE = 'artrk-v9';
 const ASSET_RE = /\.(?:woff2|woff|ttf|png|jpg|jpeg|svg|webp|gif|ico|css|js)$/i;
 
 self.addEventListener('install', e => { self.skipWaiting(); });

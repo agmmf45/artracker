@@ -19,6 +19,7 @@
   const MUS_MAP = {
     'صدر':     { target:'pectorals',             bodyPart:'chest' },
     'ظهر':     { target:'lats',                  bodyPart:'back' },
+    'أسفل الظهر':{ target:'spine',               bodyPart:'back' },
     'كتف':     { target:'delts',                 bodyPart:'shoulders' },
     'باي':     { target:'biceps',                bodyPart:'upper arms' },
     'بايسبس':  { target:'biceps',                bodyPart:'upper arms' },
