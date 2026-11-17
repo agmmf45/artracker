@@ -1,25 +1,36 @@
 {
+  // دقيق v5 — Worker (Hono API) + static SPA from ./dist
   "name": "artracker",
-  "compatibility_date": "2024-09-23",
-  "main": "worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "worker/index.ts",
   "workers_dev": true,
   "routes": [
     { "pattern": "daqeeq.org", "custom_domain": true },
     { "pattern": "www.daqeeq.org", "custom_domain": true }
   ],
   "assets": {
-    "directory": ".",
+    "directory": "./dist",
     "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "artracker-db",
-      "database_id": "17468068-0e8d-4bbe-9daa-485e8cd088ec"
+      "database_id": "17468068-0e8d-4bbe-9daa-485e8cd088ec",
+      "migrations_dir": "migrations"
     }
   ],
+  // Private file storage (meal photos, avatars, attachments, progress photos).
+  // Must be created once with: npx wrangler r2 bucket create daqeeq-files  (needs owner approval)
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "daqeeq-files" }],
   "vars": {
-    "GOOGLE_CLIENT_ID": "715888666154-oq18fnen6emchams4nup3q67bkb118qo.apps.googleusercontent.com"
+    "GOOGLE_CLIENT_ID": "715888666154-oq18fnen6emchams4nup3q67bkb118qo.apps.googleusercontent.com",
+    "AI_MODEL": "claude-haiku-4-5-20251001"
   }
+  // Secrets (set with `wrangler secret put`, never committed):
+  //   ANTHROPIC_API_KEY  — enables /api/ai (optional; app works without it)
+  //   EXERCISEDB_KEY     — enables /api/exercises (optional)
 }

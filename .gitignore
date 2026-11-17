@@ -1,18 +1,32 @@
-# خطوط ثمانية المصدر — غير مطلوبة (مضمّنة base64 داخل index.html) + احترام رخصة الخط
-fonts/
+# Thmanyah font files — licensed, not redistributed in git (copy into public/fonts/ locally)
+public/fonts/
 
-# نسخة احتياطية محلية
+# build output & deps
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# local secrets / dev vars (never commit)
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# local backups (contain secrets — keep out of git)
 index.original.backup.html
 
-# أدوات توليد محلية (لا تُنشر)
+# local generators
 icon-gen.html
 save-server.js
 
-# أدوات البناء والمحرر
+# tooling
 .wrangler/
 .claude/
 
-# ملفات النظام/المحرر
+# OS / editor
 .DS_Store
 Thumbs.db
 *.log

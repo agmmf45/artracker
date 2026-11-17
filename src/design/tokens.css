@@ -1,0 +1,145 @@
+/* ─────────────────────────────────────────────────────────────
+   دقيق v5 — design tokens
+   Source of truth for colour, type, spacing, radius, elevation, motion.
+   Light = warm off-white; Dark = neutral graphite. Each section has its own accent.
+   Legacy v4 themes are opt-in overrides at the bottom (Settings › Appearance).
+   ───────────────────────────────────────────────────────────── */
+
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyahsans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyahsans-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyahsans-Black.woff2') format('woff2'); font-weight: 900; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyahserifdisplay-Black.woff2') format('woff2'); font-weight: 900; font-display: swap; }
+
+:root {
+  /* type */
+  --font-sans: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Thmanyah Serif Display', 'Thmanyah Sans', serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+
+  /* 8-pt spacing (with 4 for tight spots) */
+  --sp-0: 0; --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  /* radius: restrained, not pill-everything */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-full: 999px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms;
+
+  /* layout */
+  --sidebar-w: 248px;
+  --bottom-nav-h: 64px;
+  --content-max: 1200px;
+
+  /* ── light (default) ── */
+  color-scheme: light;
+  --bg: #F6F4EF;
+  --surface: #FFFFFF;
+  --surface-2: #F0EDE6;
+  --elevated: #FFFFFF;
+  --border: #E3DED3;
+  --border-strong: #CFC8BA;
+  --text: #19191C;
+  --text-2: #5D6068;
+  --text-3: #8A8D94;
+
+  --life: #6E62A8;
+  --study: #3B6BA3;
+  --health: #357F5B;
+  --reward: #9C6F22;
+  --danger: #B4412F;
+  --warning: #A86A12;
+  --success: #2F7A52;
+  --info: #3B6BA3;
+
+  --accent: var(--life);
+  --on-accent: #FFFFFF;
+  --focus-ring: color-mix(in oklab, var(--accent) 55%, transparent);
+
+  --shadow-1: 0 1px 2px rgba(25, 25, 28, 0.05), 0 1px 1px rgba(25, 25, 28, 0.03);
+  --shadow-2: 0 6px 20px -8px rgba(25, 25, 28, 0.18);
+  --shadow-3: 0 18px 50px -16px rgba(25, 25, 28, 0.28);
+
+  /* data viz: categorical, tuned for both themes */
+  --viz-1: #6E62A8; --viz-2: #3B6BA3; --viz-3: #357F5B; --viz-4: #9C6F22; --viz-5: #B4412F; --viz-6: #4C8C93;
+  --heat-0: #ECE8DF; --heat-1: #D7D0EA; --heat-2: #B2A6D8; --heat-3: #8C7DC1; --heat-4: #6E62A8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #101113;
+    --surface: #16181B;
+    --surface-2: #1B1D21;
+    --elevated: #1D2024;
+    --border: #292D32;
+    --border-strong: #3A3F46;
+    --text: #F2F2F3;
+    --text-2: #A3A7AE;
+    --text-3: #7C8088;
+    --life: #A69BCB;
+    --study: #799FCB;
+    --health: #83B89C;
+    --reward: #D5B178;
+    --danger: #E08571;
+    --warning: #D9A55A;
+    --success: #83B89C;
+    --info: #799FCB;
+    --on-accent: #101113;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 8px 24px -10px rgba(0, 0, 0, 0.6);
+    --shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.75);
+    --viz-1: #A69BCB; --viz-2: #799FCB; --viz-3: #83B89C; --viz-4: #D5B178; --viz-5: #E08571; --viz-6: #7FB9BF;
+    --heat-0: #1F2226; --heat-1: #2F2B44; --heat-2: #4A4270; --heat-3: #74689F; --heat-4: #A69BCB;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101113;
+  --surface: #16181B;
+  --surface-2: #1B1D21;
+  --elevated: #1D2024;
+  --border: #292D32;
+  --border-strong: #3A3F46;
+  --text: #F2F2F3;
+  --text-2: #A3A7AE;
+  --text-3: #7C8088;
+  --life: #A69BCB;
+  --study: #799FCB;
+  --health: #83B89C;
+  --reward: #D5B178;
+  --danger: #E08571;
+  --warning: #D9A55A;
+  --success: #83B89C;
+  --info: #799FCB;
+  --on-accent: #101113;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px -10px rgba(0, 0, 0, 0.6);
+  --shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.75);
+  --viz-1: #A69BCB; --viz-2: #799FCB; --viz-3: #83B89C; --viz-4: #D5B178; --viz-5: #E08571; --viz-6: #7FB9BF;
+  --heat-0: #1F2226; --heat-1: #2F2B44; --heat-2: #4A4270; --heat-3: #74689F; --heat-4: #A69BCB;
+}
+
+/* section accents: set by the shell on <main data-section="…"> */
+[data-section='life'] { --accent: var(--life); }
+[data-section='study'] { --accent: var(--study); }
+[data-section='health'] { --accent: var(--health); }
+[data-section='settings'] { --accent: var(--text-2); }
+
+/* density */
+:root[data-density='compact'] { --sp-4: 12px; --sp-5: 18px; --sp-6: 24px; }
+
+/* ── legacy v4 themes (opt-in): only re-tint accents + background, keep contrast rules ── */
+:root[data-legacy-theme='rose'] { --life: #C2557A; --bg: #FBF3F5; }
+:root[data-legacy-theme='ocean'] { --life: #1F7FA8; --bg: #F1F7FA; }
+:root[data-legacy-theme='lavender'] { --life: #7A5CC4; --bg: #F6F3FC; }
+:root[data-legacy-theme='mint'] { --life: #23876B; --bg: #F1F8F5; }
+:root[data-legacy-theme='sunset'] { --life: #C2622D; --bg: #FBF4EE; }
+:root[data-legacy-theme='classic'] { --life: #B45309; --bg: #FAF6EF; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

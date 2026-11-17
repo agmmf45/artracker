@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* Map tokens into Tailwind utilities: bg-surface, text-muted, border-line, text-accent … */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-elevated: var(--elevated);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-fg-2: var(--text-2);
+  --color-fg-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-life: var(--life);
+  --color-study: var(--study);
+  --color-health: var(--health);
+  --color-reward: var(--reward);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+  --shadow-3: var(--shadow-3);
+}
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'tnum' 0;
+    min-height: 100dvh;
+  }
+  :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  input, textarea, select { font: inherit; color: inherit; }
+  .num { font-variant-numeric: tabular-nums; }
+  .scroll-thin { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+}
+
+@layer components {
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+  :lang(ar) .eyebrow { letter-spacing: 0; text-transform: none; font-size: 12px; }
+  .field {
+    width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+    padding: 10px 12px; min-height: 42px; transition: border-color var(--dur-1), background var(--dur-1);
+  }
+  .field:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .field::placeholder { color: var(--text-3); }
+}
+
+/* check animation for completing tasks/habits */
+@keyframes dq-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes dq-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes dq-shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+.anim-pop { animation: dq-pop var(--dur-3) var(--ease-out); }
+.anim-in { animation: dq-fade-up var(--dur-3) var(--ease-out) both; }
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0, var(--border) 50%, var(--surface-2) 100%);
+  background-size: 400px 100%; animation: dq-shimmer 1.2s linear infinite; border-radius: var(--r-sm);
+}
