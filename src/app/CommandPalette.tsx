@@ -50,7 +50,7 @@ export function CommandPalette({ open, onOpenChange, onCapture }: { open: boolea
   }, [debounced]);
 
   const go = (path: string) => { onOpenChange(false); nav(path); };
-  const pages = useMemo(() => PAGES.filter((p) => isPageOn(p, settings.modules)), [settings.modules]);
+  const pages = useMemo(() => PAGES.filter((p) => isPageOn(p, settings.modules, settings.modulePreset)), [settings.modules, settings.modulePreset]);
 
   const commands = [
     { id: 'new', label: L('إضافة سريعة (مهمة، فكرة، مصروف…)', 'Quick capture (task, idea, expense…)'), icon: Plus, run: onCapture, kw: 'new create task add مهمة اضافة' },

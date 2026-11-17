@@ -122,9 +122,12 @@ const DEFAULT_ON = new Set([
   'health.workouts', 'health.nutrition', 'health.water', 'health.sleep', 'health.weight',
 ]);
 
-export function isPageOn(p: PageDef, modules: Record<string, boolean>): boolean {
+/** Explicit toggle wins; otherwise the chosen preset decides (so new modules follow "Complete"), else defaults. */
+export function isPageOn(p: PageDef, modules: Record<string, boolean>, preset?: string | null): boolean {
   if (p.core) return true;
-  return modules[p.id] ?? DEFAULT_ON.has(p.id);
+  if (modules[p.id] !== undefined) return modules[p.id];
+  if (preset && PRESETS[preset]) return PRESETS[preset].on.includes(p.id);
+  return DEFAULT_ON.has(p.id);
 }
 
 export const PRESETS: Record<string, { ar: string; en: string; on: string[] }> = {

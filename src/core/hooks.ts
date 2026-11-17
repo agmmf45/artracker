@@ -51,6 +51,11 @@ export function updateSettings(patch: Partial<Settings> | Record<string, unknown
   });
 }
 
+/** Replaces one top-level settings key entirely (no deep merge), e.g. resetting `modules`. */
+export function replaceSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
+  return upsert('settings', 'settings', { [key]: value } as Partial<Settings>);
+}
+
 export interface Profile {
   display_name: string | null;
   avatar_emoji: string | null;

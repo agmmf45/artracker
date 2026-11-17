@@ -6,7 +6,7 @@ import { updateSettings, useProfile } from '@/core/hooks';
 import { upsert } from '@/core/repo';
 import { useAuth } from '@/core/auth';
 import { Button, Input, Segmented } from '@/design/ui';
-import { PAGES, PRESETS } from './registry';
+import { PRESETS } from './registry';
 import { Brand } from './Splash';
 
 /** First launch: three light steps, everything skippable and changeable later in Settings. */
@@ -22,13 +22,8 @@ export function Onboarding() {
 
   const finish = async (usePreset: boolean) => {
     setBusy(true);
-    const modules: Record<string, boolean> = {};
-    if (usePreset) {
-      const on = new Set(PRESETS[preset].on);
-      for (const p of PAGES) if (!p.core) modules[p.id] = on.has(p.id);
-    }
     if (name.trim()) await upsert('profile', 'profile', { display_name: name.trim() });
-    await updateSettings({ onboarded: true, language, modules });
+    await updateSettings({ onboarded: true, language, modulePreset: usePreset ? preset : null });
   };
 
   return (

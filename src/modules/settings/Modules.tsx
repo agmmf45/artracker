@@ -1,5 +1,5 @@
 import { useI18n } from '@/core/i18n';
-import { updateSettings, useSettings } from '@/core/hooks';
+import { replaceSetting, updateSettings, useSettings } from '@/core/hooks';
 import { Card, Chip, PageHeader, Section, Switch } from '@/design/ui';
 import { PAGES, PRESETS, SECTIONS, isPageOn } from '@/app/registry';
 import { toast } from '@/core/toast';
@@ -8,10 +8,8 @@ export default function Modules() {
   const { L } = useI18n();
   const s = useSettings();
   const applyPreset = async (id: string) => {
-    const on = new Set(PRESETS[id].on);
-    const modules: Record<string, boolean> = {};
-    for (const p of PAGES) if (!p.core) modules[p.id] = on.has(p.id);
-    await updateSettings({ modules });
+    await replaceSetting('modules', {});
+    await updateSettings({ modulePreset: id });
     toast(L('طُبّق القالب', 'Preset applied'));
   };
   return (
@@ -26,7 +24,7 @@ export default function Modules() {
             {PAGES.filter((p) => p.section === sec.id).map((p) => (
               <Switch
                 key={p.id}
-                checked={isPageOn(p, s.modules)}
+                checked={isPageOn(p, s.modules, s.modulePreset)}
                 disabled={p.core}
                 onChange={(v) => updateSettings({ modules: { ...s.modules, [p.id]: v } })}
                 label={<span className="inline-flex items-center gap-2"><p.icon size={16} className="text-accent" />{L(p.ar, p.en)}</span>}

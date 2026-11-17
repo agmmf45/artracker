@@ -47,7 +47,7 @@ export function Shell() {
   const [capture, setCapture] = useState(false);
   const [palette, setPalette] = useState(false);
 
-  const pages = useMemo(() => PAGES.filter((p) => isPageOn(p, settings.modules)), [settings.modules]);
+  const pages = useMemo(() => PAGES.filter((p) => isPageOn(p, settings.modules, settings.modulePreset)), [settings.modules, settings.modulePreset]);
   const sectionPages = pages.filter((p) => p.section === section);
 
   // global shortcuts

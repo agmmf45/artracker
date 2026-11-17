@@ -45,7 +45,7 @@ function Ready() {
               <Route index element={<Navigate to="/life" replace />} />
               {PAGES.map((p) => {
                 const C = lazyPages[p.id];
-                const on = isPageOn(p, settings.modules);
+                const on = isPageOn(p, settings.modules, settings.modulePreset);
                 const fallback = SECTIONS.find((s) => s.id === p.section)!.path;
                 return (
                   <Route

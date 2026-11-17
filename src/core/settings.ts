@@ -18,6 +18,8 @@ export interface Settings {
   dayEnd: string;
   /** page id → visible. Missing ids fall back to the page default. Hiding never deletes data. */
   modules: Record<string, boolean>;
+  /** preset chosen in onboarding / Settings › Modules; decides modules the user never toggled */
+  modulePreset: string | null;
   intention: { date: string; text: string } | null;
   encouragement: boolean;
   lifeAreas: LifeArea[];
@@ -61,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dayStart: '07:00',
   dayEnd: '23:00',
   modules: {},
+  modulePreset: null,
   intention: null,
   encouragement: true,
   lifeAreas: [
