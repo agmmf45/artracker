@@ -122,7 +122,7 @@ export function RapidLog({ day, tasks, doneTasks, recurringDone, events, notes, 
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') { setText(''); setPicked(null); } }}
             className="h-12 min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-fg-3"
-            placeholder={L('دوّن سطر… مثل: مذاكرة باثولوجي 4 العصر ساعة', 'Log a line… e.g. study pathology 4pm for 1h')}
+            placeholder={L('دوّن سطر… مثل: مشي 5 العصر لمدة ساعة', 'Log a line… e.g. walk 5pm for 1 hour')}
             aria-label={L('سطر جديد في دفتر اليوم', 'New line in today’s log')}
             enterKeyHint="done"
           />

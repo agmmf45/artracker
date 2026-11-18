@@ -3,8 +3,8 @@
  * The original text is always kept by the caller; this only suggests structure the user can correct.
  *
  * Examples
- *   "ذاكر باثولوجي بكرة الساعة 7 مساءً لمدة ساعة"  → task, tomorrow, 19:00, 60 min
- *   "Study pathology tomorrow at 7 PM for one hour"   → task, tomorrow, 19:00, 60 min
+ *   "اتصل على أمي بكرة الساعة 7 مساءً لمدة ساعة"  → task, tomorrow, 19:00, 60 min
+ *   "Call mom tomorrow at 7 PM for one hour"          → task, tomorrow, 19:00, 60 min
  *   "صرفت 25 على قهوة"                                → expense 25 "قهوة"
  *   "ماء 500"                                         → water 500 ml
  *   "اجتماع مع المشرف الخميس 10 ص"                    → event Thursday 10:00

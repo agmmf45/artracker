@@ -72,7 +72,7 @@ export function QuickCapture({ open, onOpenChange }: { open: boolean; onOpenChan
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void save(); } }}
-        placeholder={L('مثال: ذاكر باثولوجي بكرة 7 مساءً لمدة ساعة', 'e.g. Study pathology tomorrow at 7pm for 1 hour')}
+        placeholder={L('مثال: اتصل على أمي بكرة 7 مساءً، أو قهوة 15، أو فكرة: …', 'e.g. call mom tomorrow 7pm, coffee 15, or idea: …')}
         aria-label={L('النص', 'Text')}
       />
 

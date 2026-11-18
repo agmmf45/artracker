@@ -119,3 +119,11 @@ describe('bare spending lines', () => {
     expect(parseCapture('اقرأ 10 صفحات', now).kind).not.toBe('expense');
   });
 });
+
+describe('placeholder examples parse the way they read', () => {
+  const now = new Date(2026, 10, 18, 10, 0);
+  it('walk 5 in the afternoon for an hour; call mom tomorrow 7pm', () => {
+    expect(parseCapture('مشي 5 العصر لمدة ساعة', now)).toMatchObject({ kind: 'task', time: '17:00', duration_min: 60, title: 'مشي' });
+    expect(parseCapture('اتصل على أمي بكرة 7 مساءً', now)).toMatchObject({ kind: 'task', date: '2026-11-19', time: '19:00' });
+  });
+});
