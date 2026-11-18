@@ -63,7 +63,7 @@ const ALL: PageDef[] = [
   p({ id: 'life.projects', section: 'life', path: '/life/projects', ar: 'المشاريع', en: 'Projects', icon: FolderKanban, file: 'life/Projects', redirect: '/life/goals?tab=projects' }),
   p({ id: 'life.notes', section: 'life', path: '/life/notes', ar: 'الملاحظات', en: 'Notes', icon: NotebookPen, file: 'life/Notes', redirect: '/life/notebook?tab=notes' }),
   p({ id: 'life.brain', section: 'life', path: '/life/brain', ar: 'العقل الثاني', en: 'Second Brain', icon: Network, file: 'life/Brain' }),
-  p({ id: 'life.journal', section: 'life', path: '/life/journal', ar: 'اليوميات', en: 'Journal', icon: BookHeart, file: 'life/Journal' }),
+  p({ id: 'life.journal', section: 'life', path: '/life/journal', ar: 'اليوميات', en: 'Journal', icon: BookHeart, file: 'life/Journal', redirect: '/life/notebook?tab=journal' }),
   p({ id: 'life.finance', section: 'life', path: '/life/finance', ar: 'المال', en: 'Finance', icon: Wallet, file: 'life/Finance' }),
   p({ id: 'life.subscriptions', section: 'life', path: '/life/subscriptions', ar: 'الاشتراكات', en: 'Subscriptions', icon: CreditCard, file: 'life/Subscriptions' }),
   p({ id: 'life.library', section: 'life', path: '/life/library', ar: 'مكتبتي', en: 'Library', icon: Library, file: 'life/Library' }),

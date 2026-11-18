@@ -3,12 +3,15 @@ import { Link } from 'react-router';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { useRecords, useSettings } from '@/core/hooks';
+import { isIdOn } from '@/app/registry';
 import { dateKey, fmtDate, relativeDay, todayKey } from '@/core/dates';
 import type { JournalData, NoteData } from '@/modules/shared/domain';
 import { dayPageId, type DayPageData } from './today/dayPage';
-import { Hub } from './plan/Hub';
+import { Hub, type HubTab } from './plan/Hub';
+import { Desk } from './notebook/Desk';
 
 const Notes = lazy(() => import('./Notes'));
+const Journal = lazy(() => import('./Journal'));
 
 type Kind = 'journal' | 'idea' | 'note' | 'grat';
 interface Line { key: string; day: string; kind: Kind; text: string; to?: string }
@@ -21,15 +24,16 @@ const META: Record<Kind, { sym: string; ar: string; en: string; bg: string }> = 
 };
 const MOOD = ['', '😣', '😕', '😐', '🙂', '😄'];
 
-/** The Notebook holds the day-by-day timeline and the notes library (the old Notes page) as tabs. */
+/** The Notebook: the writing desk + day-by-day timeline, the journal (entries and mood), and the notes library. */
 export default function Notebook() {
   const { L } = useI18n();
-  return (
-    <Hub label={L('الدفتر', 'Notebook')} tabs={[
-      { id: 'days', ar: '✎ يوم بيوم', en: '✎ Day by day', C: NotebookDays },
-      { id: 'notes', ar: '– الملاحظات والمجلدات', en: '– Notes & folders', C: Notes },
-    ]} />
-  );
+  const s = useSettings();
+  const tabs: HubTab[] = [
+    { id: 'days', ar: '✍️ اكتب', en: '✍️ Write', C: NotebookDays },
+    ...(isIdOn('life.journal', s.modules, s.modulePreset) ? [{ id: 'journal', ar: '☺ اليوميات والمزاج', en: '☺ Journal & mood', C: Journal }] : []),
+    { id: 'notes', ar: '– الملاحظات والمجلدات', en: '– Notes & folders', C: Notes },
+  ];
+  return <Hub label={L('الدفتر', 'Notebook')} tabs={tabs} />;
 }
 
 /**
@@ -61,7 +65,7 @@ function NotebookDays() {
         if (d.prompts?.line) out.push({ key: `${j.id}:line`, day: j.date, kind: 'journal', text: d.prompts.line });
         if (d.prompts?.win) out.push({ key: `${j.id}:win`, day: j.date, kind: 'journal', text: `🏆 ${d.prompts.win}` });
         (d.gratitude ?? []).filter(Boolean).forEach((g, i) => out.push({ key: `${j.id}:g${i}`, day: j.date!, kind: 'grat', text: g }));
-      } else if (d.body || d.title) out.push({ key: j.id, day: j.date, kind: 'journal', text: d.title ? `${d.title} — ${d.body}` : d.body, to: '/life/journal' });
+      } else if (d.body || d.title) out.push({ key: j.id, day: j.date, kind: 'journal', text: d.title ? `${d.title} — ${d.body}` : d.body, to: '/life/notebook?tab=journal' });
     }
     return out;
   }, [notes, journal]);
@@ -81,19 +85,24 @@ function NotebookDays() {
     <div className="mx-auto max-w-[1100px]">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-          <p className="text-[13px] font-bold text-fg-2">{L('اللي تكتبه عشان تتذكره', 'What you write to remember')}</p>
+          <p className="text-[13px] font-bold text-fg-2">{L('مساحتك تكتب فيها اللي في بالك — خاصة فيك', 'Your space to write what’s on your mind — private')}</p>
           <h1 className="nb-title text-[34px] leading-tight md:text-[40px]">{L('الدفتر', 'Notebook')}</h1>
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label={L('فلتر', 'Filter')}>
-          {(['all', 'journal', 'idea', 'note', 'grat'] as const).map((k) => (
-            <button key={k} onClick={() => setFilter(k)} aria-pressed={filter === k}
-              className={clsx('h-9 rounded-full border-[1.5px] px-3.5 text-[13px] font-bold', filter === k ? 'border-health-ink bg-[color-mix(in_oklab,var(--health)_35%,var(--surface))]' : 'border-dashed border-line-strong bg-surface')}>
-              {k === 'all' ? L('الكل', 'All') : L(META[k].ar, META[k].en)} <span className="num opacity-60">{count(k)}</span>
-            </button>
-          ))}
         </div>
       </header>
 
+      <Desk lines={lines} unlocked={unlocked} />
+
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="nb-title text-2xl text-life-ink">{L('يوم بيوم', 'Day by day')}</h2>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={L('فلتر', 'Filter')}>
+        {(['all', 'journal', 'idea', 'note', 'grat'] as const).map((k) => (
+          <button key={k} onClick={() => setFilter(k)} aria-pressed={filter === k}
+            className={clsx('h-9 rounded-full border-[1.5px] px-3.5 text-[13px] font-bold', filter === k ? 'border-health-ink bg-[color-mix(in_oklab,var(--health)_35%,var(--surface))]' : 'border-dashed border-line-strong bg-surface')}>
+            {k === 'all' ? L('الكل', 'All') : L(META[k].ar, META[k].en)} <span className="num opacity-60">{count(k)}</span>
+          </button>
+        ))}
+      </div>
+      </div>
       <section className="nb-paper paper-lines relative rounded-lg px-4 pb-6 pt-7 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-8">
         <span className="nb-washi -top-3 end-20 rotate-3" style={{ ['--washi' as string]: 'var(--health)' }} aria-hidden="true" />
         {!unlocked && (
