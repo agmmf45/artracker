@@ -59,17 +59,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // stable vendor chunks: app updates don't invalidate cached libraries
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined;
-          if (/[\\/](react|react-dom|scheduler|react-router)[\\/]/.test(id)) return 'react';
-          if (/[\\/](@radix-ui|radix-ui|vaul|cmdk|@floating-ui|aria-hidden|react-remove-scroll)/.test(id)) return 'ui';
-          if (/[\\/](dexie|dexie-react-hooks)[\\/]/.test(id)) return 'dexie';
-          if (/[\\/](date-fns|rrule)[\\/]/.test(id)) return 'dates';
-          if (/[\\/]lucide-react[\\/]/.test(id)) return 'icons';
-          if (/[\\/](zod)[\\/]/.test(id)) return 'zod';
-          if (/[\\/]@dnd-kit[\\/]/.test(id)) return 'dnd';
-          return undefined;
-        },
+        // No manualChunks: a hand-made 'ui' vendor chunk created a circular import with the entry
+        // chunk (TDZ crash 'Cannot access X before initialization' in production). Rollup's own
+        // splitting keeps lazy routes separate and is cycle-safe.
       },
     },
   },
