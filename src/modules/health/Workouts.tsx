@@ -18,6 +18,7 @@ import { Button, Card, Chip, EmptyState, IconButton, Input, PageHeader, Section,
 import { Bars } from '@/design/charts';
 import { MuscleMap, MUSCLES } from './MuscleMap';
 import { EXERCISE_VIDEOS, RECOVERY_TIPS } from '@/modules/shared/legacyContent';
+import { startWorkout } from './workouts/start';
 
 /** v4 curated tutorial videos per muscle (privacy-enhanced youtube-nocookie embeds). */
 const MUSCLE_VIDEOS: Record<string, string[]> = {
@@ -25,7 +26,10 @@ const MUSCLE_VIDEOS: Record<string, string[]> = {
   'كتف': ['overhead press', 'lateral raise'], 'بايسبس': ['bicep curl', 'hammer curl'], 'ترايسبس': ['tricep pushdown', 'skull crusher'], 'ساعد': ['hammer curl'],
   'فخذ': ['barbell squat', 'leg press', 'lunge'], 'رجل': ['barbell squat', 'leg press', 'lunge'], 'خلفي الفخذ': ['romanian deadlift', 'deadlift'], 'أرداف': ['romanian deadlift', 'lunge', 'barbell squat'], 'بطن': ['plank'],
 };
-import { bestSets, e1rm, EXDB, EXERCISES, num, setsPerMuscle, TEMPLATES, volume, type ActiveWorkout, type ProgramData, type WExercise, type Workout, type WorkoutData } from './workouts/model';
+import { bestSets, e1rm, EXDB, EXERCISES, num, previousSets, setsPerMuscle, TEMPLATES, volume, type ActiveWorkout, type ProgramData, type WExercise, type Workout, type WorkoutData } from './workouts/model';
+
+/** set row: # · previous · kg · reps · (RPE from sm up) · tick */
+const GRID = 'grid grid-cols-[22px_52px_1fr_1fr_40px] items-center gap-1.5 sm:grid-cols-[28px_72px_1fr_1fr_64px_40px]';
 
 const muscleName = (id: string, L: (a: string, e: string) => string) => { const m = MUSCLES.find((x) => x.id === id); return m ? L(m.ar, m.en) : id; };
 
@@ -43,11 +47,11 @@ export default function Workouts() {
   const [detail, setDetail] = useState<Workout | null>(null);
   const today = todayKey();
 
-  const start = async (name: string, program_id: string | null = null, exercises: WExercise[] = []) => {
+  const start = async (name: string, program_id: string | null = null, exercises?: WExercise[]) => {
     if (active && !(await confirm(L('عندك تمرين جارٍ. تبدأ جديداً؟', 'A workout is in progress. Start a new one?'), { message: L('التمرين الحالي سيُلغى بدون حفظ.', 'The current one is discarded without saving.'), danger: true }))) return;
-    await setMeta('workout_active', { name, program_id, started_at: new Date().toISOString(), exercises, rest_until: null, rest_ex: null } satisfies ActiveWorkout);
+    await startWorkout(name, program_id, exercises, (workouts ?? []).map((w) => w.data));
   };
-  useEffect(() => { if (params.get('start') && active === null) { params.delete('start'); setParams(params, { replace: true }); void start(L('تمرين', 'Workout')); } }, [params, active]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (params.get('start') && active === null) { params.delete('start'); setParams(params, { replace: true }); void start(L('تمرين', 'Workout'), null, []); } }, [params, active]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const prs = useMemo(() => bestSets((workouts ?? []).map((w) => ({ ...w.data, date: w.date })), (legacyPrs ?? []).map((p) => ({ exercise: p.data.exercise, weight: p.data.weight, reps: p.data.reps, date: p.date }))), [workouts, legacyPrs]);
   const recent = (workouts ?? []).filter((w) => (w.date ?? '') >= shiftKey(today, -(range - 1)));
@@ -57,11 +61,11 @@ export default function Workouts() {
     return { label: fmtDate(ws, locale, { day: 'numeric', month: 'numeric' }), value: (workouts ?? []).filter((w) => (w.date ?? '') >= ws && (w.date ?? '') <= shiftKey(ws, 6)).length };
   });
 
-  if (active) return <ActiveSession a={active} prs={prs} />;
+  if (active) return <ActiveSession a={active} prs={prs} history={(workouts ?? []).map((w) => w.data)} />;
 
   return (
     <div>
-      <PageHeader title={L('التمارين', 'Workouts')} actions={<Button variant="primary" icon={<Play size={16} />} onClick={() => start(L('تمرين', 'Workout'))}>{L('ابدأ تمرين', 'Start workout')}</Button>} />
+      <PageHeader title={L('التمارين', 'Workouts')} actions={<Button variant="primary" icon={<Play size={16} />} onClick={() => start(L('تمرين', 'Workout'), null, [])}>{L('ابدأ تمرين', 'Start workout')}</Button>} />
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Card className="p-4"><Stat label={L('هذا الأسبوع', 'This week')} value={(workouts ?? []).filter((w) => (w.date ?? '') >= weekStartKey(today, settings.weekStart)).length} /></Card>
         <Card className="p-4"><Stat label={L(`حجم آخر ${range} يوم`, `Volume, ${range} days`)} value={`${fmtNum(Math.round(recent.reduce((s, w) => s + volume(w.data), 0)))} kg`} /></Card>
@@ -142,7 +146,7 @@ export default function Workouts() {
 }
 
 /** Live session — stored in IndexedDB meta, so a refresh or closed tab never loses it (v4 bug fixed). */
-function ActiveSession({ a, prs }: { a: ActiveWorkout; prs: Map<string, { weight: number; reps: number }> }) {
+function ActiveSession({ a, prs, history }: { a: ActiveWorkout; prs: Map<string, { weight: number; reps: number }>; history: WorkoutData[] }) {
   const { L } = useI18n();
   const settings = useSettings();
   const now = useNow(1000);
@@ -156,9 +160,12 @@ function ActiveSession({ a, prs }: { a: ActiveWorkout; prs: Map<string, { weight
   useEffect(() => { if (a.rest_until && restLeft <= 0) { if (navigator.vibrate) navigator.vibrate(200); toast(L('انتهت الراحة — المجموعة التالية', 'Rest over — next set')); void save({ rest_until: null }); } }, [restLeft <= 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doneSet = async (e: WExercise, i: number) => {
-    const sets = e.sets.map((s, j) => (j === i ? { ...s, done: !s.done } : s));
+    // read the stored session, not this render's copy: a tick right after typing must not drop the typed numbers
+    const cur = ((await db().meta.get('workout_active'))?.value as ActiveWorkout | null) ?? a;
+    const ex = cur.exercises.find((x) => x.id === e.id) ?? e;
+    const sets = ex.sets.map((s, j) => (j === i ? { ...s, done: !s.done } : s));
     const s = sets[i];
-    await save({ exercises: a.exercises.map((x) => (x.id === e.id ? { ...x, sets } : x)), rest_until: s.done ? new Date(Date.now() + rest * 1000).toISOString() : a.rest_until, rest_ex: e.id });
+    await setMeta('workout_active', { ...cur, exercises: cur.exercises.map((x) => (x.id === e.id ? { ...x, sets } : x)), rest_until: s.done ? new Date(Date.now() + rest * 1000).toISOString() : cur.rest_until, rest_ex: e.id });
     const pr = prs.get(e.name);
     if (s.done && num(s.weight) && num(s.reps) && (!pr || num(s.weight) > pr.weight || (num(s.weight) === pr.weight && num(s.reps) > pr.reps))) {
       toast(L(`🎉 رقم قياسي جديد! ${e.name} ${s.weight}كجم × ${s.reps}`, `🎉 New PR! ${e.name} ${s.weight}kg × ${s.reps}`), { tone: 'reward' });
@@ -191,16 +198,18 @@ function ActiveSession({ a, prs }: { a: ActiveWorkout; prs: Map<string, { weight
           <Button size="sm" variant="ghost" onClick={() => save({ rest_until: null })}>{L('تخطَّ', 'Skip')}</Button>
         </div>
       )}
-      <div className="mb-3 flex items-center gap-2 text-sm text-fg-2">{L('مدة الراحة', 'Rest time')}: {[60, 90, 120, 180].map((s) => <Chip key={s} active={rest === s} onClick={() => setRest(s)}>{s}s</Chip>)}</div>
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-fg-2">{L('مدة الراحة', 'Rest time')}: {[30, 60, 90, 120, 180].map((s) => <Chip key={s} active={rest === s} onClick={() => setRest(s)}>{s}{L('ث', 's')}</Chip>)}</div>
       <div className="space-y-3">
         {a.exercises.map((e) => {
           const pr = prs.get(e.name);
           const collapsed = open[e.id] === false;
+          const prev = previousSets(history, e.name, a.started_at);
+          const newPr = e.sets.some((s) => s.done && num(s.weight) && num(s.reps) && (!pr || num(s.weight) > pr.weight || (num(s.weight) === pr.weight && num(s.reps) > pr.reps)));
           return (
             <Card key={e.id} className="p-3">
               <div className="flex items-center gap-2">
                 <button className="min-w-0 flex-1 text-start" onClick={() => setOpen({ ...open, [e.id]: collapsed })}>
-                  <div className="truncate font-bold">{e.name}</div>
+                  <div className="flex items-center gap-2"><span className="truncate font-bold">{e.name}</span>{newPr && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-reward px-2 py-0.5 text-[11px] font-bold text-reward-ink"><Trophy size={11} />{L('رقم جديد', 'New PR')}</span>}</div>
                   <div className="text-[12px] text-fg-3">{muscleName(e.muscle, L)}{pr ? ` · PR ${pr.weight}kg×${pr.reps}` : ''}</div>
                 </button>
                 {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
@@ -208,13 +217,17 @@ function ActiveSession({ a, prs }: { a: ActiveWorkout; prs: Map<string, { weight
               </div>
               {!collapsed && (
                 <>
-                  <div className="mt-2 grid grid-cols-[28px_1fr_1fr_64px_40px] items-center gap-1.5 text-[11px] font-bold text-fg-3"><span>#</span><span>{L('الوزن kg', 'Weight kg')}</span><span>{L('التكرار', 'Reps')}</span><span>RPE</span><span /></div>
+                  <div className={clsx(GRID, 'mt-2 text-[11px] font-bold text-fg-3')}><span>#</span><span>{L('السابق', 'Previous')}</span><span>{L('الوزن kg', 'Weight kg')}</span><span>{L('التكرار', 'Reps')}</span><span className="hidden sm:block">RPE</span><span /></div>
                   {e.sets.map((s, i) => (
-                    <div key={i} className={clsx('mt-1 grid grid-cols-[28px_1fr_1fr_64px_40px] items-center gap-1.5', s.done && 'opacity-70')}>
+                    <div key={i} className={clsx(GRID, 'mt-1 rounded-sm', s.done && 'bg-[color-mix(in_oklab,var(--health)_22%,transparent)]')}>
                       <span className="num text-center text-sm text-fg-3">{i + 1}</span>
+                      <button type="button" disabled={!prev[i]} className="num truncate text-[12px] text-fg-2 disabled:text-fg-3" title={L('انسخ السابق', 'Copy previous')}
+                        onClick={() => prev[i] && setEx(e.id, { sets: e.sets.map((x, j) => (j === i ? { ...x, weight: prev[i].weight, reps: prev[i].reps } : x)) })}>
+                        {prev[i] ? `${prev[i].weight || 0}×${prev[i].reps || 0}` : '—'}
+                      </button>
                       <input type="number" inputMode="decimal" className="field h-10 min-h-0 py-1 text-center" value={s.weight} onChange={(ev) => setEx(e.id, { sets: e.sets.map((x, j) => (j === i ? { ...x, weight: ev.target.value === '' ? '' : Number(ev.target.value) } : x)) })} aria-label={L('الوزن', 'Weight')} />
                       <input type="number" inputMode="numeric" className="field h-10 min-h-0 py-1 text-center" value={s.reps} onChange={(ev) => setEx(e.id, { sets: e.sets.map((x, j) => (j === i ? { ...x, reps: ev.target.value === '' ? '' : Number(ev.target.value) } : x)) })} aria-label={L('التكرار', 'Reps')} />
-                      <input type="number" step="0.5" className="field h-10 min-h-0 py-1 text-center" value={s.rpe} onChange={(ev) => setEx(e.id, { sets: e.sets.map((x, j) => (j === i ? { ...x, rpe: ev.target.value } : x)) })} aria-label="RPE" />
+                      <input type="number" step="0.5" className="field hidden h-10 min-h-0 py-1 text-center sm:block" value={s.rpe} onChange={(ev) => setEx(e.id, { sets: e.sets.map((x, j) => (j === i ? { ...x, rpe: ev.target.value } : x)) })} aria-label="RPE" />
                       <button onClick={() => doneSet(e, i)} aria-label={s.done ? L('إلغاء', 'Undo') : L('تم', 'Done')} className={clsx('grid h-10 place-items-center rounded-sm border', s.done ? 'border-health bg-health text-on-accent' : 'border-line hover:bg-surface-2')}><Check size={17} /></button>
                     </div>
                   ))}

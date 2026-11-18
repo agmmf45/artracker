@@ -116,7 +116,7 @@ export default function Nutrition() {
   );
 }
 
-function MealEditor({ initial, day, onClose, edit }: { initial: Partial<MealData>; day: string; onClose: () => void; edit?: Meal }) {
+export function MealEditor({ initial, day, onClose, edit }: { initial: Partial<MealData>; day: string; onClose: () => void; edit?: Meal }) {
   const { L } = useI18n();
   const [d, setD] = useState<MealData>({ meal_type: 'snack', name: '', calories: 0, protein: 0, carbs: 0, fat: 0, estimated: false, photo_id: null, analysis_id: null, ...initial } as MealData);
   const [saveTpl, setSaveTpl] = useState(false);
@@ -152,7 +152,7 @@ interface AiItem { name: string; category?: string; brand?: string | null; packa
 interface AiResult { mealName: string; cuisine?: string | null; mealType?: MealData['meal_type']; confidence?: number; items: AiItem[]; tips?: Array<{ tone: 'good' | 'watch' | 'idea'; text: string }>; message?: string }
 
 /** v4 "Nutrition vision analyzer": up to 4 photos + optional description → itemized estimate with confidence. */
-function MealAnalyzer({ day, onClose }: { day: string; onClose: () => void }) {
+export function MealAnalyzer({ day, onClose }: { day: string; onClose: () => void }) {
   const { L } = useI18n();
   const settings = useSettings();
   const nav = useNavigate();

@@ -32,7 +32,7 @@ export interface Settings {
   gamification: { enabled: boolean; xp: Partial<Record<XpAction, number>>; levelTitles: Array<[number, string, string]> | null; vacation: boolean; animations: boolean; garden: boolean };
   notifications: { enabled: boolean; quietStart: string; quietEnd: string; maxPerHour: number };
   privacy: { hideJournalPreviews: boolean; hideHealthInCalendar: boolean; lockJournal: boolean; ai: { enabled: boolean; health: boolean; finance: boolean; journal: boolean } };
-  health: { calorieGoal: number; proteinGoal: number | null; carbGoal: number | null; fatGoal: number | null; waterGoal: number; waterServings: number[]; sleepGoalHours: number; heightCm: number | null };
+  health: { calorieGoal: number; proteinGoal: number | null; carbGoal: number | null; fatGoal: number | null; waterGoal: number; waterServings: number[]; sleepGoalHours: number; heightCm: number | null; weightGoal?: number | null };
   finance: { monthlyBudget: number | null; currency: string };
   study: { gpaScale: number; gradeScale: Array<{ min: number; letter: string; points: number }>; dailyStudyGoalMin: number; dental: boolean };
   prayer: { enabled: boolean; lat: number | null; lng: number | null; city: string | null; method: 'umm_al_qura' | 'mwl' | 'isna' | 'egypt' };
@@ -89,7 +89,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gamification: { enabled: true, xp: {}, levelTitles: null, vacation: false, animations: true, garden: true },
   notifications: { enabled: false, quietStart: '23:00', quietEnd: '07:00', maxPerHour: 4 },
   privacy: { hideJournalPreviews: true, hideHealthInCalendar: true, lockJournal: false, ai: { enabled: false, health: false, finance: false, journal: false } },
-  health: { calorieGoal: 2000, proteinGoal: null, carbGoal: null, fatGoal: null, waterGoal: 2000, waterServings: [150, 250, 330, 500], sleepGoalHours: 8, heightCm: null },
+  health: { calorieGoal: 2000, proteinGoal: null, carbGoal: null, fatGoal: null, waterGoal: 2000, waterServings: [150, 250, 330, 500], sleepGoalHours: 8, heightCm: null, weightGoal: null },
   finance: { monthlyBudget: null, currency: 'SAR' },
   study: { gpaScale: 5, gradeScale: DEFAULT_GRADE_SCALE_5, dailyStudyGoalMin: 120, dental: true },
   prayer: { enabled: false, lat: null, lng: null, city: null, method: 'umm_al_qura' },

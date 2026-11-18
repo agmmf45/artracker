@@ -61,7 +61,7 @@ function Meals({ day }: { day: string }) {
   );
 }
 
-function Water({ day, settings }: { day: string; settings: Settings }) {
+export function Water({ day, settings }: { day: string; settings: Settings }) {
   const { L, fmtNum } = useI18n();
   const logs = useRecordsInRange<WaterData>('water_log', day, day);
   const goal = settings.health.waterGoal;
@@ -98,7 +98,7 @@ function Water({ day, settings }: { day: string; settings: Settings }) {
   );
 }
 
-function Sleep({ day, settings }: { day: string; settings: Settings }) {
+export function Sleep({ day, settings }: { day: string; settings: Settings }) {
   const { L, locale } = useI18n();
   const logs = useRecordsInRange<SleepData>('sleep_log', day, day);
   const night = (logs ?? []).find((l) => !l.data.nap);

@@ -73,3 +73,59 @@ export function setsPerMuscle(workouts: Array<Pick<WorkoutData, 'exercises'>>): 
   for (const w of workouts) for (const e of w.exercises) out[e.muscle] = (out[e.muscle] ?? 0) + e.sets.filter((s) => s.done !== false).length;
   return out;
 }
+
+export type RecoveryState = 'fresh' | 'mid' | 'ready' | 'none';
+
+/**
+ * Per-muscle recovery from logged sessions only: days since the muscle was last trained.
+ * 0–1 day → still recovering, 2 days → nearly ready, 3+ → ready, never → no data.
+ * ('رجل' is the v4 umbrella "legs" key: it also counts for quads, hamstrings, glutes and calves.)
+ */
+export function muscleRecovery(workouts: Array<Pick<WorkoutData, 'exercises'> & { date?: string | null }>, day: string): Record<string, { days: number | null; state: RecoveryState }> {
+  const last: Record<string, string> = {};
+  const mark = (m: string, d: string) => { if (!last[m] || d > last[m]) last[m] = d; };
+  for (const w of workouts) {
+    if (!w.date || w.date > day) continue;
+    for (const e of w.exercises) {
+      if (!e.sets.some((s) => s.done !== false)) continue;
+      mark(e.muscle, w.date);
+      if (e.muscle === 'رجل') for (const m of ['فخذ', 'خلفي الفخذ', 'أرداف', 'ساق']) mark(m, w.date);
+    }
+  }
+  const out: Record<string, { days: number | null; state: RecoveryState }> = {};
+  const t = Date.parse(`${day}T00:00:00Z`);
+  for (const [m, d] of Object.entries(last)) {
+    const days = Math.round((t - Date.parse(`${d}T00:00:00Z`)) / 864e5);
+    out[m] = { days, state: days <= 1 ? 'fresh' : days === 2 ? 'mid' : 'ready' };
+  }
+  return out;
+}
+
+/** The template whose muscles are the most rested (null when nothing was ever logged). */
+export function suggestTemplate(rec: Record<string, { days: number | null }>): string | null {
+  if (!Object.keys(rec).length) return null;
+  let best: string | null = null;
+  let bestScore = -1;
+  for (const [name, muscles] of Object.entries(TEMPLATES)) {
+    const score = Math.min(...muscles.map((m) => rec[m]?.days ?? 99));
+    if (score > bestScore) { best = name; bestScore = score; }
+  }
+  return bestScore >= 2 ? best : null;
+}
+
+/** The sets of the latest earlier session of an exercise, for the "previous" column. */
+export function previousSets(workouts: Array<Pick<WorkoutData, 'exercises' | 'started_at'>>, name: string, before: string): WSet[] {
+  let best: { at: string; sets: WSet[] } | null = null;
+  for (const w of workouts) {
+    if (w.started_at >= before) continue;
+    const e = w.exercises.find((x) => x.name === name);
+    if (e && (!best || w.started_at > best.at)) best = { at: w.started_at, sets: e.sets.filter((s) => s.done !== false) };
+  }
+  return best?.sets ?? [];
+}
+
+/** A new session named like an earlier one starts from that one's exercises (weights kept as targets, nothing ticked). */
+export function exercisesFromLast(workouts: Array<Pick<WorkoutData, 'exercises' | 'started_at' | 'name'>>, name: string, newId: () => string): WExercise[] {
+  const last = workouts.filter((w) => w.name === name).sort((a, b) => b.started_at.localeCompare(a.started_at))[0];
+  return (last?.exercises ?? []).map((e) => ({ ...e, id: newId(), notes: '', sets: e.sets.map((s) => ({ ...s, rpe: '', done: false })) }));
+}
