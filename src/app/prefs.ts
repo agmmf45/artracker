@@ -11,24 +11,22 @@ const KEY = 'dq_prefs';
 export function readPrefs(): Prefs {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-    return { language: p.language === 'en' ? 'en' : 'ar', theme: p.theme ?? 'system', legacyTheme: p.legacyTheme ?? null, density: p.density ?? 'comfortable' };
+    return { language: p.language === 'en' ? 'en' : 'ar', theme: p.theme ?? 'light', legacyTheme: p.legacyTheme ?? null, density: p.density ?? 'comfortable' };
   } catch {
-    return { language: 'ar', theme: 'system', legacyTheme: null, density: 'comfortable' };
+    return { language: 'ar', theme: 'light', legacyTheme: null, density: 'comfortable' };
   }
 }
 
-const DARK_THEMES = new Set(['dark', 'navy', 'inferno', 'electric', 'galaxy', 'nature']);
-
 export function applyPrefs(p: Prefs) {
   const el = document.documentElement;
-  // v4 dark themes only work on the dark palette
-  if (p.legacyTheme && DARK_THEMES.has(p.legacyTheme)) p = { ...p, theme: 'dark' };
+  // two themes only (light / dark); the v4 colour themes were retired — a v4 dark theme maps to dark
+  if (p.legacyTheme && ['dark', 'navy', 'inferno', 'electric', 'galaxy', 'nature'].includes(p.legacyTheme)) p = { ...p, theme: 'dark' };
+  p = { ...p, legacyTheme: null };
   el.lang = p.language;
   el.dir = p.language === 'ar' ? 'rtl' : 'ltr';
   if (p.theme === 'system') el.removeAttribute('data-theme');
   else el.setAttribute('data-theme', p.theme);
-  if (p.legacyTheme) el.setAttribute('data-legacy-theme', p.legacyTheme);
-  else el.removeAttribute('data-legacy-theme');
+  el.removeAttribute('data-legacy-theme');
   el.setAttribute('data-density', p.density);
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* private mode */ }
 }

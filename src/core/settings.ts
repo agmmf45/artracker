@@ -53,7 +53,7 @@ export const DEFAULT_GRADE_SCALE_5 = [
 export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   language: 'ar',
-  theme: 'system',
+  theme: 'light',
   legacyTheme: null,
   density: 'comfortable',
   weekStart: 6,
