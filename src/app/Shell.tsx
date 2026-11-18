@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { useMedia, useProfile, useSettings } from '@/core/hooks';
 import { useSyncStatus, syncNow } from '@/core/sync';
-import { PAGES, SECTIONS, isPageOn, type SectionId } from './registry';
+import { LIFE_MAIN, PAGES, SECTIONS, isPageOn, type SectionId } from './registry';
 import { Brand } from './Splash';
 import { QuickCapture } from './QuickCapture';
 import { CommandPalette } from './CommandPalette';
@@ -150,7 +150,17 @@ export function Shell() {
                     <span className={clsx('grid size-7 place-items-center rounded-full', active ? 'bg-accent text-on-accent' : 'bg-surface-2')}><s.icon size={15} /></span>
                     {L(s.ar, s.en)}
                   </NavLink>
-                  {active && <div className="mb-2 mt-1 space-y-0.5 ps-4">{list.map(pageLink)}</div>}
+                  {active && (
+                    <div className="mb-2 mt-1 space-y-0.5 ps-4">
+                      {s.id === 'life' ? (
+                        <>
+                          {list.filter((p) => LIFE_MAIN.has(p.id)).map(pageLink)}
+                          <div className="px-3 pb-0.5 pt-3 text-[11.5px] font-bold text-fg-3">{L('أدوات', 'Tools')}</div>
+                          {list.filter((p) => !LIFE_MAIN.has(p.id)).map(pageLink)}
+                        </>
+                      ) : list.map(pageLink)}
+                    </div>
+                  )}
                 </div>
               );
             })}

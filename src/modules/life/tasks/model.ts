@@ -2,7 +2,7 @@ import type { Rec } from '@shared/records';
 import { create, update, revertTo } from '@/core/repo';
 import { grantXp, revokeXp } from '@/core/xp';
 import { nextAfter, type Recurrence } from '@/core/recurrence';
-import { todayKey, daysBetween } from '@/core/dates';
+import { todayKey, daysBetween, shiftKey, weekStartKey } from '@/core/dates';
 import { undoToast } from '@/core/toast';
 import type { Settings } from '@/core/settings';
 
@@ -46,6 +46,10 @@ export interface TaskData {
   custom?: Record<string, string>;
   reminder_min?: number | null;
   capture_text?: string | null;
+  /** planned for a week (its first day) with no day yet — shows in the Week page's list */
+  plan_week?: string | null;
+  /** planned for a month ('YYYY-MM') with no week yet — shows in the Month page's list */
+  plan_month?: string | null;
   source?: string;
   attachments?: Array<{ id: string; name: string; url: string }>;
   activity?: Array<{ at: string; what: string }>;
@@ -60,6 +64,22 @@ export function blankTask(partial: Partial<TaskData> = {}): TaskData {
     project_id: null, goal_id: null, milestone_id: null, course_id: null, area: null, depends_on: [], note_ids: [],
     pinned: false, favorite: false, ...partial,
   };
+}
+
+/** Where an open task sits in the planner: a day, a week, a month, or nowhere yet. */
+export function planLevel(d: Pick<TaskData, 'start' | 'due' | 'plan_week' | 'plan_month'>): 'day' | 'week' | 'month' | 'none' {
+  if (d.start || d.due) return 'day';
+  if (d.plan_week) return 'week';
+  if (d.plan_month) return 'month';
+  return 'none';
+}
+
+/** Plan fields for a capture scope ("هالأسبوع", "الأسبوع الجاي", "هالشهر", "الشهر الجاي"). */
+export function planFromScope(scope: 'week' | 'next_week' | 'month' | 'next_month', today: string, weekStart: 0 | 1 | 6): Pick<TaskData, 'plan_week' | 'plan_month'> {
+  if (scope === 'week' || scope === 'next_week') { const ws = weekStartKey(today, weekStart); return { plan_week: scope === 'week' ? ws : shiftKey(ws, 7), plan_month: null }; }
+  const [y, m] = today.split('-').map(Number);
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+  return { plan_week: null, plan_month: scope === 'month' ? today.slice(0, 7) : next };
 }
 
 /** The calendar day a task "lives on": scheduled work date first, then deadline. */

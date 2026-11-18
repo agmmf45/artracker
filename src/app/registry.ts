@@ -43,8 +43,12 @@ const p = (def: PageDef) => def;
 
 const ALL: PageDef[] = [
   // ── LIFE ──
-  p({ id: 'life.overview', section: 'life', path: '/life', ar: 'نظرة عامة', en: 'Overview', icon: LayoutDashboard, core: true, file: 'life/Overview' }),
-  p({ id: 'life.today', section: 'life', path: '/life/today', ar: 'اليوم', en: 'Today', icon: Sun, file: 'life/Today' }),
+  // the Life notebook: day · week · month · notebook (always on); everything else is a tool page
+  p({ id: 'life.today', section: 'life', path: '/life/today', ar: 'اليوم', en: 'Day', icon: Sun, core: true, file: 'life/Today' }),
+  p({ id: 'life.week', section: 'life', path: '/life/week', ar: 'الأسبوع', en: 'Week', icon: CalendarRange, core: true, file: 'life/Week' }),
+  p({ id: 'life.month', section: 'life', path: '/life/month', ar: 'الشهر', en: 'Month', icon: CalendarDays, core: true, file: 'life/Month' }),
+  p({ id: 'life.notebook', section: 'life', path: '/life/notebook', ar: 'الدفتر', en: 'Notebook', icon: BookOpen, core: true, file: 'life/Notebook' }),
+  p({ id: 'life.overview', section: 'life', path: '/life/overview', ar: 'لوحة عامة', en: 'Dashboard', icon: LayoutDashboard, file: 'life/Overview' }),
   p({ id: 'life.planner', section: 'life', path: '/life/planner', ar: 'المخطط', en: 'Planner', icon: CalendarClock, file: 'life/Planner' }),
   p({ id: 'life.calendar', section: 'life', path: '/life/calendar', ar: 'التقويم', en: 'Calendar', icon: CalendarDays, file: 'life/Calendar' }),
   p({ id: 'life.inbox', section: 'life', path: '/life/inbox', ar: 'الوارد', en: 'Inbox', icon: Inbox, file: 'life/Inbox' }),
@@ -108,6 +112,9 @@ const ALL: PageDef[] = [
   p({ id: 'settings.security', section: 'settings', path: '/settings/security', ar: 'الأمان', en: 'Security', icon: ShieldCheck, core: true, file: 'settings/Security' }),
   p({ id: 'settings.data', section: 'settings', path: '/settings/data', ar: 'البيانات', en: 'Data', icon: Database, core: true, file: 'settings/Data' }),
 ];
+
+/** The Life section's notebook pages, shown first; other Life pages are grouped under "Tools". */
+export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook']);
 
 export const PAGES: Page[] = ALL.flatMap((def) => {
   const load = FILES[`/src/modules/${def.file}.tsx`] as Page['load'] | undefined;

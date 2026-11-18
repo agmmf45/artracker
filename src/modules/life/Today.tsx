@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, CalendarClock, Star, Check } from 'lucide-re
 import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
-import { updateSettings, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
+import { updateSettings, useRecord, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
 import { bulk, revertTo } from '@/core/repo';
 import { dateKey, fmtDate, hijri, relativeDay, shiftKey, todayKey } from '@/core/dates';
 import { undoToast } from '@/core/toast';
@@ -12,12 +12,13 @@ import type { Settings } from '@/core/settings';
 import { Segmented } from '@/design/ui';
 import type { NoteData, TxnData } from '@/modules/shared/domain';
 import { TaskEditor } from './tasks/TaskEditor';
-import { isDone, saveTask, taskDay, type Task, type TaskData } from './tasks/model';
+import { createTask, isDone, saveTask, taskDay, type Task, type TaskData } from './tasks/model';
 import { useCalendarItems } from './calendar/sources';
 import { RapidLog } from './today/RapidLog';
 import { TimeBlocks } from './today/TimeBlocks';
-import { Trackers, Box } from './today/Trackers';
-import { dayPageId, type DayPageData } from './today/dayPage';
+import { Trackers, Box, WriteLine } from './today/Trackers';
+import { dayPageId, patchDayPage, type DayPageData } from './today/dayPage';
+import { weekOf, weekPageId, type WeekPageData } from './plan/periods';
 
 type Paper = Settings['notebook']['paper'];
 const localDay = (iso: string | null | undefined) => (iso ? dateKey(new Date(iso)) : null);
@@ -60,6 +61,14 @@ export default function Today() {
   const notes = (notesAll ?? []).filter((n) => (n.data.note_type === 'quick' || n.data.note_type === 'idea') && localDay(n.created_at) === day);
   const txns = (txnsDay ?? []).filter((x) => x.data.kind !== 'transfer');
   const page = journalDay?.find((e) => e.id === dayPageId(day))?.data;
+  const prompts = page?.prompts ?? {};
+  const setPrompt = (k: string, v: string) => void patchDayPage(day, { prompts: { ...prompts, [k]: v } });
+  // the week's top 3 feed today's top 3 (month goals → week priorities → today)
+  const ws = weekOf(day, settings.weekStart);
+  const week = useRecord<WeekPageData>(weekPageId(ws));
+  const titlesToday = new Set([...t.open, ...t.done].map((x) => x.data.title));
+  const weekPicks = t.top.length < 3 ? (week?.data.big3 ?? []).filter((b) => !b.done && b.title && !titlesToday.has(b.title)) : [];
+  const spent = txns.filter((x) => x.data.kind === 'expense').reduce((a, x) => a + x.data.amount, 0);
 
   const moveAll = async (list: Task[], to: string) => {
     const snaps = list.map((x) => x as unknown as Rec);
@@ -73,6 +82,7 @@ export default function Today() {
     { ok: t.tomorrowTop, ar: 'حدّدت أهم مهمة لبكرة', en: 'Picked tomorrow’s top task',
       act: !t.tomorrowTop ? <button onClick={() => setDay(tomorrow)} className="font-bold text-accent-ink hover:underline">{L('افتح صفحة بكرة', 'Open tomorrow')}</button> : null },
     { ok: !!page?.prompts?.line, ar: 'كتبت سطر اليوم', en: 'Wrote the line of the day', act: null },
+    { ok: !!page?.prompts?.win, ar: 'كتبت فوز اليوم', en: 'Wrote today’s win', act: null },
   ];
 
   const dayNum = fmtDate(day, locale, { day: 'numeric' });
@@ -95,7 +105,7 @@ export default function Today() {
           </div>
           <Segmented size="sm" value={paper} onChange={(v) => void updateSettings({ notebook: { paper: v } })}
             options={[{ value: 'dots', label: L('نقاط', 'Dots') }, { value: 'lines', label: L('سطور', 'Lines') }, { value: 'grid', label: L('مربعات', 'Grid') }, { value: 'plain', label: L('سادة', 'Plain') }]} />
-          <Link to="/life/planner" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:bg-surface-2"><CalendarClock size={16} />{L('المخطط', 'Planner')}</Link>
+          <Link to="/life/week" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:bg-surface-2"><CalendarClock size={16} />{L('الأسبوع', 'Week')}</Link>
         </div>
       </header>
 
@@ -106,6 +116,10 @@ export default function Today() {
           <span className="nb-washi -top-3 end-14 rotate-3" aria-hidden="true" />
           <div className="grid grid-cols-1 gap-7 @[720px]/pa:grid-cols-[minmax(0,1fr)_210px]">
             <div className="min-w-0">
+              <label className="mb-5 flex items-center gap-2.5">
+                <span className="shrink-0 text-[13.5px] font-bold">{L('تركيز اليوم:', 'Today’s focus:')}</span>
+                <WriteLine value={prompts.focus ?? ''} label={L('تركيز اليوم', 'Today’s focus')} placeholder={L('جملة وحدة: وش أهم شي اليوم؟', 'One line: what matters most today?')} onSave={(v) => setPrompt('focus', v)} className="text-[16px]" />
+              </label>
               <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('أهم 3', 'Top 3')}</h2>
               <ol className="mb-6 flex flex-col gap-1.5">
                 {[0, 1, 2].map((k) => {
@@ -124,6 +138,15 @@ export default function Today() {
                   );
                 })}
               </ol>
+              {weekPicks.length > 0 && (
+                <div className="-mt-3 mb-6 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[12.5px] text-fg-2">{L('من أولويات الأسبوع:', 'From this week’s priorities:')}</span>
+                  {weekPicks.map((b) => (
+                    <button key={b.id} onClick={() => void createTask({ title: b.title, start: day, important: true, goal_id: b.goal_id, source: 'week' })}
+                      className="inline-flex min-h-8 items-center rounded-full border-[1.5px] border-dashed border-line-strong bg-surface px-3 text-[13px] hover:border-solid">+ {b.title}</button>
+                  ))}
+                </div>
+              )}
 
               {t.overdue.length > 0 && (
                 <div className="nb-box mb-5 !py-3">
@@ -137,6 +160,7 @@ export default function Today() {
                         <button onClick={() => setEditing(x)} className="min-w-0 flex-1 truncate text-start">{x.data.title}</button>
                         <button onClick={() => void saveTask(x.id, { ...x.data, start: today })} className="h-9 rounded-xs px-2 text-[12.5px] font-bold hover:bg-surface-2">{L('لليوم', 'Today')}</button>
                         <button onClick={() => void saveTask(x.id, { ...x.data, start: shiftKey(today, 1) })} className="h-9 rounded-xs px-2 text-[12.5px] font-bold hover:bg-surface-2">{L('بكرة', 'Tmrw')}</button>
+                        {!x.data.due && <button onClick={() => void saveTask(x.id, { ...x.data, start: null, plan_week: ws })} className="h-9 rounded-xs px-2 text-[12.5px] font-bold hover:bg-surface-2">{L('للأسبوع', 'This week')}</button>}
                       </li>
                     ))}
                   </ul>
@@ -160,9 +184,17 @@ export default function Today() {
           <span className="nb-washi -top-2.5 start-16 -rotate-6" style={{ ['--washi' as string]: 'var(--study)' }} aria-hidden="true" />
           <h2 className="nb-title mb-4 text-2xl text-life-ink">{L('متتبّعات اليوم', 'Day trackers')}</h2>
           <Trackers day={day} settings={settings} />
+          <Box title={L('صرفت اليوم', 'Spent today')} extra={<Link to="/life/finance" className="font-bold text-accent-ink">{L('المال', 'Money')}</Link>} className="mt-3.5 !py-2.5">
+            <p className="text-[14px]"><b className="num">{spent.toLocaleString(locale)} {L('ر.س', 'SAR')}</b>{' '}
+              <span className="text-[13px] text-fg-2">{txns.filter((x) => x.data.kind === 'expense').map((x) => `${x.data.description} ${x.data.amount}`).join(' · ') || L('ولا ريال — دوّن «قهوة 15» لو صرفت', 'Nothing — write “coffee 15” if you spend')}</span></p>
+          </Box>
 
           {day === today && (
             <Box title={L('إغلاق اليوم', 'Shut down the day')} extra={L('دقيقتين قبل النوم', 'two minutes before bed')} className="mt-3.5 !bg-[color-mix(in_oklab,var(--health)_22%,var(--surface))]">
+              <label className="mb-3 flex items-center gap-2.5">
+                <span className="shrink-0 text-[13.5px] font-bold">🏆 {L('فوز اليوم:', 'Today’s win:')}</span>
+                <WriteLine value={prompts.win ?? ''} label={L('فوز اليوم', 'Today’s win')} placeholder={L('شي واحد مشى زين اليوم', 'One thing that went well')} onSave={(v) => setPrompt('win', v)} className="text-[15px]" />
+              </label>
               <ul className="flex flex-col gap-2">
                 {shutdown.map((s) => (
                   <li key={s.en} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[14.5px]">
@@ -172,6 +204,11 @@ export default function Today() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-3 flex justify-end">
+                {prompts.closed
+                  ? <span className="nb-title text-xl text-health-ink">✓ {L('اليوم مسكّر — أشوفك بكرة', 'Day closed — see you tomorrow')}</span>
+                  : <button onClick={() => setPrompt('closed', new Date().toISOString())} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg hover:opacity-90">☾ {L('سكّر اليوم', 'Close the day')}</button>}
+              </div>
             </Box>
           )}
         </section>

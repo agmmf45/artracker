@@ -2,7 +2,7 @@ import type { CaptureKind, Parsed } from '@/core/capture/parse';
 import { create } from '@/core/repo';
 import { todayKey } from '@/core/dates';
 import type { Settings } from '@/core/settings';
-import { createTask } from '@/modules/life/tasks/model';
+import { createTask, planFromScope } from '@/modules/life/tasks/model';
 import { addMin } from '@/modules/life/calendar/sources';
 import { addTxn, blankEvent, blankNote, logWater, type CaptureData, type EventData, type JournalData, type NoteData } from './domain';
 
@@ -14,14 +14,17 @@ import { addTxn, blankEvent, blankNote, logWater, type CaptureData, type EventDa
 export async function saveCapture(kind: CaptureKind, raw: string, parsed: Parsed, settings: Settings, day: string | null = null): Promise<[string, string]> {
   const title = parsed.title || raw;
   /** null = unscheduled (the global sheet keeps undated tasks undated) */
-  const date = parsed.date ?? day;
+  const date = parsed.scope ? null : parsed.date ?? day;
   const onDay = date ?? todayKey();
   switch (kind) {
     case 'task':
       await createTask({
         title, priority: parsed.priority ?? settings.tasks.defaultPriority, tags: parsed.tags, category: parsed.category,
         start: date, start_time: parsed.time, duration_min: parsed.duration_min, estimate_min: parsed.duration_min, capture_text: raw, source: 'capture',
+        ...(parsed.scope ? planFromScope(parsed.scope, todayKey(), settings.weekStart) : {}),
       });
+      if (parsed.scope === 'week' || parsed.scope === 'next_week') return ['انضافت لقائمة الأسبوع', 'Added to the week list'];
+      if (parsed.scope) return ['انضافت لمهام الشهر', 'Added to the month list'];
       return ['أُضيفت المهمة', 'Task added'];
     case 'event':
       await create<EventData>('event', blankEvent({

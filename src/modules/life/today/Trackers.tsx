@@ -208,7 +208,7 @@ function Habits({ day, settings }: { day: string; settings: Settings }) {
 }
 
 /** Text that saves when you leave the field (no save button, nothing lost on refresh mid-typing). */
-function WriteLine({ value, onSave, label, placeholder, className }: { value: string; onSave: (v: string) => void; label: string; placeholder?: string; className?: string }) {
+export function WriteLine({ value, onSave, label, placeholder, className }: { value: string; onSave: (v: string) => void; label: string; placeholder?: string; className?: string }) {
   const [v, setV] = useState(value);
   useEffect(() => { setV(value); }, [value]);
   return (

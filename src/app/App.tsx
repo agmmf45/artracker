@@ -44,6 +44,7 @@ function Ready() {
           <Routes>
             <Route element={<Shell />}>
               <Route index element={<Navigate to="/life" replace />} />
+              <Route path="/life" element={<Navigate to="/life/today" replace />} />
               {PAGES.map((p) => {
                 const C = lazyPages[p.id];
                 const on = isPageOn(p, settings.modules, settings.modulePreset);

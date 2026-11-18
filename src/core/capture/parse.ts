@@ -24,6 +24,8 @@ export interface Parsed {
   priority: number | null;
   tags: string[];
   category: string | null;
+  /** a week or a month with no set day ("هالأسبوع", "الأسبوع الجاي", "هالشهر") — only when no date was given */
+  scope: 'week' | 'next_week' | 'month' | 'next_month' | null;
   /** human-readable list of what was detected, for the preview chips */
   detected: string[];
 }
@@ -65,7 +67,7 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
   const original = input.trim();
   let t = ` ${normalizeDigits(original)} `;
   const detected: string[] = [];
-  const out: Parsed = { kind: 'inbox', title: original, date: null, time: null, duration_min: null, amount: null, ml: null, priority: null, tags: [], category: null, detected };
+  const out: Parsed = { kind: 'inbox', title: original, date: null, time: null, duration_min: null, amount: null, ml: null, priority: null, tags: [], category: null, scope: null, detected };
 
   // ── explicit prefixes ──
   const prefix = /^\s*(مهمة|task|todo|فكرة|idea|ملاحظة|note|يوميات|journal|موعد|event)\s*[:：-]\s*/i.exec(t);
@@ -130,6 +132,18 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
     detected.push(`${out.duration_min} min`);
   }
 
+  // ── plan level: a week or a month, no day yet ──
+  const SCOPES: Array<[RegExp, NonNullable<Parsed['scope']>, string]> = [
+    [/(?:خلال|في)?\s*الأسبوع\s+(?:الجاي|القادم|الياي)|(?:خلال|في)?\s*الاسبوع\s+(?:الجاي|القادم)|next week/i, 'next_week', 'الأسبوع الجاي'],
+    [/(?:خلال|في)?\s*(?:هالأسبوع|هالاسبوع|هذا الأسبوع|هذا الاسبوع)|this week/i, 'week', 'هالأسبوع'],
+    [/(?:خلال|في)?\s*الشهر\s+(?:الجاي|القادم)|next month/i, 'next_month', 'الشهر الجاي'],
+    [/(?:خلال|في)?\s*(?:هالشهر|هذا الشهر|قبل نهاية الشهر)|this month/i, 'month', 'هالشهر'],
+  ];
+  let scopeLabel: string | null = null;
+  for (const [re, sc, label] of SCOPES) {
+    if (re.test(t)) { out.scope = sc; scopeLabel = label; t = strip(t, re); break; }
+  }
+
   // ── date ──
   const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   let date: Date | null = null;
@@ -137,7 +151,6 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
     [/بعد\s+بكر[ةه]|بعد\s+غد|day after tomorrow/i, 2],
     [/بكر[ةه]|غداً|غدا|tomorrow|tmrw/i, 1],
     [/اليوم|الليلة|today|tonight/i, 0],
-    [/الأسبوع\s+(?:الجاي|القادم|الياي)|next week/i, 7],
   ];
   for (const [re, days] of rel) {
     if (re.test(t)) { date = addDays(base, days); t = strip(t, re); break; }
@@ -192,7 +205,8 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
     }
   }
 
-  if (date) { out.date = format(date, 'yyyy-MM-dd'); detected.unshift(out.date); }
+  if (date) { out.date = format(date, 'yyyy-MM-dd'); detected.unshift(out.date); out.scope = null; }
+  else if (scopeLabel) detected.unshift(scopeLabel);
   if (out.time) detected.push(out.time);
   if (out.priority) detected.push(out.priority === 4 ? '!!' : '!');
   out.tags.forEach((tg) => detected.push(`#${tg}`));
@@ -200,7 +214,7 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
   // ── kind ──
   if (forced) out.kind = forced;
   else if (/موعد|اجتماع|لقاء|meeting|appointment|محاضرة|lecture|حفلة|زواج|عزيمة|دكتور|doctor/i.test(original) && (out.time || out.date)) out.kind = 'event';
-  else if (out.date || out.time || out.priority || /^(?:ذاكر|راجع|اكتب|اتصل|ارسل|أرسل|اشتر|خلص|سلّم|سلم|study|review|call|send|buy|finish|submit|write|email|pay)/i.test(original)) out.kind = 'task';
+  else if (out.date || out.time || out.priority || out.scope || /^(?:ذاكر|راجع|اكتب|اتصل|ارسل|أرسل|اشتر|خلص|سلّم|سلم|study|review|call|send|buy|finish|submit|write|email|pay)/i.test(original)) out.kind = 'task';
   if (/^(?:ذاكر|راجع|مذاكرة|study|revise|review)/i.test(original)) out.category = 'دراسة';
 
   // ── clean title ──

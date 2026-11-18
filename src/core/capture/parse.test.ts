@@ -93,3 +93,19 @@ describe('parseCapture — English', () => {
     expect(p.date).toBeNull();
   });
 });
+
+describe('plan level (week / month without a day)', () => {
+  const now = new Date(2026, 10, 18, 10, 0); // Wed 18 Nov 2026
+  it('this week / next week / this month become a scope, not a date', () => {
+    const a = parseCapture('جدّد الجواز هالأسبوع', now);
+    expect(a).toMatchObject({ kind: 'task', scope: 'week', date: null, title: 'جدّد الجواز' });
+    expect(parseCapture('احجز السفر الأسبوع الجاي', now)).toMatchObject({ kind: 'task', scope: 'next_week', date: null, title: 'احجز السفر' });
+    expect(parseCapture('أرتب الدولاب هالشهر', now)).toMatchObject({ kind: 'task', scope: 'month', date: null });
+    expect(parseCapture('call mom next month', now).scope).toBe('next_month');
+  });
+  it('a real day wins over the scope', () => {
+    const p = parseCapture('ذاكر بكرة الساعة 7 هالأسبوع', now);
+    expect(p.scope).toBeNull();
+    expect(p.date).toBe('2026-11-19');
+  });
+});
