@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Upload, Download, AlertTriangle, MapPi
 import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
-import { useNow, useRecord, useSettings } from '@/core/hooks';
+import { useMedia, useNow, useRecord, useSettings } from '@/core/hooks';
 import { fmtDate, fmtTime, fromKey, hijri, hm, monthGrid, rangeKeys, shiftKey, specialDay, todayKey, weekStartKey, fromMinutes, dateKey } from '@/core/dates';
 import { update, create } from '@/core/repo';
 import { toast } from '@/core/toast';
@@ -117,7 +117,7 @@ export default function CalendarPage() {
           <IconButton label={L('التالي', 'Next')} onClick={() => step(1)}>{lang === 'ar' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}</IconButton>
         </div>
         <div className="min-w-0 flex-1 truncate font-bold">{title}</div>
-        <Segmented size="sm" value={view} onChange={setView} options={[
+        <Segmented size="sm" className="w-full sm:w-auto" value={view} onChange={setView} options={[
           { value: 'day', label: L('يوم', 'Day') }, { value: 'week', label: L('أسبوع', 'Week') }, { value: 'month', label: L('شهر', 'Month') }, { value: 'agenda', label: L('أجندة', 'Agenda') },
         ]} />
       </div>
@@ -163,7 +163,19 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
     return m;
   }, [days, settings.prayer]);
 
+  // phones: a week is too wide for 7 columns, so it scrolls sideways (~3½ days on screen)
+  const narrow = useMedia('(max-width: 639px)') && days.length > 1;
+
   useEffect(() => { scroller.current?.scrollTo({ top: Math.max(0, ((hm(settings.dayStart) ?? 420) / 60) * HOUR_PX - 8) }); }, [settings.dayStart]);
+  // open the sideways week on today (or the first day), centred
+  useEffect(() => {
+    const sc = scroller.current;
+    if (!sc || !narrow) return;
+    const cell = sc.querySelector<HTMLElement>(`[data-day="${days.includes(today) ? today : days[0]}"]`);
+    if (!cell) return;
+    const a = cell.getBoundingClientRect(), b = sc.getBoundingClientRect();
+    sc.scrollLeft += (a.left + a.width / 2) - (b.left + b.width / 2);
+  }, [narrow, days[0]]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onEnd = async (e: DragEndEvent) => {
     const it = items.find((x) => x.key === e.active.id);
@@ -189,61 +201,72 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
     }
   };
 
+  const cols = `52px repeat(${days.length}, minmax(0, 1fr))`;
+  const stick = 'sticky start-0 z-30 bg-surface';
   return (
     <div className="card overflow-hidden">
-      <div className="grid border-b border-line" style={{ gridTemplateColumns: `52px repeat(${days.length}, 1fr)` }}>
-        <div />
-        {days.map((d) => {
-          const sp = specialDay(d, lang);
-          return (
-            <div key={d} className={clsx('px-1 py-2 text-center', d === today && 'text-accent')}>
-              <div className="text-[11px] font-bold text-fg-3">{fmtDate(d, locale, { weekday: 'short' })}</div>
-              <div className="num text-lg font-black leading-tight">{fromKey(d).getDate()}</div>
-              {settings.calendarDisplay !== 'gregorian' && <div className="text-[10px] text-fg-3">{hijri(d, lang, { day: 'numeric', month: 'short' })}</div>}
-              {sp && <div className="truncate text-[10px] font-bold text-reward">{sp}</div>}
-            </div>
-          );
-        })}
-      </div>
-      {/* all-day row */}
-      <div className="grid border-b border-line" style={{ gridTemplateColumns: `52px repeat(${days.length}, 1fr)` }}>
-        <div className="p-1 text-[10px] text-fg-3">{L('اليوم كله', 'all-day')}</div>
-        {days.map((d) => (
-          <div key={d} className="min-h-7 space-y-0.5 border-s border-line p-0.5">
-            {items.filter((i) => i.date === d && i.allDay).map((i) => (
-              <button key={i.key} onClick={() => onOpen(i)} className={clsx('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-start text-[11px] font-bold', i.done && 'line-through opacity-60')} style={{ background: `color-mix(in oklab, ${i.color} 45%, var(--surface))`, color: 'var(--text)' }}>{i.title}</button>
-            ))}
-          </div>
-        ))}
-      </div>
       <DndContext sensors={sensors} onDragEnd={onEnd}>
-        <div ref={scroller} className="relative max-h-[68vh] overflow-y-auto scroll-thin">
-          <div className="grid" style={{ gridTemplateColumns: `52px repeat(${days.length}, 1fr)`, height: 24 * HOUR_PX }}>
-            <div className="relative">
-              {Array.from({ length: 24 }, (_, h) => <div key={h} className="num absolute end-1.5 -translate-y-1/2 text-[10px] text-fg-3" style={{ top: h * HOUR_PX }}>{h ? fmtTime(`${String(h).padStart(2, '0')}:00`, locale, settings.timeFormat === '12') : ''}</div>)}
-            </div>
-            {days.map((d) => {
-              const dayItems = items.filter((i) => i.date === d && !i.allDay && i.start);
-              const pr = prayers.get(d);
-              return (
-                <div key={d} data-col className="relative border-s border-line"
-                  onDoubleClick={(e) => { const y = e.clientY - (e.currentTarget.getBoundingClientRect().top); onCreate(d, fromMinutes(Math.floor((y / HOUR_PX) * 4) * 15)); }}
-                  onClick={(e) => { if (e.target === e.currentTarget && window.matchMedia('(pointer: coarse)').matches) { const y = e.clientY - e.currentTarget.getBoundingClientRect().top; onCreate(d, fromMinutes(Math.floor((y / HOUR_PX) * 4) * 15)); } }}>
-                  {Array.from({ length: 24 }, (_, h) => <div key={h} className="pointer-events-none absolute inset-x-0 border-t border-line/60" style={{ top: h * HOUR_PX }} />)}
-                  {pr && (Object.keys(PRAYER_NAMES) as Array<keyof PrayerTimes>).filter((k) => k !== 'sunrise').map((k) => (
-                    <div key={k} className="pointer-events-none absolute inset-x-0 flex items-center gap-1 border-t border-dashed border-reward/60 ps-1 text-[9.5px] font-bold text-reward" style={{ top: ((hm(pr[k]) ?? 0) / 60) * HOUR_PX }}>
-                      {L(PRAYER_NAMES[k][0], PRAYER_NAMES[k][1])} {pr[k]}
+        <div ref={scroller} className="relative max-h-[68vh] overflow-auto overscroll-contain scroll-thin">
+          <div style={{ minWidth: narrow ? 52 + days.length * 96 : undefined }}>
+            <div className="sticky top-0 z-40 bg-surface">
+              <div className="grid border-b border-line" style={{ gridTemplateColumns: cols }}>
+                <div className={stick} />
+                {days.map((d, i) => {
+                  const sp = specialDay(d, lang);
+                  const hd = hijri(d, lang, { day: 'numeric' });
+                  return (
+                    <div key={d} data-day={d} className={clsx('min-w-0 px-1 py-2 text-center', d === today && 'text-accent')}>
+                      <div className="text-[11px] font-bold text-fg-3">{fmtDate(d, locale, { weekday: 'short' })}</div>
+                      <div className="num text-lg font-black leading-tight">{fromKey(d).getDate()}</div>
+                      {settings.calendarDisplay !== 'gregorian' && (
+                        <div className="truncate text-[10px] text-fg-3">{i === 0 || hd === '1' ? hijri(d, lang, { day: 'numeric', month: 'short' }) : hd}</div>
+                      )}
+                      {sp && <div className="truncate text-[10px] font-bold text-reward">{sp}</div>}
                     </div>
-                  ))}
-                  {d === today && <div className="pointer-events-none absolute inset-x-0 z-10 h-0.5 bg-danger" style={{ top: ((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR_PX }} />}
-                  {layout(dayItems).map(({ it, col, cols }) => <GridItem key={it.key} it={it} col={col} cols={cols} clash={clash.has(it.key)} onOpen={onOpen} />)}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+              {/* all-day row */}
+              <div className="grid border-b border-line" style={{ gridTemplateColumns: cols }}>
+                <div className={clsx(stick, 'p-1 text-[10px] text-fg-3')}>{L('اليوم كله', 'all-day')}</div>
+                {days.map((d) => (
+                  <div key={d} className="min-h-7 min-w-0 space-y-0.5 border-s border-line p-0.5">
+                    {items.filter((i) => i.date === d && i.allDay).map((i) => (
+                      <button key={i.key} onClick={() => onOpen(i)} className={clsx('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-start text-[11px] font-bold', i.done && 'line-through opacity-60')} style={{ background: `color-mix(in oklab, ${i.color} 45%, var(--surface))`, color: 'var(--text)' }}>{i.title}</button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid" style={{ gridTemplateColumns: cols, height: 24 * HOUR_PX }}>
+              <div className={stick}>
+                {Array.from({ length: 24 }, (_, h) => <div key={h} className="num absolute end-1.5 -translate-y-1/2 text-[10px] text-fg-3" style={{ top: h * HOUR_PX }}>{h ? fmtTime(`${String(h).padStart(2, '0')}:00`, locale, settings.timeFormat === '12') : ''}</div>)}
+              </div>
+              {days.map((d) => {
+                const dayItems = items.filter((i) => i.date === d && !i.allDay && i.start);
+                const pr = prayers.get(d);
+                return (
+                  <div key={d} data-col className="relative min-w-0 border-s border-line"
+                    onDoubleClick={(e) => { const y = e.clientY - (e.currentTarget.getBoundingClientRect().top); onCreate(d, fromMinutes(Math.floor((y / HOUR_PX) * 4) * 15)); }}
+                    onClick={(e) => { if (e.target === e.currentTarget && window.matchMedia('(pointer: coarse)').matches) { const y = e.clientY - e.currentTarget.getBoundingClientRect().top; onCreate(d, fromMinutes(Math.floor((y / HOUR_PX) * 4) * 15)); } }}>
+                    {Array.from({ length: 24 }, (_, h) => <div key={h} className="pointer-events-none absolute inset-x-0 border-t border-line/60" style={{ top: h * HOUR_PX }} />)}
+                    {pr && (Object.keys(PRAYER_NAMES) as Array<keyof PrayerTimes>).filter((k) => k !== 'sunrise').map((k) => (
+                      <div key={k} className="pointer-events-none absolute inset-x-0 flex items-center gap-1 border-t border-dashed border-reward/60 ps-1 text-[9.5px] font-bold text-reward" style={{ top: ((hm(pr[k]) ?? 0) / 60) * HOUR_PX }}>
+                        {L(PRAYER_NAMES[k][0], PRAYER_NAMES[k][1])} {pr[k]}
+                      </div>
+                    ))}
+                    {d === today && <div className="pointer-events-none absolute inset-x-0 z-10 h-0.5 bg-danger" style={{ top: ((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR_PX }} />}
+                    {layout(dayItems).map(({ it, col, cols: n }) => <GridItem key={it.key} it={it} col={col} cols={n} stack={narrow} clash={clash.has(it.key)} onOpen={onOpen} />)}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </DndContext>
-      <p className="border-t border-line px-3 py-2 text-[11px] text-fg-3">{L('انقر مرتين على وقت فارغ لإضافة موعد · اسحب المواعيد والمهام لإعادة جدولتها', 'Double-click an empty slot to add · drag events and tasks to reschedule')}</p>
+      <p className="border-t border-line px-3 py-2 text-[11px] text-fg-3">{narrow
+        ? L('اسحب يميناً ويساراً لباقي الأسبوع · اضغط وقت فارغ لإضافة موعد', 'Swipe sideways for the rest of the week · tap an empty slot to add')
+        : L('انقر مرتين على وقت فارغ لإضافة موعد · اسحب المواعيد والمهام لإعادة جدولتها', 'Double-click an empty slot to add · drag events and tasks to reschedule')}</p>
     </div>
   );
 }
@@ -268,7 +291,7 @@ function layout(items: CalItem[]): Array<{ it: CalItem; col: number; cols: numbe
   return out;
 }
 
-function GridItem({ it, col, cols, clash, onOpen }: { it: CalItem; col: number; cols: number; clash: boolean; onOpen: (i: CalItem) => void }) {
+function GridItem({ it, col, cols, stack, clash, onOpen }: { it: CalItem; col: number; cols: number; stack?: boolean; clash: boolean; onOpen: (i: CalItem) => void }) {
   const { locale } = useI18n();
   const settings = useSettings();
   const draggable = it.kind === 'event' || it.kind === 'task';
@@ -283,7 +306,9 @@ function GridItem({ it, col, cols, clash, onOpen }: { it: CalItem; col: number; 
       className={clsx('absolute overflow-hidden rounded-[6px] border-s-[3px] px-1.5 py-0.5 text-start text-[11px] leading-tight transition-shadow', isDragging ? 'z-30 shadow-3' : 'z-20', it.done && 'opacity-55', clash && 'ring-2 ring-warning')}
       style={{
         top: (s / 60) * HOUR_PX + 1, height: ((e - s) / 60) * HOUR_PX - 2,
-        insetInlineStart: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)`,
+        ...(stack && cols > 1
+          ? { insetInlineStart: col * 14 + 2, width: `calc(100% - ${col * 14 + 4}px)`, zIndex: isDragging ? 30 : 20 + col, boxShadow: col ? '0 0 0 1.5px var(--surface)' : undefined }
+          : { insetInlineStart: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }),
         background: `color-mix(in oklab, ${it.color} 42%, var(--surface))`, borderInlineStartColor: it.color,
         transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
       }}
