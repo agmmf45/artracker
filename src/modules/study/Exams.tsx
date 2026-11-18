@@ -42,7 +42,7 @@ export default function Exams() {
   return (
     <div>
       <PageHeader title={L('الاختبارات', 'Exams')} actions={<><Segmented value={tab} onChange={setTab} options={[{ value: 'upcoming', label: L('القادمة', 'Upcoming') }, { value: 'past', label: L('السابقة', 'Past') }]} /><Button variant="primary" icon={<Plus size={17} />} onClick={() => setEditing({ e: { data: blankExam(), date: today } as Exam, isNew: true })}>{L('اختبار', 'Exam')}</Button></>} />
-      {!list.length ? <EmptyState icon={<FileClock size={30} />} title={tab === 'upcoming' ? L('لا اختبارات قادمة', 'No upcoming exams') : L('لا اختبارات سابقة', 'No past exams')} hint={L('الاختبار يظهر تلقائياً في التقويم والصفحة الرئيسية.', 'Exams appear automatically in the calendar and overview.')} /> : (
+      {!list.length ? <EmptyState icon={<FileClock size={30} />} title={tab === 'upcoming' ? L('لا اختبارات قادمة', 'No upcoming exams') : L('لا اختبارات سابقة', 'No past exams')} hint={L('الاختبار يظهر تلقائياً في التقويم وصفحات اليوم والأسبوع والشهر.', 'Exams appear automatically in the calendar and the Day, Week and Month pages.')} /> : (
         <div className="grid gap-3 md:grid-cols-2">
           {list.map((e) => {
             const days = daysBetween(today, e.date!);

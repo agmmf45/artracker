@@ -62,7 +62,6 @@ export default function General() {
           <Input type="time" label={L('ينتهي يومي', 'Day ends')} value={s.dayEnd} onChange={(e) => updateSettings({ dayEnd: e.target.value })} />
         </div>
         <div className="sm:col-span-2">
-          <Switch checked={s.encouragement} onChange={(v) => updateSettings({ encouragement: v })} label={L('رسائل تشجيعية', 'Encouraging messages')} hint={L('جملة قصيرة متغيرة في الصفحة الرئيسية.', 'A short rotating line on the overview.')} />
           <Switch checked={s.prayer.enabled} onChange={(v) => updateSettings({ prayer: { enabled: v } })} label={L('أوقات الصلاة في التقويم', 'Prayer times in calendar')} hint={L('تُحسب على جهازك من موقعك (حسب إعداد التكاملات).', 'Calculated on your device from your location (see Integrations).')} />
         </div>
       </Card>

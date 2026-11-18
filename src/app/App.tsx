@@ -52,6 +52,9 @@ function Ready() {
             <Route element={<Shell />}>
               <Route index element={<Navigate to="/life" replace />} />
               <Route path="/life" element={<Navigate to="/life/today" replace />} />
+              {/* removed pages: the old dashboard and its settings */}
+              <Route path="/life/overview" element={<Navigate to="/life/today" replace />} />
+              <Route path="/settings/dashboard" element={<Navigate to="/settings" replace />} />
               {PAGES.map((p) => {
                 if (p.redirect) return <Route key={p.id} path={p.path} element={<KeepQuery to={p.redirect} />} />;
                 const C = lazyPages[p.id];

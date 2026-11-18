@@ -4,7 +4,7 @@ import {
   Wallet, CreditCard, Library, ClipboardCheck, Trophy, Users, GraduationCap, BookOpen, Presentation, FileCheck2, FileClock,
   CalendarRange, Timer, Layers, CircleHelp, Stethoscope, FlaskConical, Link2, Award, BarChart3, HeartPulse, Dumbbell, Apple,
   UtensilsCrossed, Droplets, Moon, Scale, Ruler, Footprints, BatteryCharging, Pill, FileHeart, User, SlidersHorizontal, Palette,
-  LayoutGrid, Boxes, Tags, Bell, Zap, Gamepad2, Plug, Lock, ShieldCheck, Database, CalendarClock, type LucideIcon,
+  Boxes, Tags, Bell, Zap, Gamepad2, Plug, Lock, ShieldCheck, Database, CalendarClock, type LucideIcon,
 } from 'lucide-react';
 
 export type SectionId = 'life' | 'study' | 'health' | 'settings';
@@ -52,7 +52,6 @@ const ALL: PageDef[] = [
   p({ id: 'life.week', section: 'life', path: '/life/week', ar: 'الأسبوع', en: 'Week', icon: CalendarRange, core: true, file: 'life/Week' }),
   p({ id: 'life.month', section: 'life', path: '/life/month', ar: 'الشهر', en: 'Month', icon: CalendarDays, core: true, file: 'life/Month' }),
   p({ id: 'life.notebook', section: 'life', path: '/life/notebook', ar: 'الدفتر', en: 'Notebook', icon: BookOpen, core: true, file: 'life/Notebook' }),
-  p({ id: 'life.overview', section: 'life', path: '/life/overview', ar: 'لوحة عامة', en: 'Dashboard', icon: LayoutDashboard, file: 'life/Overview' }),
   p({ id: 'life.planner', section: 'life', path: '/life/planner', ar: 'المخطط', en: 'Planner', icon: CalendarClock, file: 'life/Planner' }),
   p({ id: 'life.calendar', section: 'life', path: '/life/calendar', ar: 'التقويم', en: 'Calendar', icon: CalendarDays, file: 'life/Calendar' }),
   // merged pages: Tasks holds the Inbox; Goals holds Projects and Habits; the Notebook holds Notes
@@ -106,7 +105,6 @@ const ALL: PageDef[] = [
   p({ id: 'settings.profile', section: 'settings', path: '/settings', ar: 'الملف الشخصي', en: 'Profile', icon: User, core: true, file: 'settings/Profile' }),
   p({ id: 'settings.general', section: 'settings', path: '/settings/general', ar: 'عام', en: 'General', icon: SlidersHorizontal, core: true, file: 'settings/General' }),
   p({ id: 'settings.appearance', section: 'settings', path: '/settings/appearance', ar: 'المظهر', en: 'Appearance', icon: Palette, core: true, file: 'settings/Appearance' }),
-  p({ id: 'settings.dashboard', section: 'settings', path: '/settings/dashboard', ar: 'لوحة التحكم', en: 'Dashboard', icon: LayoutGrid, core: true, file: 'settings/DashboardSettings' }),
   p({ id: 'settings.modules', section: 'settings', path: '/settings/modules', ar: 'الوحدات', en: 'Modules', icon: Boxes, core: true, file: 'settings/Modules' }),
   p({ id: 'settings.categories', section: 'settings', path: '/settings/categories', ar: 'التصنيفات', en: 'Categories', icon: Tags, core: true, file: 'settings/Categories' }),
   p({ id: 'settings.notifications', section: 'settings', path: '/settings/notifications', ar: 'التنبيهات', en: 'Notifications', icon: Bell, core: true, file: 'settings/Notifications' }),
