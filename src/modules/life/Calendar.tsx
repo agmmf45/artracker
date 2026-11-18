@@ -68,7 +68,7 @@ export default function CalendarPage() {
     else if (it.kind === 'exam') nav(`/study/exams?open=${it.recId}`);
     else if (it.kind === 'assignment') nav(`/study/assignments?open=${it.recId}`);
     else if (it.kind === 'class') nav(`/study/courses?open=${it.recId}`);
-    else if (it.kind === 'workout') nav('/health/workouts');
+    else if (it.kind === 'workout') nav('/health/workouts?tab=log');
     else if (it.kind === 'medication') nav('/health/medication');
   };
 

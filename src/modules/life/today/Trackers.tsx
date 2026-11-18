@@ -38,7 +38,7 @@ function Meals({ day }: { day: string }) {
     setDraft((d) => ({ ...d, [type]: '' }));
   };
   return (
-    <Box title={L('الوجبات', 'Meals')} icon={<UtensilsCrossed size={16} className="text-life-ink" />} extra={<Link to="/health/nutrition" className="font-bold text-accent-ink hover:underline">{L('السعرات', 'Calories')}</Link>}>
+    <Box title={L('الوجبات', 'Meals')} icon={<UtensilsCrossed size={16} className="text-life-ink" />} extra={<Link to="/health/nutrition?tab=meals" className="font-bold text-accent-ink hover:underline">{L('السعرات', 'Calories')}</Link>}>
       <div className="flex flex-col gap-1.5">
         {MEAL_TYPES.map(([type, ar, en]) => {
           const xs = (meals ?? []).filter((m) => m.data.meal_type === type);

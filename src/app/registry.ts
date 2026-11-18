@@ -90,16 +90,16 @@ const ALL: PageDef[] = [
   p({ id: 'study.analytics', section: 'study', path: '/study/analytics', ar: 'التحليلات', en: 'Analytics', icon: BarChart3, file: 'study/Analytics', nav: false }),
 
   // ── HEALTH ──
-  p({ id: 'health.overview', section: 'health', path: '/health', ar: 'نظرة عامة', en: 'Overview', icon: LayoutDashboard, core: true, file: 'health/Overview' }),
-  p({ id: 'health.workouts', section: 'health', path: '/health/workouts', ar: 'التمارين', en: 'Workouts', icon: Dumbbell, file: 'health/Workouts' }),
-  p({ id: 'health.nutrition', section: 'health', path: '/health/nutrition', ar: 'التغذية', en: 'Nutrition', icon: Apple, file: 'health/Nutrition' }),
-  p({ id: 'health.meals', section: 'health', path: '/health/meals', ar: 'تخطيط الوجبات', en: 'Meal Planner', icon: UtensilsCrossed, file: 'health/MealPlanner' }),
-  p({ id: 'health.water', section: 'health', path: '/health/water', ar: 'الماء', en: 'Water', icon: Droplets, file: 'health/Water' }),
-  p({ id: 'health.sleep', section: 'health', path: '/health/sleep', ar: 'النوم', en: 'Sleep', icon: Moon, file: 'health/Sleep' }),
-  p({ id: 'health.weight', section: 'health', path: '/health/weight', ar: 'الوزن', en: 'Weight', icon: Scale, file: 'health/Weight' }),
-  p({ id: 'health.body', section: 'health', path: '/health/body', ar: 'القياسات', en: 'Measurements', icon: Ruler, file: 'health/Body' }),
-  p({ id: 'health.activity', section: 'health', path: '/health/activity', ar: 'النشاط', en: 'Activity', icon: Footprints, file: 'health/Activity' }),
-  p({ id: 'health.recovery', section: 'health', path: '/health/recovery', ar: 'الاستشفاء', en: 'Recovery', icon: BatteryCharging, file: 'health/Recovery' }),
+  p({ id: 'health.overview', section: 'health', path: '/health', ar: 'نظرة عامة', en: 'Overview', icon: LayoutDashboard, core: true, file: 'health/Overview', redirect: '/health/workouts' }),
+  p({ id: 'health.workouts', section: 'health', path: '/health/workouts', ar: 'التمارين', en: 'Workouts', icon: Dumbbell, file: 'health/WorkoutsHub', members: ['health.workouts', 'health.weight', 'health.body', 'health.sleep', 'health.activity', 'health.recovery'] }),
+  p({ id: 'health.nutrition', section: 'health', path: '/health/nutrition', ar: 'التغذية', en: 'Nutrition', icon: Apple, file: 'health/NutritionHub', members: ['health.nutrition', 'health.meals', 'health.water'] }),
+  p({ id: 'health.meals', section: 'health', path: '/health/meals', ar: 'تخطيط الوجبات', en: 'Meal Planner', icon: UtensilsCrossed, file: 'health/MealPlanner', redirect: '/health/nutrition?tab=planner' }),
+  p({ id: 'health.water', section: 'health', path: '/health/water', ar: 'الماء', en: 'Water', icon: Droplets, file: 'health/Water', redirect: '/health/nutrition?tab=water' }),
+  p({ id: 'health.sleep', section: 'health', path: '/health/sleep', ar: 'النوم', en: 'Sleep', icon: Moon, file: 'health/Sleep', redirect: '/health/workouts?tab=sleep' }),
+  p({ id: 'health.weight', section: 'health', path: '/health/weight', ar: 'الوزن', en: 'Weight', icon: Scale, file: 'health/Weight', redirect: '/health/workouts?tab=weight' }),
+  p({ id: 'health.body', section: 'health', path: '/health/body', ar: 'القياسات', en: 'Measurements', icon: Ruler, file: 'health/Body', redirect: '/health/workouts?tab=body' }),
+  p({ id: 'health.activity', section: 'health', path: '/health/activity', ar: 'النشاط', en: 'Activity', icon: Footprints, file: 'health/Activity', redirect: '/health/workouts?tab=activity' }),
+  p({ id: 'health.recovery', section: 'health', path: '/health/recovery', ar: 'الاستشفاء', en: 'Recovery', icon: BatteryCharging, file: 'health/Recovery', redirect: '/health/workouts?tab=recovery' }),
   p({ id: 'health.medication', section: 'health', path: '/health/medication', ar: 'الأدوية', en: 'Medication', icon: Pill, file: 'health/Medication' }),
   p({ id: 'health.records', section: 'health', path: '/health/records', ar: 'السجلات الصحية', en: 'Health Records', icon: FileHeart, file: 'health/Records' }),
 
@@ -118,8 +118,8 @@ const ALL: PageDef[] = [
   p({ id: 'settings.data', section: 'settings', path: '/settings/data', ar: 'البيانات', en: 'Data', icon: Database, core: true, file: 'settings/Data' }),
 ];
 
-/** The Life section's notebook pages, shown first; other Life pages are grouped under "Tools". */
-export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook', 'study.overview']);
+/** Each section's main pages, shown first; the rest are grouped under "Tools". */
+export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook', 'study.overview', 'health.workouts', 'health.nutrition']);
 
 export const PAGES: Page[] = ALL.flatMap((def) => {
   const load = FILES[`/src/modules/${def.file}.tsx`] as Page['load'] | undefined;

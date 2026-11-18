@@ -58,7 +58,7 @@ export function CommandPalette({ open, onOpenChange, onCapture }: { open: boolea
     { id: 'water', label: L('سجّل كوب ماء (250 مل)', 'Log a glass of water (250 ml)'), icon: Droplets, run: async () => { await logWater(250); toast(L('+250 مل', '+250 ml')); onOpenChange(false); }, kw: 'water ماء' },
     { id: 'expense', label: L('سجّل مصروف', 'Log expense'), icon: Wallet, run: onCapture, kw: 'expense مصروف صرف' },
     { id: 'timer', label: L('ابدأ جلسة تركيز', 'Start focus timer'), icon: Timer, run: () => go('/study/focus?start=1'), kw: 'timer pomodoro focus تركيز مؤقت' },
-    { id: 'workout', label: L('ابدأ تمرين', 'Start workout'), icon: Dumbbell, run: () => go('/health/workouts?start=1'), kw: 'workout gym تمرين' },
+    { id: 'workout', label: L('ابدأ تمرين', 'Start workout'), icon: Dumbbell, run: () => go('/health/workouts?tab=log&start=1'), kw: 'workout gym تمرين' },
     { id: 'today', label: L('جدول اليوم', "Today's schedule"), icon: CalendarDays, run: () => go('/life/today'), kw: 'today اليوم' },
     { id: 'week', label: L('خطط أسبوعك', 'Plan your week'), icon: CalendarClock, run: () => go('/life/week'), kw: 'week planner اسبوع' },
     { id: 'tour', label: L('الجولة التعريفية', 'Guided tour'), icon: CalendarDays, run: async () => { onOpenChange(false); await updateSettings({ tourPending: true }); }, kw: 'tour help guide جولة مساعدة شرح' },

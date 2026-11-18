@@ -11,7 +11,6 @@ import { create } from '@/core/repo';
 import { fmtDate, hijri, rangeKeys, relativeDay, shiftKey, todayKey, weekStartKey } from '@/core/dates';
 import { toast } from '@/core/toast';
 import { prompt } from '@/design/overlay';
-import { Segmented } from '@/design/ui';
 import { Bars, Line } from '@/design/charts';
 import type { Settings } from '@/core/settings';
 import { Box, Sleep, Water } from '@/modules/life/today/Trackers';
@@ -21,7 +20,6 @@ import { bestSets, muscleRecovery, setsPerMuscle, suggestTemplate, TEMPLATES, vo
 import { startWorkout } from './workouts/start';
 
 type Paper = Settings['notebook']['paper'];
-type Tab = 'fit' | 'food' | 'body';
 
 const FILL: Record<Exclude<RecoveryState, 'none'>, string> = {
   fresh: 'color-mix(in oklab, var(--danger) 42%, var(--surface-2))',
@@ -30,65 +28,89 @@ const FILL: Record<Exclude<RecoveryState, 'none'>, string> = {
 };
 const MEAL_TYPES: Array<[MealData['meal_type'], string, string]> = [['breakfast', 'فطور', 'Breakfast'], ['lunch', 'غداء', 'Lunch'], ['snack', 'سناك', 'Snack'], ['dinner', 'عشاء', 'Dinner']];
 
+const Disclaimer = () => { const { L } = useI18n(); return <p className="mt-4 text-[12px] text-fg-3">{L('لأغراض التنظيم الشخصي فقط، وليس تشخيصاً طبياً.', 'For personal organization only — not medical diagnosis.')}</p>; };
+
 /**
- * Health home as a notebook spread (kept from the v4 layout, grown): workouts on one page —
- * start button with today's suggestion, quick templates, the week, volume, a recovery map and
- * programs — and food & body on the other. Every number comes from logged records.
+ * Training home (first tab of Training, like the v4 fitness hub): start button with today's pick,
+ * quick templates, the week, volume, recovery map and programs — with weight and sleep beside it.
  */
-export default function HealthOverview() {
+function HomeTitle({ day, ar, en }: { day: string; ar: string; en: string }) {
   const { L, lang, locale } = useI18n();
+  const today = todayKey();
+  return (
+    <header className="mb-4">
+      <p className="text-[13px] font-bold text-fg-2">{L(ar, en)} · {day === today ? L('اليوم', 'Today') : relativeDay(day, lang, locale)} · {hijri(day, lang)}</p>
+      <h1 className="nb-title text-[30px] leading-tight md:text-[36px]">{fmtDate(day, locale, { weekday: 'long', day: 'numeric', month: 'long' })}</h1>
+    </header>
+  );
+}
+
+export function TrainingHome() {
+  const { L } = useI18n();
+  const settings = useSettings();
+  const today = todayKey();
+  const paper: Paper = settings.notebook?.paper ?? 'dots';
+  return (
+    <div className="mx-auto max-w-[1280px]">
+      <HomeTitle day={today} ar="التمارين" en="Training" />
+      <div className="@container/nb">
+        <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] @[1060px]/nb:gap-0">
+          <section className={clsx('nb-paper nb-page nb-a @container/pa px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('التمارين', 'Training')}>
+            <span className="nb-washi -top-3 end-14 rotate-3" aria-hidden="true" />
+            <Training day={today} />
+          </section>
+          <section className={clsx('nb-paper nb-page nb-b @container/pb px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('الجسم', 'Body')}>
+            <BodyParts day={today} settings={settings} parts={['weight', 'sleep']} title={L('الجسم', 'Body')} />
+          </section>
+        </div>
+      </div>
+      <Disclaimer />
+    </div>
+  );
+}
+
+/**
+ * Nutrition home (first tab of Nutrition, like the v4 nutrition page): a day strip, the calorie
+ * card, macros, meals by type with photo analysis — and water beside it.
+ */
+export function FoodHome() {
+  const { L, locale } = useI18n();
   const settings = useSettings();
   const [params, setParams] = useSearchParams();
   const today = todayKey();
   const raw = params.get('date') ?? '';
   const day = /^\d{4}-\d{2}-\d{2}$/.test(raw) && raw <= today ? raw : today;
-  const setDay = (d: string) => setParams(d === today ? {} : { date: d }, { replace: true });
-  const [tab, setTab] = useState<Tab>('fit');
+  const setDay = (d: string) => { const n = new URLSearchParams(params); if (d === today) n.delete('date'); else n.set('date', d); setParams(n, { replace: true }); };
   const paper: Paper = settings.notebook?.paper ?? 'dots';
-  const strip = rangeKeys(shiftKey(today, -6), 7);
-  const [weekday, ...rest] = fmtDate(day, locale, { weekday: 'long', day: 'numeric', month: 'long' }).split(/[،,]\s*/);
-  const onNarrow = (t: Tab) => (tab === t ? '' : 'hidden @[1060px]/nb:block');
-
   return (
     <div className="mx-auto max-w-[1280px]">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[13px] font-bold text-fg-2">{day === today ? L('اليوم', 'Today') : relativeDay(day, lang, locale)} · {hijri(day, lang)}</p>
-          <h1 className="nb-title text-[34px] leading-tight md:text-[40px]">{L('الصحة', 'Health')} <span className="nb-hl text-[0.7em]">{weekday}{rest.length ? `، ${rest.join('، ')}` : ''}</span></h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1" role="group" aria-label={L('اختر اليوم', 'Pick a day')}>
-            {strip.map((d) => (
-              <button key={d} onClick={() => setDay(d)} aria-pressed={d === day} aria-label={fmtDate(d, locale, { weekday: 'long', day: 'numeric', month: 'long' })}
-                className={clsx('flex h-12 w-10 flex-col items-center justify-center rounded-sm border text-[11px] leading-tight', d === day ? 'border-fg bg-fg font-bold text-bg' : 'border-line bg-surface hover:bg-surface-2')}>
-                <span>{fmtDate(d, locale, { weekday: 'narrow' })}</span>
-                <span className="num text-[15px] font-black">{Number(d.slice(8))}</span>
-              </button>
-            ))}
-          </div>
-          <Segmented size="sm" value={paper} onChange={(v) => void updateSettings({ notebook: { paper: v } })}
-            options={[{ value: 'dots', label: L('نقاط', 'Dots') }, { value: 'lines', label: L('سطور', 'Lines') }, { value: 'grid', label: L('مربعات', 'Grid') }, { value: 'plain', label: L('سادة', 'Plain') }]} />
-        </div>
-      </header>
-
+      <HomeTitle day={day} ar="التغذية" en="Nutrition" />
+      <div className="mb-4 flex gap-1" role="group" aria-label={L('اختر اليوم', 'Pick a day')}>
+        {rangeKeys(shiftKey(today, -6), 7).map((d) => (
+          <button key={d} onClick={() => setDay(d)} aria-pressed={d === day} aria-label={fmtDate(d, locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+            className={clsx('flex h-12 w-10 flex-col items-center justify-center rounded-sm border text-[11px] leading-tight', d === day ? 'border-fg bg-fg font-bold text-bg' : 'border-line bg-surface hover:bg-surface-2')}>
+            <span>{fmtDate(d, locale, { weekday: 'narrow' })}</span>
+            <span className="num text-[15px] font-black">{Number(d.slice(8))}</span>
+          </button>
+        ))}
+      </div>
       <div className="@container/nb">
-        <Segmented className="mb-4 w-full @[1060px]/nb:hidden" value={tab} onChange={setTab}
-          options={[{ value: 'fit', label: L('التمارين', 'Training') }, { value: 'food', label: L('السعرات', 'Food') }, { value: 'body', label: L('الجسم', 'Body') }]} />
-        <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-2 @[1060px]/nb:gap-0">
-          <section className={clsx('nb-paper nb-page nb-a @container/pa px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`, onNarrow('fit'))} aria-label={L('التمارين', 'Training')}>
-            <span className="nb-washi -top-3 end-14 rotate-3" aria-hidden="true" />
-            <Training day={day} />
+        <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] @[1060px]/nb:gap-0">
+          <section className={clsx('nb-paper nb-page nb-a @container/pb px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('السعرات', 'Food')}>
+            <span className="nb-washi -top-3 end-14 rotate-3" style={{ ['--washi' as string]: 'var(--study)' }} aria-hidden="true" />
+            <Food day={day} settings={settings} />
           </section>
-          <section className={clsx('nb-paper nb-page nb-b @container/pb px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`, tab === 'fit' && 'hidden @[1060px]/nb:block')} aria-label={L('السعرات والجسم', 'Food and body')}>
-            <div className={onNarrow('food')}><Food day={day} settings={settings} /></div>
-            <div className={clsx(tab === 'body' ? 'mt-0 @[1060px]/nb:mt-8' : 'mt-8', onNarrow('body'))}><Body day={day} settings={settings} /></div>
+          <section className={clsx('nb-paper nb-page nb-b @container/pb px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('الماء', 'Water')}>
+            <BodyParts day={day} settings={settings} parts={['water', 'meds']} title={L('الماء', 'Water')} />
           </section>
         </div>
       </div>
-      <p className="mt-4 text-[12px] text-fg-3">{L('لأغراض التنظيم الشخصي فقط، وليس تشخيصاً طبياً.', 'For personal organization only — not medical diagnosis.')}</p>
+      <Disclaimer />
     </div>
   );
 }
+
+export default TrainingHome;
 
 /* ───────────────────────── training page ───────────────────────── */
 
@@ -124,7 +146,7 @@ function Training({ day }: { day: string }) {
 
   const go = async (name: string, program_id: string | null = null, exercises?: WExercise[]) => {
     if (!active) await startWorkout(name, program_id, exercises, history);
-    nav('/health/workouts');
+    nav('/health/workouts?tab=log');
   };
   const name = (id: string) => { const m = MUSCLES.find((x) => x.id === id); return m ? L(m.ar, m.en) : id; };
   const stateText = (s: RecoveryState | undefined) => (s === 'fresh' ? L('تتعافى', 'Recovering') : s === 'mid' ? L('شبه جاهزة', 'Almost ready') : s === 'ready' ? L('جاهزة', 'Ready') : L('ما تمرّنتها', 'No data'));
@@ -208,7 +230,7 @@ function Training({ day }: { day: string }) {
                     {selExercises.map(([n, p]) => <li key={n} className="flex gap-1.5"><Trophy size={13} className="mt-0.5 shrink-0 text-reward-ink" /><span className="min-w-0 flex-1 truncate">{n}</span><span className="num font-bold">{p!.weight}×{p!.reps}</span></li>)}
                   </ul>
                 )}
-                <Link to="/health/workouts" className="mt-2 inline-block text-[12.5px] font-bold text-health-ink">{L('تمارينها وفيديوهاتها ←', 'Exercises & videos →')}</Link>
+                <Link to="/health/workouts?tab=log" className="mt-2 inline-block text-[12.5px] font-bold text-health-ink">{L('تمارينها وفيديوهاتها ←', 'Exercises & videos →')}</Link>
               </div>
             ) : (
               <p className="text-[12.5px] text-fg-2">{L('اللون من آخر مرة تمرّنت فيها العضلة. يوم أو أقل: تتعافى، يومين: شبه جاهزة، ثلاثة وأكثر: جاهزة.', 'Colour comes from when you last trained it: ≤1 day recovering, 2 days almost ready, 3+ ready.')}</p>
@@ -217,7 +239,7 @@ function Training({ day }: { day: string }) {
         </div>
       </Box>
 
-      <Box className="mt-4" title={L('برامجي', 'My programs')} extra={<Link to="/health/workouts" className="font-bold text-health-ink">+ {L('برنامج', 'Program')}</Link>}>
+      <Box className="mt-4" title={L('برامجي', 'My programs')} extra={<Link to="/health/workouts?tab=log" className="font-bold text-health-ink">+ {L('برنامج', 'Program')}</Link>}>
         {!programs?.length ? <p className="text-[13px] text-fg-2">{L('اصنع برنامج أيام (دفع، سحب، أرجل…) وابدأ أي يوم منه بضغطة.', 'Build a multi-day program (Push, Pull, Legs…) and start any day in one tap.')}</p> : (
           <ul className="space-y-2">
             {programs.map((p) => (
@@ -233,7 +255,7 @@ function Training({ day }: { day: string }) {
         )}
       </Box>
 
-      <Link to="/health/workouts" className="mt-4 inline-flex items-center gap-1 text-[13px] font-bold text-health-ink">{L('السجل والأرقام القياسية', 'History & records')}<ChevronLeft size={15} className="ltr:rotate-180" /></Link>
+      <Link to="/health/workouts?tab=log" className="mt-4 inline-flex items-center gap-1 text-[13px] font-bold text-health-ink">{L('السجل والأرقام القياسية', 'History & records')}<ChevronLeft size={15} className="ltr:rotate-180" /></Link>
     </>
   );
 }
@@ -308,7 +330,7 @@ function Food({ day, settings }: { day: string; settings: Settings }) {
           );
         })}
       </div>
-      <Link to="/health/nutrition" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-health-ink">{L('وجباتي المحفوظة والتفاصيل', 'Saved meals & details')}<ChevronLeft size={15} className="ltr:rotate-180" /></Link>
+      <Link to="/health/nutrition?tab=meals" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-health-ink">{L('وجباتي المحفوظة والتفاصيل', 'Saved meals & details')}<ChevronLeft size={15} className="ltr:rotate-180" /></Link>
 
       {add && <MealEditor initial={{ meal_type: add }} day={day} onClose={() => setAdd(null)} />}
       {ai && <MealAnalyzer day={day} onClose={() => setAi(false)} />}
@@ -318,7 +340,7 @@ function Food({ day, settings }: { day: string; settings: Settings }) {
 
 /* ───────────────────────── body ───────────────────────── */
 
-function Body({ day, settings }: { day: string; settings: Settings }) {
+function BodyParts({ day, settings, parts, title }: { day: string; settings: Settings; parts: Array<'water' | 'weight' | 'sleep' | 'meds'>; title: string }) {
   const { L, locale, fmtNum } = useI18n();
   const water7 = useRecordsInRange<{ ml: number }>('water_log', shiftKey(day, -6), day);
   const all = useRecords<{ kind: string; value: number }>('measurement');
@@ -358,15 +380,17 @@ function Body({ day, settings }: { day: string; settings: Settings }) {
 
   return (
     <>
-      <h2 className="nb-title mb-3 text-2xl text-health-ink">{L('الجسم', 'Body')}</h2>
-      <div className="grid grid-cols-1 gap-3 @[480px]/pb:grid-cols-2">
-        <div className="flex flex-col gap-3">
+      <h2 className="nb-title mb-3 text-2xl text-health-ink">{title}</h2>
+      <div className="flex flex-col gap-3">
+        {parts.includes('water') && (
+          <>
           <Water day={day} settings={settings} />
           <Box title={L('الماء — 7 أيام', 'Water — 7 days')} icon={<Droplets size={15} className="text-info" />}>
             <Bars data={days7.map((d) => ({ label: fmtDate(d, locale, { weekday: 'narrow' }), value: (water7 ?? []).filter((w) => w.date === d).reduce((s, w) => s + w.data.ml, 0) }))} height={70} color="var(--info)" goal={h.waterGoal} format={(n) => `${fmtNum(n)} ml`} />
           </Box>
-        </div>
-        <div className="flex flex-col gap-3">
+          </>
+        )}
+        {parts.includes('weight') && (
           <Box title={L('الوزن', 'Weight')} icon={<Scale size={15} />} extra={<button onClick={() => void setGoal()} className="font-bold text-health-ink">{goal ? L(`الهدف ${show(goal)}`, `Goal ${show(goal)}`) : L('حدّد هدف', 'Set goal')}</button>}>
             {latest ? (
               <div className="mb-2 flex flex-wrap items-baseline gap-2">
@@ -381,14 +405,14 @@ function Body({ day, settings }: { day: string; settings: Settings }) {
               <button type="submit" className="h-9 rounded-full bg-health px-4 text-[13px] font-bold text-on-accent hover:brightness-95">{L('حفظ', 'Save')}</button>
             </form>
           </Box>
-          <Sleep day={day} settings={settings} />
-          {activeMeds.length > 0 && (
-            <Link to="/health/medication" className="nb-box flex items-center gap-2 hover:bg-surface-2">
-              <Pill size={16} className="text-health-ink" /><span className="flex-1 text-[14px] font-bold">{L('أدوية اليوم', 'Medication today')}</span>
-              <span className="num text-[14px] font-black">{medLogs?.length ?? 0}/{doses}</span>
-            </Link>
-          )}
-        </div>
+        )}
+        {parts.includes('sleep') && <Sleep day={day} settings={settings} />}
+        {parts.includes('meds') && activeMeds.length > 0 && (
+          <Link to="/health/medication" className="nb-box flex items-center gap-2 hover:bg-surface-2">
+            <Pill size={16} className="text-health-ink" /><span className="flex-1 text-[14px] font-bold">{L('أدوية اليوم', 'Medication today')}</span>
+            <span className="num text-[14px] font-black">{medLogs?.length ?? 0}/{doses}</span>
+          </Link>
+        )}
       </div>
     </>
   );

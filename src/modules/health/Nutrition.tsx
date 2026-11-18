@@ -73,7 +73,7 @@ export default function Nutrition() {
         <Card className="p-4">
           <div className="mb-1 text-[13px] font-bold text-fg-2">{L('آخر 7 أيام', 'Last 7 days')}</div>
           <Bars data={week} height={80} color="var(--health)" goal={h.calorieGoal} />
-          <button onClick={() => nav('/health/water')} className="mt-3 flex w-full items-center gap-2 rounded-sm bg-surface-2 px-3 py-2 text-sm"><Droplets size={15} className="text-info" /><span className="flex-1 text-start">{L('الماء', 'Water')}</span><span className="num font-bold">{fmtNum((water ?? []).reduce((s, w) => s + w.data.ml, 0))} / {fmtNum(h.waterGoal)} ml</span></button>
+          <button onClick={() => nav('/health/nutrition?tab=water')} className="mt-3 flex w-full items-center gap-2 rounded-sm bg-surface-2 px-3 py-2 text-sm"><Droplets size={15} className="text-info" /><span className="flex-1 text-start">{L('الماء', 'Water')}</span><span className="num font-bold">{fmtNum((water ?? []).reduce((s, w) => s + w.data.ml, 0))} / {fmtNum(h.waterGoal)} ml</span></button>
         </Card>
       </div>
 
