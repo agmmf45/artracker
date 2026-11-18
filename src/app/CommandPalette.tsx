@@ -62,7 +62,7 @@ export function CommandPalette({ open, onOpenChange, onCapture }: { open: boolea
     { id: 'today', label: L('جدول اليوم', "Today's schedule"), icon: CalendarDays, run: () => go('/life/today'), kw: 'today اليوم' },
     { id: 'week', label: L('خطط أسبوعك', 'Plan your week'), icon: CalendarClock, run: () => go('/life/week'), kw: 'week planner اسبوع' },
     { id: 'tour', label: L('الجولة التعريفية', 'Guided tour'), icon: CalendarDays, run: async () => { onOpenChange(false); await updateSettings({ tourPending: true }); }, kw: 'tour help guide جولة مساعدة شرح' },
-    { id: 'kb', label: L('ابحث في العقل الثاني', 'Search knowledge base'), icon: Search, run: () => go('/life/brain'), kw: 'brain knowledge معرفة' },
+    { id: 'kb', label: L('الملاحظات والمجلدات', 'Notes & folders'), icon: Search, run: () => go('/life/notebook?tab=notes'), kw: 'notes brain knowledge ملاحظات معرفة' },
     {
       id: 'theme', label: L('بدّل الوضع الفاتح/الداكن', 'Toggle light/dark'), icon: SunMoon,
       run: async () => {
