@@ -23,9 +23,9 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Private file storage (meal photos, avatars, attachments, progress photos).
-  // Must be created once with: npx wrangler r2 bucket create daqeeq-files  (needs owner approval)
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "daqeeq-files" }],
+  // Private file storage (meal photos, avatars, attachments, progress photos) — OFF for now.
+  // To enable: npx wrangler r2 bucket create daqeeq-files, then uncomment (needs owner approval).
+  // "r2_buckets": [{ "binding": "FILES", "bucket_name": "daqeeq-files" }],
   "vars": {
     "GOOGLE_CLIENT_ID": "822864309197-l1d6kuv2noo4rmlihll9ngd2ueu10kq0.apps.googleusercontent.com",
     "AI_MODEL": "claude-haiku-4-5-20251001"

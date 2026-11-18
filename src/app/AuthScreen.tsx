@@ -131,6 +131,7 @@ export function AuthScreen() {
             {L('نسيت كلمة السر؟', 'Forgot password?')}
           </button>
         )}
+        <a href="#/privacy" className="mt-6 text-center text-[12.5px] text-fg-3 underline-offset-2 hover:text-fg-2 hover:underline">{L('سياسة الخصوصية', 'Privacy policy')}</a>
       </main>
     </div>
   );

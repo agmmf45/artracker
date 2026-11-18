@@ -12,6 +12,7 @@ import { AuthScreen } from './AuthScreen';
 import { MigrationScreen, Splash } from './Splash';
 import { Onboarding } from './Onboarding';
 import { ErrorBoundary } from './ErrorBoundary';
+import { PrivacyOverlay } from './PrivacyPolicy';
 
 const lazyPages: Record<string, ComponentType> = Object.fromEntries(PAGES.map((p) => [p.id, lazy(p.load)]));
 
@@ -88,6 +89,7 @@ export function App() {
   return (
     <AuthProvider>
       <Gate />
+      <PrivacyOverlay />
     </AuthProvider>
   );
 }
