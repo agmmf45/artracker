@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
@@ -6,6 +6,9 @@ import { useRecords, useSettings } from '@/core/hooks';
 import { dateKey, fmtDate, relativeDay, todayKey } from '@/core/dates';
 import type { JournalData, NoteData } from '@/modules/shared/domain';
 import { dayPageId, type DayPageData } from './today/dayPage';
+import { Hub } from './plan/Hub';
+
+const Notes = lazy(() => import('./Notes'));
 
 type Kind = 'journal' | 'idea' | 'note' | 'grat';
 interface Line { key: string; day: string; kind: Kind; text: string; to?: string }
@@ -18,11 +21,22 @@ const META: Record<Kind, { sym: string; ar: string; en: string; bg: string }> = 
 };
 const MOOD = ['', '😣', '😕', '😐', '🙂', '😄'];
 
+/** The Notebook holds the day-by-day timeline and the notes library (the old Notes page) as tabs. */
+export default function Notebook() {
+  const { L } = useI18n();
+  return (
+    <Hub label={L('الدفتر', 'Notebook')} tabs={[
+      { id: 'days', ar: '✎ يوم بيوم', en: '✎ Day by day', C: NotebookDays },
+      { id: 'notes', ar: '– الملاحظات والمجلدات', en: '– Notes & folders', C: Notes },
+    ]} />
+  );
+}
+
 /**
  * The notebook: everything written to remember — journal lines, ideas, quick notes, gratitude —
  * on one page, day by day. Each day opens its day page. Plans and money live in Day/Week/Month.
  */
-export default function Notebook() {
+function NotebookDays() {
   const { L, lang, locale } = useI18n();
   const settings = useSettings();
   const notes = useRecords<NoteData>('note');
@@ -38,7 +52,7 @@ export default function Notebook() {
       if (n.deleted_at) continue;
       const day = dateKey(new Date(n.created_at));
       const kind: Kind = n.data.note_type === 'idea' ? 'idea' : 'note';
-      out.push({ key: n.id, day, kind, text: n.data.title || n.data.body.slice(0, 160), to: `/life/notes?id=${n.id}` });
+      out.push({ key: n.id, day, kind, text: n.data.title || n.data.body.slice(0, 160), to: `/life/notebook?tab=notes&open=${n.id}` });
     }
     for (const j of journal ?? []) {
       if (!j.date) continue;

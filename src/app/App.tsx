@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, type ComponentType } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router';
 import { AuthProvider, useAuth } from '@/core/auth';
 import { I18nContext, makeI18n } from '@/core/i18n';
 import { useSettings } from '@/core/hooks';
@@ -14,7 +14,14 @@ import { Onboarding } from './Onboarding';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PrivacyOverlay } from './PrivacyPolicy';
 
-const lazyPages: Record<string, ComponentType> = Object.fromEntries(PAGES.map((p) => [p.id, lazy(p.load)]));
+const lazyPages: Record<string, ComponentType> = Object.fromEntries(PAGES.filter((p) => !p.redirect).map((p) => [p.id, lazy(p.load)]));
+
+/** Old path of a merged page → its hub tab, keeping ?open=… and friends. */
+function KeepQuery({ to }: { to: string }) {
+  const { search } = useLocation();
+  const extra = search.replace(/^\?/, '');
+  return <Navigate to={extra ? `${to}${to.includes('?') ? '&' : '?'}${extra}` : to} replace />;
+}
 
 function PageLoading() {
   return (
@@ -46,6 +53,7 @@ function Ready() {
               <Route index element={<Navigate to="/life" replace />} />
               <Route path="/life" element={<Navigate to="/life/today" replace />} />
               {PAGES.map((p) => {
+                if (p.redirect) return <Route key={p.id} path={p.path} element={<KeepQuery to={p.redirect} />} />;
                 const C = lazyPages[p.id];
                 const on = isPageOn(p, settings.modules, settings.modulePreset);
                 const fallback = SECTIONS.find((s) => s.id === p.section)!.path;

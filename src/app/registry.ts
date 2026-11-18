@@ -21,6 +21,10 @@ export interface PageDef {
   /** overview/settings pages cannot be hidden */
   core?: boolean;
   defaultOn?: boolean;
+  /** a hub page that holds other pages as tabs: it is on when any of these page ids is on */
+  members?: string[];
+  /** merged into a hub: not in navigation; its old path redirects here (query string kept) */
+  redirect?: string;
 }
 
 export interface Page extends PageDef {
@@ -51,12 +55,13 @@ const ALL: PageDef[] = [
   p({ id: 'life.overview', section: 'life', path: '/life/overview', ar: 'لوحة عامة', en: 'Dashboard', icon: LayoutDashboard, file: 'life/Overview' }),
   p({ id: 'life.planner', section: 'life', path: '/life/planner', ar: 'المخطط', en: 'Planner', icon: CalendarClock, file: 'life/Planner' }),
   p({ id: 'life.calendar', section: 'life', path: '/life/calendar', ar: 'التقويم', en: 'Calendar', icon: CalendarDays, file: 'life/Calendar' }),
-  p({ id: 'life.inbox', section: 'life', path: '/life/inbox', ar: 'الوارد', en: 'Inbox', icon: Inbox, file: 'life/Inbox' }),
-  p({ id: 'life.tasks', section: 'life', path: '/life/tasks', ar: 'المهام', en: 'Tasks', icon: ListChecks, file: 'life/Tasks' }),
-  p({ id: 'life.habits', section: 'life', path: '/life/habits', ar: 'العادات', en: 'Habits', icon: Repeat, file: 'life/Habits' }),
-  p({ id: 'life.goals', section: 'life', path: '/life/goals', ar: 'الأهداف', en: 'Goals', icon: Target, file: 'life/Goals' }),
-  p({ id: 'life.projects', section: 'life', path: '/life/projects', ar: 'المشاريع', en: 'Projects', icon: FolderKanban, file: 'life/Projects' }),
-  p({ id: 'life.notes', section: 'life', path: '/life/notes', ar: 'الملاحظات', en: 'Notes', icon: NotebookPen, file: 'life/Notes' }),
+  // merged pages: Tasks holds the Inbox; Goals holds Projects and Habits; the Notebook holds Notes
+  p({ id: 'life.tasks', section: 'life', path: '/life/tasks', ar: 'المهام', en: 'Tasks', icon: ListChecks, file: 'life/TasksHub', members: ['life.tasks', 'life.inbox'] }),
+  p({ id: 'life.goals', section: 'life', path: '/life/goals', ar: 'الأهداف والعادات', en: 'Goals & habits', icon: Target, file: 'life/GoalsHub', members: ['life.goals', 'life.projects', 'life.habits'] }),
+  p({ id: 'life.inbox', section: 'life', path: '/life/inbox', ar: 'الوارد', en: 'Inbox', icon: Inbox, file: 'life/Inbox', redirect: '/life/tasks?tab=inbox' }),
+  p({ id: 'life.habits', section: 'life', path: '/life/habits', ar: 'العادات', en: 'Habits', icon: Repeat, file: 'life/Habits', redirect: '/life/goals?tab=habits' }),
+  p({ id: 'life.projects', section: 'life', path: '/life/projects', ar: 'المشاريع', en: 'Projects', icon: FolderKanban, file: 'life/Projects', redirect: '/life/goals?tab=projects' }),
+  p({ id: 'life.notes', section: 'life', path: '/life/notes', ar: 'الملاحظات', en: 'Notes', icon: NotebookPen, file: 'life/Notes', redirect: '/life/notebook?tab=notes' }),
   p({ id: 'life.brain', section: 'life', path: '/life/brain', ar: 'العقل الثاني', en: 'Second Brain', icon: Network, file: 'life/Brain' }),
   p({ id: 'life.journal', section: 'life', path: '/life/journal', ar: 'اليوميات', en: 'Journal', icon: BookHeart, file: 'life/Journal' }),
   p({ id: 'life.finance', section: 'life', path: '/life/finance', ar: 'المال', en: 'Finance', icon: Wallet, file: 'life/Finance' }),
@@ -132,9 +137,15 @@ const DEFAULT_ON = new Set([
 /** Explicit toggle wins; otherwise the chosen preset decides (so new modules follow "Complete"), else defaults. */
 export function isPageOn(p: PageDef, modules: Record<string, boolean>, preset?: string | null): boolean {
   if (p.core) return true;
-  if (modules[p.id] !== undefined) return modules[p.id];
-  if (preset && PRESETS[preset]) return PRESETS[preset].on.includes(p.id);
-  return DEFAULT_ON.has(p.id);
+  if (p.members) return p.members.some((id) => isIdOn(id, modules, preset));
+  return isIdOn(p.id, modules, preset);
+}
+
+/** The on/off rule for one page id (used for hub tabs too). */
+export function isIdOn(id: string, modules: Record<string, boolean>, preset?: string | null): boolean {
+  if (modules[id] !== undefined) return modules[id];
+  if (preset && PRESETS[preset]) return PRESETS[preset].on.includes(id);
+  return DEFAULT_ON.has(id);
 }
 
 export const PRESETS: Record<string, { ar: string; en: string; on: string[] }> = {
