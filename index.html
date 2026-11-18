@@ -1688,6 +1688,7 @@ setInterval(()=>{
     .auth-or-line{flex:1;height:1px;background:rgba(255,255,255,0.1);}
     .auth-or>span{font-size:11px;color:rgba(255,255,255,0.3);white-space:nowrap;font-weight:600;letter-spacing:0.5px;}
     </style>
+    <div class="auth-legal"><a href="#/privacy">سياسة الخصوصية</a></div>
   </div>
 </div>
 
@@ -1705,6 +1706,7 @@ setInterval(()=>{
     <div class="nav-item" data-g="fit" onclick="showGroup('fit')"><span>🏋️</span> التمارين</div>
     <div class="sidebar-footer">
       <button class="btn btn-s btn-sm" onclick="doLogout()" style="width:100%">🚪 تسجيل الخروج</button>
+      <a href="#/privacy" class="privacy-link">سياسة الخصوصية</a>
       <div style="margin-top:10px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7;opacity:0.7">
         <div style="font-weight:800;letter-spacing:0.5px">دقيق v4.5</div>
         <div>صنع بواسطة Ahmed Almalki</div>
@@ -2044,6 +2046,7 @@ setInterval(()=>{
             <div class="sec-title" style="margin-bottom:10px">⚙️ الحساب <span style="float:left;font-size:10px;color:var(--muted);font-weight:400">v4.5</span></div>
             <button class="btn btn-s btn-sm" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 تسجيل الخروج</button>
             <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="profile-email-display2"></div>
+            <a href="#/privacy" class="privacy-link" style="margin:-4px 0 12px">سياسة الخصوصية</a>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
               <button class="btn btn-sm" onclick="openResetModal()" style="width:100%;background:none;border:1.5px solid var(--red);color:var(--red);font-weight:700;padding:9px;">
                 🗑 إعادة تعيين الحساب
@@ -7929,6 +7932,114 @@ try{ scheduleReminders(); }catch(e){}
 <script src="health-sync/health-sync.js?v=4.5"></script>
 <script src="health-sync/health-settings.js?v=4.5"></script>
 <script src="health-sync/background-sync.js?v=4.5"></script>
+
+<!-- ── PRIVACY POLICY (in-site section, opens at #/privacy — reachable before login) ── -->
+<style>
+.auth-legal{text-align:center;margin-top:18px;}
+.auth-legal a{font-size:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-weight:700;}
+.auth-legal a:hover{color:#F59E0B;text-decoration:underline;}
+.privacy-link{display:block;text-align:center;font-size:11px;color:var(--muted);text-decoration:none;margin-top:8px;font-weight:700;}
+.privacy-link:hover{color:var(--accent);text-decoration:underline;}
+#privacy-view{position:fixed;inset:0;z-index:10050;display:none;overflow-y:auto;background:var(--bg);color:var(--text);-webkit-overflow-scrolling:touch;}
+#privacy-view.open{display:block;animation:pv-in .25s ease-out;}
+@keyframes pv-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pv-wrap{max-width:760px;margin:0 auto;padding:20px 16px 64px;}
+.pv-top{position:sticky;top:0;display:flex;align-items:center;gap:10px;padding:12px 0;background:var(--bg);z-index:1;}
+.pv-top b{font-size:20px;font-weight:900;color:var(--accent);flex:1;}
+.pv-close{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:99px;padding:8px 16px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;}
+.pv-close:hover{border-color:var(--accent);color:var(--accent);}
+.pv-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 20px;margin-top:12px;line-height:1.85;}
+.pv-card h2{font-size:22px;font-weight:900;margin:0 0 2px;}
+.pv-card h3{font-size:16px;font-weight:800;margin:20px 0 4px;color:var(--text);}
+.pv-card p,.pv-card li{font-size:14px;color:var(--muted);margin:0;}
+.pv-card ul{margin:0;padding-inline-start:20px;}
+.pv-card a{color:var(--accent);}
+.pv-date{font-size:12px;color:var(--muted);opacity:.8;}
+.pv-card[lang=en]{direction:ltr;text-align:left;}
+</style>
+<section id="privacy-view" role="dialog" aria-modal="true" aria-labelledby="pv-title">
+  <div class="pv-wrap">
+    <div class="pv-top"><b>دقيق</b><button type="button" class="pv-close" onclick="closePrivacy()">رجوع ←</button></div>
+    <div class="pv-card">
+      <h2 id="pv-title">سياسة الخصوصية</h2>
+      <div class="pv-date">آخر تحديث: 18 نوفمبر 2026</div>
+      <h3>ما الذي نجمعه</h3>
+      <ul>
+        <li><b>بيانات الحساب:</b> الاسم والبريد الإلكتروني. عند الدخول بحساب Google نستلم منه الاسم والبريد وصورة الملف الشخصي فقط، ولا نصل إلى أي شيء آخر في حسابك.</li>
+        <li><b>ما تضيفه بنفسك:</b> العادات والمهام والملاحظات والمصاريف والمحافظ والتمارين والتغذية والماء وغيرها من البيانات التي تكتبها في التطبيق.</li>
+      </ul>
+      <h3>كيف نستخدمها</h3>
+      <ul>
+        <li>لتشغيل التطبيق وحفظ بياناتك ومزامنتها بين أجهزتك فقط.</li>
+        <li>لا نبيع بياناتك، ولا نعرض إعلانات، ولا نشاركها مع أي جهة لأغراض تسويقية.</li>
+      </ul>
+      <h3>أين تُحفظ</h3>
+      <p>تُحفظ البيانات على خوادم Cloudflare مرتبطةً بحسابك، ويُحفظ رمز تسجيل الدخول على جهازك لإبقائك مسجلاً.</p>
+      <h3>خدمات خارجية</h3>
+      <ul>
+        <li><b>الذكاء الاصطناعي:</b> عند استخدامك ميزات مثل إدخال المصاريف بالنص أو تحليل صورة وجبة أو مساعد العادات، يُرسل النص أو الصورة التي تختارها إلى مزوّد الذكاء الاصطناعي (Anthropic) لمعالجتها فقط، ولا يحدث ذلك إلا عند استخدامك للميزة.</li>
+        <li><b>تسجيل الدخول:</b> عبر Google عند اختيارك ذلك.</li>
+        <li><b>مكتبة التمارين:</b> تُحمَّل من خدمة عامة للتمارين دون إرسال بياناتك الشخصية.</li>
+      </ul>
+      <h3>الأصدقاء</h3>
+      <p>إذا أضفت صديقاً، يرى اسمك وما تختار مشاركته من تقدّمك فقط.</p>
+      <h3>حذف بياناتك</h3>
+      <p>تستطيع حذف أي عنصر من داخل التطبيق، ولطلب حذف حسابك وكل بياناته راسلنا على البريد أدناه ونحذفها نهائياً.</p>
+      <h3>التواصل</h3>
+      <p><a href="mailto:agmmf45@gmail.com">agmmf45@gmail.com</a></p>
+    </div>
+    <div class="pv-card" lang="en">
+      <h2>Privacy Policy</h2>
+      <div class="pv-date">Last updated: 18 November 2026</div>
+      <h3>What we collect</h3>
+      <ul>
+        <li><b>Account data:</b> your name and email. With Google sign-in we receive only your name, email and profile picture.</li>
+        <li><b>Content you add:</b> habits, tasks, notes, expenses, wallets, workouts, nutrition, water and similar entries.</li>
+      </ul>
+      <h3>How we use it</h3>
+      <p>Only to run the app and sync your data across your devices. We do not sell your data, show ads, or share it for marketing.</p>
+      <h3>Storage</h3>
+      <p>Data is stored on Cloudflare servers, linked to your account. A sign-in token is kept on your device.</p>
+      <h3>Third-party services</h3>
+      <ul>
+        <li><b>AI features</b> (text expense entry, meal photo analysis, habit assistant) send the text or image you choose to an AI provider (Anthropic) for processing, only when you use them.</li>
+        <li><b>Google</b> for sign-in, when you choose it.</li>
+        <li><b>Exercise library</b> loaded from a public exercise service; no personal data is sent.</li>
+      </ul>
+      <h3>Friends</h3>
+      <p>Friends you add see your name and only the progress you choose to share.</p>
+      <h3>Deleting your data</h3>
+      <p>You can delete any item inside the app. To delete your account and all of its data, email us and we will remove it permanently.</p>
+      <h3>Contact</h3>
+      <p><a href="mailto:agmmf45@gmail.com">agmmf45@gmail.com</a></p>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  // Opened directly from a link (e.g. Google's consent screen) vs. from inside the site.
+  var direct = location.hash === '#/privacy';
+  var view = document.getElementById('privacy-view');
+  function sync(){
+    var on = location.hash === '#/privacy';
+    view.classList.toggle('open', on);
+    document.documentElement.style.overflow = on ? 'hidden' : '';
+    if (on) { view.scrollTop = 0; try { view.querySelector('.pv-close').focus({preventScroll:true}); } catch(e){} }
+  }
+  window.closePrivacy = function(){
+    if (direct || history.length < 2) {
+      direct = false;
+      var app = document.getElementById('app');
+      history.replaceState(history.state, '', location.pathname + (app && app.style.display !== 'none' ? '#/stats' : ''));
+      sync();
+    } else { history.back(); }
+  };
+  window.addEventListener('hashchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && view.classList.contains('open')) closePrivacy(); });
+  // the app rewrites the hash to its first page after login; keep the policy visible if it was requested
+  sync();
+})();
+</script>
 
 </body>
 </html>
