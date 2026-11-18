@@ -5,9 +5,9 @@ import { updateSettings, useSettings } from '@/core/hooks';
 import { Card, PageHeader, Segmented, Section, Switch } from '@/design/ui';
 
 /** Two themes only, both taken from the notebook mockups. Each card previews its paper and ink. */
-const THEMES: Array<{ id: 'light' | 'dark'; ar: string; en: string; desk: string; paper: string; ink: string; line: string; icon: typeof Sun }> = [
-  { id: 'light', ar: 'فاتح — ورق الدفتر', en: 'Light — notebook paper', desk: '#EFE6DA', paper: '#FFFBF5', ink: '#2F2926', line: '#E2D6C9', icon: Sun },
-  { id: 'dark', ar: 'غامق — الدفتر بالليل', en: 'Dark — notebook at night', desk: '#15110E', paper: '#221C17', ink: '#F3EBE2', line: '#3A3129', icon: Moon },
+const THEMES: Array<{ id: 'light' | 'dark'; ar: string; en: string; desk: string; paper: string; ink: string; line: string; dots: string[]; icon: typeof Sun }> = [
+  { id: 'light', ar: 'فاتح — ورق الدفتر', en: 'Light — notebook paper', desk: '#EFE6DA', paper: '#FFFBF5', ink: '#2F2926', line: '#E2D6C9', dots: ['#F2B1A8', '#B9DFC8', '#D8C2F0', '#F2C75C'], icon: Sun },
+  { id: 'dark', ar: 'غامق — ألوان زاهية', en: 'Dark — vivid colours', desk: '#15110E', paper: '#221C17', ink: '#F3EBE2', line: '#3A3129', dots: ['#FF7A66', '#34D399', '#B47BFF', '#FFC83D'], icon: Moon },
 ];
 
 export default function Appearance() {
@@ -27,7 +27,7 @@ export default function Appearance() {
                 <div className="p-3" style={{ background: t.desk }}>
                   <div className="rounded-sm p-3" style={{ background: t.paper, border: `1px solid ${t.line}`, backgroundImage: `radial-gradient(${t.line} 1px, transparent 1.3px)`, backgroundSize: '12px 12px' }}>
                     <div className="mb-2 h-2.5 w-16 rounded-full" style={{ background: t.ink, opacity: 0.85 }} />
-                    <div className="flex gap-1">{['#F2B1A8', '#B9DFC8', '#D8C2F0', '#F2C75C'].map((c) => <span key={c} className="h-2 flex-1 rounded-full" style={{ background: c }} />)}</div>
+                    <div className="flex gap-1">{t.dots.map((c) => <span key={c} className="h-2 flex-1 rounded-full" style={{ background: c }} />)}</div>
                     <div className="mt-2 h-1.5 w-24 rounded-full" style={{ background: t.ink, opacity: 0.35 }} />
                   </div>
                 </div>

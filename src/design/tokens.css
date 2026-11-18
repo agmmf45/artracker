@@ -4,7 +4,7 @@
    Every pastel has an "ink" twin for text/icons so pastel never costs readability:
      --life (fill) / --life-ink (text)  ·  text on pastel fills uses --on-accent (charcoal).
    Two themes only, both from the notebook mockups:
-     Light = paper on a cream desk (#EFE6DA desk, #FFFBF5 paper) · Dark = the same notebook by lamplight.
+     Light = paper on a cream desk (#EFE6DA desk, #FFFBF5 paper) · Dark = the same notebook by lamplight, with vivid (neon-bright) section colours.
    ───────────────────────────────────────────────────────────── */
 
 @font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
@@ -76,24 +76,24 @@
     color-scheme: dark;
     --bg: #15110E; --surface: #221C17; --surface-2: #2B241E; --elevated: #2B241E; --border: #3A3129; --border-strong: #4E443A;
     --text: #F3EBE2; --text-2: #BFB2A6; --text-3: #8E8277;
-    --life: #E7A69C; --life-ink: #F0B9B0; --study: #A3D2B6; --study-ink: #B4DDC5; --health: #C7B0E4; --health-ink: #D6C4EE; --reward: #E8C064; --reward-ink: #F0CF84;
-    --danger: #EE9583; --warning: #E5B260; --success: #A3D2B6; --info: #9CBDE6;
+    --life: #FF7A66; --life-ink: #FF9E8F; --study: #34D399; --study-ink: #6EE7B7; --health: #B47BFF; --health-ink: #CDA6FF; --reward: #FFC83D; --reward-ink: #FFD96B;
+    --danger: #FF6B5B; --warning: #FFB020; --success: #34D399; --info: #4DA8FF;
     --on-accent: #15110E;
     --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.25); --shadow-2: 0 12px 30px -16px rgba(0, 0, 0, 0.7); --shadow-3: 0 26px 64px -24px rgba(0, 0, 0, 0.8);
-    --viz-1: #E7A69C; --viz-2: #8FCCA8; --viz-3: #BDA4E6; --viz-4: #E8C064; --viz-5: #93B7E0; --viz-6: #E6A8CC;
-    --heat-0: #2B241E; --heat-1: #4A322D; --heat-2: #7A4A41; --heat-3: #B5705F; --heat-4: #E7A69C;
+    --viz-1: #FF7A66; --viz-2: #34D399; --viz-3: #B47BFF; --viz-4: #FFC83D; --viz-5: #4DA8FF; --viz-6: #FF6FB5;
+    --heat-0: #2B241E; --heat-1: #5A2E26; --heat-2: #9A3F31; --heat-3: #E0573F; --heat-4: #FF7A66;
   }
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #15110E; --surface: #221C17; --surface-2: #2B241E; --elevated: #2B241E; --border: #3A3129; --border-strong: #4E443A;
   --text: #F3EBE2; --text-2: #BFB2A6; --text-3: #8E8277;
-  --life: #E7A69C; --life-ink: #F0B9B0; --study: #A3D2B6; --study-ink: #B4DDC5; --health: #C7B0E4; --health-ink: #D6C4EE; --reward: #E8C064; --reward-ink: #F0CF84;
-  --danger: #EE9583; --warning: #E5B260; --success: #A3D2B6; --info: #9CBDE6;
+  --life: #FF7A66; --life-ink: #FF9E8F; --study: #34D399; --study-ink: #6EE7B7; --health: #B47BFF; --health-ink: #CDA6FF; --reward: #FFC83D; --reward-ink: #FFD96B;
+  --danger: #FF6B5B; --warning: #FFB020; --success: #34D399; --info: #4DA8FF;
   --on-accent: #15110E;
   --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.25); --shadow-2: 0 12px 30px -16px rgba(0, 0, 0, 0.7); --shadow-3: 0 26px 64px -24px rgba(0, 0, 0, 0.8);
-  --viz-1: #E7A69C; --viz-2: #8FCCA8; --viz-3: #BDA4E6; --viz-4: #E8C064; --viz-5: #93B7E0; --viz-6: #E6A8CC;
-  --heat-0: #2B241E; --heat-1: #4A322D; --heat-2: #7A4A41; --heat-3: #B5705F; --heat-4: #E7A69C;
+  --viz-1: #FF7A66; --viz-2: #34D399; --viz-3: #B47BFF; --viz-4: #FFC83D; --viz-5: #4DA8FF; --viz-6: #FF6FB5;
+  --heat-0: #2B241E; --heat-1: #5A2E26; --heat-2: #9A3F31; --heat-3: #E0573F; --heat-4: #FF7A66;
 }
 
 /* section identities: set by the shell on [data-section] */
