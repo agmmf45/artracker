@@ -18,7 +18,8 @@ const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const norm = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/[\s\-_.]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
 const time = (t: string) => (/^\d{1,2}:\d{2}$/.test(t) ? t.padStart(5, '0') : t);
 
-async function compress(file: File, max = 1600, q = 0.82): Promise<{ media_type: 'image/jpeg'; data: string }> {
+// timetables are small text: keep up to 2576px (the reader's full resolution) and good JPEG quality
+async function compress(file: File, max = 2576, q = 0.9): Promise<{ media_type: 'image/jpeg'; data: string }> {
   const bmp = await createImageBitmap(file);
   const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
   const c = document.createElement('canvas');
