@@ -61,7 +61,7 @@ export function WelcomeWidget({ d }: WidgetProps) {
           <p className="mt-1 text-fg-2">
             <span className="num font-bold text-fg">{new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: settings.timeFormat === '12' }).format(now)}</span>
             {settings.encouragement && <> · {L(msg[0], msg[1])}</>}
-            {special && <span className="ms-2 rounded-full bg-[color-mix(in_oklab,var(--reward)_18%,transparent)] px-2 py-0.5 text-[12px] font-bold text-reward">{special}</span>}
+            {special && <span className="ms-2 rounded-full bg-[color-mix(in_oklab,var(--reward)_38%,transparent)] px-2 py-0.5 text-[12px] font-bold text-reward">{special}</span>}
           </p>
           <div className="mt-3">
             {editing ? (
@@ -97,11 +97,11 @@ export function GlanceWidget({ d, range }: WidgetProps) {
   const items: Array<{ icon: ReactNode; label: string; value: ReactNode; sub?: ReactNode; to: string; tone?: string }> = [
     { icon: <Check size={16} />, label: L('مهام اليوم', "Today's tasks"), value: `${d.doneToday}/${Math.max(d.todayTasks.length, d.doneToday)}`, sub: d.overdue.length ? <span className="text-danger">{d.overdue.length} {L('متأخرة', 'overdue')}</span> : L('لا متأخرات', 'nothing overdue'), to: '/life/today' },
     { icon: <Flame size={16} />, label: L('العادات', 'Habits'), value: `${d.habitsDoneToday}/${d.habitsScheduledToday}`, sub: `${Math.round(d.habitConsistency7 * 100)}% ${L('آخر 7 أيام', 'last 7 days')}`, to: '/life/habits' },
-    { icon: <BookOpen size={16} />, label: range === 'day' ? L('مذاكرة اليوم', 'Studied today') : L('مذاكرة الفترة', 'Studied'), value: fmtDuration(d.studyMinutes, lang), sub: active?.value ? <span className="text-study">● {L('جلسة جارية', 'session running')}</span> : `${L('الهدف', 'goal')} ${fmtDuration(settings.study.dailyStudyGoalMin, lang)}`, to: '/study/focus', tone: 'var(--study)' },
-    { icon: <Droplets size={16} />, label: L('الماء', 'Water'), value: `${fmtNum(d.waterMl)}`, sub: `/ ${fmtNum(settings.health.waterGoal)} ${L('مل', 'ml')}`, to: '/health/water', tone: 'var(--health)' },
-    { icon: <Apple size={16} />, label: L('السعرات', 'Calories'), value: fmtNum(d.kcal), sub: `/ ${fmtNum(settings.health.calorieGoal)} · ${L('بروتين', 'protein')} ${Math.round(d.protein)}g`, to: '/health/nutrition', tone: 'var(--health)' },
-    { icon: <Dumbbell size={16} />, label: L('التمرين', 'Workout'), value: d.workoutToday ? L('تم ✓', 'Done ✓') : L('لا', 'Not yet'), sub: `${d.workoutsInRange} ${range === 'day' ? L('اليوم', 'today') : L('في الفترة', 'in range')}`, to: '/health/workouts', tone: 'var(--health)' },
-    { icon: <Moon size={16} />, label: L('النوم', 'Sleep'), value: d.sleepHours != null ? `${d.sleepHours.toFixed(1)}${L('س', 'h')}` : '—', sub: d.sleepHours == null ? L('لم يُسجّل', 'not logged') : `${L('الهدف', 'goal')} ${settings.health.sleepGoalHours}${L('س', 'h')}`, to: '/health/sleep', tone: 'var(--health)' },
+    { icon: <BookOpen size={16} />, label: range === 'day' ? L('مذاكرة اليوم', 'Studied today') : L('مذاكرة الفترة', 'Studied'), value: fmtDuration(d.studyMinutes, lang), sub: active?.value ? <span className="text-study">● {L('جلسة جارية', 'session running')}</span> : `${L('الهدف', 'goal')} ${fmtDuration(settings.study.dailyStudyGoalMin, lang)}`, to: '/study/focus', tone: 'var(--study-ink)' },
+    { icon: <Droplets size={16} />, label: L('الماء', 'Water'), value: `${fmtNum(d.waterMl)}`, sub: `/ ${fmtNum(settings.health.waterGoal)} ${L('مل', 'ml')}`, to: '/health/water', tone: 'var(--health-ink)' },
+    { icon: <Apple size={16} />, label: L('السعرات', 'Calories'), value: fmtNum(d.kcal), sub: `/ ${fmtNum(settings.health.calorieGoal)} · ${L('بروتين', 'protein')} ${Math.round(d.protein)}g`, to: '/health/nutrition', tone: 'var(--health-ink)' },
+    { icon: <Dumbbell size={16} />, label: L('التمرين', 'Workout'), value: d.workoutToday ? L('تم ✓', 'Done ✓') : L('لا', 'Not yet'), sub: `${d.workoutsInRange} ${range === 'day' ? L('اليوم', 'today') : L('في الفترة', 'in range')}`, to: '/health/workouts', tone: 'var(--health-ink)' },
+    { icon: <Moon size={16} />, label: L('النوم', 'Sleep'), value: d.sleepHours != null ? `${d.sleepHours.toFixed(1)}${L('س', 'h')}` : '—', sub: d.sleepHours == null ? L('لم يُسجّل', 'not logged') : `${L('الهدف', 'goal')} ${settings.health.sleepGoalHours}${L('س', 'h')}`, to: '/health/sleep', tone: 'var(--health-ink)' },
     { icon: <CalendarDays size={16} />, label: L('مواعيد قادمة', 'Upcoming'), value: d.events.filter((e) => e.date === d.today).length, sub: d.events[0] ? `${relativeDay(d.events[0].date, lang, 'ar')} · ${d.events[0].rec.data.title}` : L('لا مواعيد', 'nothing scheduled'), to: '/life/calendar' },
   ];
   return (
@@ -200,7 +200,7 @@ export function DeadlinesWidget({ d }: WidgetProps) {
         <ul className="space-y-2">
           {exams.map((e) => (
             <li key={e.id} className="flex items-center gap-2 text-sm">
-              <span className="rounded-xs bg-[color-mix(in_oklab,var(--study)_18%,transparent)] px-1.5 text-[11px] font-bold text-study">{L('اختبار', 'Exam')}</span>
+              <span className="rounded-xs bg-[color-mix(in_oklab,var(--study)_38%,transparent)] px-1.5 text-[11px] font-bold text-study">{L('اختبار', 'Exam')}</span>
               <span className="min-w-0 flex-1 truncate font-bold">{e.data.title}</span>
               <span className="num text-[12px] text-fg-2">{relativeDay(e.date!, lang, locale)}</span>
             </li>
@@ -218,7 +218,8 @@ export function DeadlinesWidget({ d }: WidgetProps) {
 }
 
 export function SuggestedWidget({ d }: WidgetProps) {
-  const { L } = useI18n();
+  const { L, lang, locale } = useI18n();
+  const settings = useSettings();
   const next = suggestNext(d.tasks, d.today);
   const nextEvent = d.events.find((e) => e.date > d.today || (e.date === d.today && (e.rec.data.start_time ?? '99') >= new Date().toTimeString().slice(0, 5)));
   return (
@@ -229,7 +230,7 @@ export function SuggestedWidget({ d }: WidgetProps) {
         <div className="mt-3 border-t border-line pt-3 text-sm">
           <div className="text-[12px] text-fg-3">{L('الموعد القادم', 'Next event')}</div>
           <div className="font-bold">{nextEvent.rec.data.title}</div>
-          <div className="text-[12px] text-fg-2">{nextEvent.date} {nextEvent.rec.data.start_time ?? ''}</div>
+          <div className="text-[12px] text-fg-2">{relativeDay(nextEvent.date, lang, locale)}{nextEvent.rec.data.start_time ? ` · ${fmtTime(nextEvent.rec.data.start_time, locale, settings.timeFormat === '12')}` : ''}</div>
         </div>
       )}
     </W>
@@ -435,7 +436,7 @@ export function StudyWidget({ d }: WidgetProps) {
             const days = Math.round((Date.parse(e.date!) - Date.parse(d.today)) / 864e5);
             return (
               <li key={e.id} className="flex items-center gap-3">
-                <div className="num grid size-11 shrink-0 place-items-center rounded-sm bg-[color-mix(in_oklab,var(--study)_15%,transparent)] text-center leading-none text-study">
+                <div className="num grid size-11 shrink-0 place-items-center rounded-sm bg-[color-mix(in_oklab,var(--study)_38%,transparent)] text-center leading-none text-study">
                   <div><div className="text-base font-black">{days}</div><div className="text-[9px]">{L('يوم', 'days')}</div></div>
                 </div>
                 <div className="min-w-0"><div className="truncate text-sm font-bold">{e.data.title}</div><div className="text-[12px] text-fg-2">{fmtDate(e.date!, locale, { weekday: 'short', day: 'numeric', month: 'short' })}</div></div>

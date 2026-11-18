@@ -52,7 +52,7 @@ export default function HealthOverview() {
           <Stat label={L('نوم البارحة', 'Last night')} value={night ? `${night.data.hours.toFixed(1)}${L('س', 'h')}` : '—'} sub={night ? undefined : L('لم يُسجّل', 'not logged')} />
         </Link>
         <Link to="/health/workouts" className="card flex items-center gap-3 p-4 hover:border-line-strong">
-          <div className="grid size-16 place-items-center rounded-full bg-[color-mix(in_oklab,var(--health)_14%,transparent)]"><Dumbbell size={22} className="text-health" /></div>
+          <div className="grid size-16 place-items-center rounded-full bg-[color-mix(in_oklab,var(--health)_38%,transparent)]"><Dumbbell size={22} className="text-health" /></div>
           <Stat label={L('تمارين الأسبوع', 'Workouts this week')} value={weekWorkouts} sub={(workouts ?? []).some((x) => x.date === today) ? L('تمرّنت اليوم ✓', 'trained today ✓') : undefined} />
         </Link>
       </div>

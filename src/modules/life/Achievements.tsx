@@ -50,7 +50,7 @@ export default function Achievements() {
           <div className="space-y-4">
             <Card className="p-5" style={{ borderTop: '3px solid var(--reward)' }}>
               <div className="flex flex-wrap items-center gap-4">
-                <div className="grid size-20 place-items-center rounded-full bg-[color-mix(in_oklab,var(--reward)_18%,transparent)]"><div className="text-center"><div className="num text-3xl font-black text-reward">{lv?.level ?? 1}</div><div className="text-[10px] text-fg-3">{L('مستوى', 'level')}</div></div></div>
+                <div className="grid size-20 place-items-center rounded-full bg-[color-mix(in_oklab,var(--reward)_38%,transparent)]"><div className="text-center"><div className="num text-3xl font-black text-reward">{lv?.level ?? 1}</div><div className="text-[10px] text-fg-3">{L('مستوى', 'level')}</div></div></div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xl font-black">{levelTitle(lv?.level ?? 1, titles, lang)}</div>
                   <div className="num mt-1 text-sm text-fg-2">{xp?.total ?? 0} XP · {lv ? lv.need - lv.into : 100} {L('للمستوى التالي', 'to next level')}</div>
@@ -101,7 +101,7 @@ export default function Achievements() {
             const on = have.has(a.key);
             return (
               <Card key={a.key} className={clsx('p-4 text-center', !on && 'opacity-55')}>
-                <div className={clsx('mx-auto mb-2 grid size-14 place-items-center rounded-full text-3xl', on ? 'bg-[color-mix(in_oklab,var(--reward)_18%,transparent)]' : 'bg-surface-2 grayscale')}>{on ? a.icon : <Lock size={20} className="text-fg-3" />}</div>
+                <div className={clsx('mx-auto mb-2 grid size-14 place-items-center rounded-full text-3xl', on ? 'bg-[color-mix(in_oklab,var(--reward)_38%,transparent)]' : 'bg-surface-2 grayscale')}>{on ? a.icon : <Lock size={20} className="text-fg-3" />}</div>
                 <div className="font-bold">{L(a.ar, a.en)}</div>
                 <div className="text-[12px] text-fg-2">{L(a.dar, a.den)}</div>
                 {on && <div className="num mt-1 text-[11px] text-reward">{have.get(a.key)?.slice(0, 10)}</div>}
@@ -218,7 +218,7 @@ function Garden({ xp }: { xp: number }) {
   return (
     <Card className="overflow-hidden p-4">
       <div className="mb-2 flex items-center gap-2 text-[13px] font-bold text-fg-2"><Sprout size={15} className="text-health" />{L('حديقتي', 'My garden')}<span className="num ms-auto font-normal text-fg-3">{plants.length}</span></div>
-      <svg viewBox="0 0 300 150" className="w-full rounded-md" style={{ background: 'linear-gradient(var(--surface-2), color-mix(in oklab, var(--health) 14%, var(--surface)))' }} role="img" aria-label={L(`${plants.length} نبتة`, `${plants.length} plants`)}>
+      <svg viewBox="0 0 300 150" className="w-full rounded-md" style={{ background: 'linear-gradient(var(--surface-2), color-mix(in oklab, var(--health) 38%, var(--surface)))' }} role="img" aria-label={L(`${plants.length} نبتة`, `${plants.length} plants`)}>
         <rect x="0" y="120" width="300" height="30" fill="color-mix(in oklab, var(--health) 25%, var(--surface))" />
         {plants.sort((a, b) => a.y - b.y).map((p, i) => <text key={i} x={p.x} y={p.y} fontSize={18 * p.s} textAnchor="middle">{p.kind}</text>)}
         {!plants.length && <text x="150" y="80" textAnchor="middle" fontSize="12" fill="var(--text-3)">{L('كل 50 XP تزرع نبتة', 'Every 50 XP plants a sprout')}</text>}

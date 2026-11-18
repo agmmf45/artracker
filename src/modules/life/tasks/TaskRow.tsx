@@ -1,16 +1,25 @@
-import { CalendarDays, Clock, Repeat, ListTree, Pin, Lock, AlertCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { CalendarDays, Clock, Repeat, ListTree, Pin, Lock, AlertCircle, Check, CalendarClock } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
-import { useSettings } from '@/core/hooks';
-import { fmtTime, relativeDay, todayKey } from '@/core/dates';
+import { useMedia, useSettings } from '@/core/hooks';
+import { revertTo } from '@/core/repo';
+import { undoToast } from '@/core/toast';
+import type { Rec } from '@shared/records';
+import { fmtTime, relativeDay, shiftKey, todayKey } from '@/core/dates';
 import { CheckCircle } from '@/design/ui';
-import { isDone, isOverdue, priorityColor, toggleTask, type Task } from './model';
+import { isDone, isOverdue, priorityColor, saveTask, toggleTask, type Task } from './model';
+
+const SWIPE_AT = 84;
 
 export function TaskRow({ task, onOpen, blocked, compact, showDate = true, selected, onSelect }: {
   task: Task; onOpen?: (t: Task) => void; blocked?: boolean; compact?: boolean; showDate?: boolean; selected?: boolean; onSelect?: (id: string, v: boolean) => void;
 }) {
-  const { L, lang, locale } = useI18n();
+  const { L, lang, locale, dir } = useI18n();
   const settings = useSettings();
+  const phone = useMedia('(max-width: 767px)');
+  const [dx, setDx] = useState(0);
+  const g = useRef<{ x: number; y: number; axis: 'x' | 'y' | null } | null>(null);
   const d = task.data;
   const done = isDone(task);
   const overdue = isOverdue(task);
@@ -19,12 +28,45 @@ export function TaskRow({ task, onOpen, blocked, compact, showDate = true, selec
   const day = d.start ?? d.due;
   const time = d.start ? d.start_time : d.due_time;
 
-  return (
+  // Phone swipe actions: swipe from the leading edge = complete, the other way = postpone one day.
+  // Postponing never moves a task earlier: it starts from the later of today and the task's own day.
+  const lead = (v: number) => (dir === 'rtl' ? v < 0 : v > 0);
+  const today = todayKey();
+  const base = day && day > today ? day : today;
+  const target = shiftKey(base, 1);
+  const postponeLabel = base === today ? L('بكرة', 'Tomorrow') : L('أجّل يوماً', '+1 day');
+  const postpone = async () => {
+    const prev = { ...task } as unknown as Rec;
+    if (d.start) await saveTask(task.id, { ...d, start: target, due: d.due && d.due < target ? target : d.due });
+    else await saveTask(task.id, { ...d, due: target });
+    undoToast(base === today ? L('نُقلت إلى بكرة', 'Moved to tomorrow') : L(`أُجّلت إلى ${relativeDay(target, lang, locale)}`, `Moved to ${relativeDay(target, lang, locale)}`), () => revertTo(prev));
+  };
+  const swipe = phone ? {
+    onTouchStart: (e: React.TouchEvent) => { g.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, axis: null }; },
+    onTouchMove: (e: React.TouchEvent) => {
+      const s = g.current; if (!s) return;
+      const mx = e.touches[0].clientX - s.x; const my = e.touches[0].clientY - s.y;
+      if (!s.axis && Math.hypot(mx, my) > 10) s.axis = Math.abs(mx) > Math.abs(my) * 1.3 ? 'x' : 'y';
+      if (s.axis === 'x') setDx(Math.max(-130, Math.min(130, mx)));
+    },
+    onTouchEnd: () => {
+      const v = dx; g.current = null; setDx(0);
+      if (Math.abs(v) < SWIPE_AT) return;
+      if (navigator.vibrate) navigator.vibrate(8);
+      if (lead(v)) void toggleTask(task, settings); else if (!done) void postpone();
+    },
+  } : {};
+  const armed = Math.abs(dx) >= SWIPE_AT;
+
+  const row = (
     <div
+      {...swipe}
+      style={dx ? { transform: `translateX(${dx}px)` } : undefined}
       className={clsx(
-        'group flex items-start gap-3 rounded-sm px-2 transition-colors hover:bg-surface-2',
+        'group relative flex items-start gap-3 rounded-sm bg-surface px-2 hover:bg-surface-2',
+        dx ? '' : 'transition-[transform,background-color] duration-200',
         compact ? 'py-1.5' : 'py-2.5',
-        selected && 'bg-[color-mix(in_oklab,var(--accent)_10%,transparent)]',
+        selected && 'bg-[color-mix(in_oklab,var(--accent)_38%,transparent)]',
       )}
     >
       {onSelect && (
@@ -55,6 +97,21 @@ export function TaskRow({ task, onOpen, blocked, compact, showDate = true, selec
           </div>
         )}
       </button>
+    </div>
+  );
+
+  if (!swipe.onTouchStart) return row;
+  const leading = lead(dx);
+  return (
+    <div className="relative overflow-hidden rounded-sm" data-no-swipe>
+      {dx !== 0 && (
+        <div aria-hidden className={clsx('absolute inset-0 flex items-center px-4 text-[13px] font-bold transition-colors', leading ? 'justify-start' : 'justify-end', leading ? (armed ? 'bg-[color-mix(in_oklab,var(--success)_45%,var(--surface))]' : 'bg-[color-mix(in_oklab,var(--success)_18%,var(--surface))]') : (armed ? 'bg-[color-mix(in_oklab,var(--study)_75%,var(--surface))]' : 'bg-[color-mix(in_oklab,var(--study)_30%,var(--surface))]'))}>
+          {leading
+            ? <span className="inline-flex items-center gap-1.5"><Check size={17} />{done ? L('إلغاء الإنجاز', 'Undo') : L('إنجاز', 'Done')}</span>
+            : <span className="inline-flex items-center gap-1.5"><CalendarClock size={17} />{postponeLabel}</span>}
+        </div>
+      )}
+      {row}
     </div>
   );
 }

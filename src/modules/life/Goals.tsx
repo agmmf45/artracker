@@ -130,7 +130,7 @@ function GoalEditor({ goal, isNew, onClose, habits }: { goal: Goal; isNew: boole
   };
   const vision = d.horizon === 'vision';
   return (
-    <Modal open onOpenChange={(v) => !v && onClose()} title={isNew ? (vision ? L('رؤية جديدة', 'New vision') : L('هدف جديد', 'New goal')) : L('تعديل', 'Edit')} wide
+    <Modal panel open onOpenChange={(v) => !v && onClose()} title={isNew ? (vision ? L('رؤية جديدة', 'New vision') : L('هدف جديد', 'New goal')) : L('تعديل', 'Edit')} wide
       footer={<>
         {!isNew && <IconButton className="me-auto" tone="danger" label={L('حذف', 'Delete')} onClick={async () => { const p = await remove(goal.id); onClose(); undoToast(L('حُذف', 'Deleted'), async () => { if (p) await revertTo(p); }); }}><Trash2 size={17} /></IconButton>}
         <Button variant="ghost" onClick={onClose}>{L('إلغاء', 'Cancel')}</Button><Button variant="primary" onClick={save}>{L('حفظ', 'Save')}</Button>

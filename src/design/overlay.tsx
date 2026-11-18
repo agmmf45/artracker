@@ -11,10 +11,15 @@ import { Button, IconButton } from './ui';
  * Modal: bottom sheet on phones (drag to close, one-handed), centered dialog on larger screens.
  * Radix/vaul give focus trapping, Esc to close, aria-modal and scroll locking.
  */
-export function Modal({ open, onOpenChange, title, description, children, footer, wide }: {
-  open: boolean; onOpenChange: (v: boolean) => void; title: ReactNode; description?: ReactNode; children: ReactNode; footer?: ReactNode; wide?: boolean;
+/**
+ * Modal: bottom sheet on phones, centred dialog on tablets. With `panel`, desktop (≥1280)
+ * opens a side panel docked to the inline-end edge so the page stays visible for context.
+ */
+export function Modal({ open, onOpenChange, title, description, children, footer, wide, panel }: {
+  open: boolean; onOpenChange: (v: boolean) => void; title: ReactNode; description?: ReactNode; children: ReactNode; footer?: ReactNode; wide?: boolean; panel?: boolean;
 }) {
   const desktop = useMedia('(min-width: 768px)');
+  const large = useMedia('(min-width: 1280px)');
   const { dir } = useI18n();
   const L = useL();
   if (!desktop) {
@@ -36,13 +41,16 @@ export function Modal({ open, onOpenChange, title, description, children, footer
       </Drawer.Root>
     );
   }
+  const side = panel && large;
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/40 anim-in" />
+        <Dialog.Overlay className={clsx('fixed inset-0 z-[60] anim-in', side ? 'bg-black/15' : 'bg-black/40')} />
         <Dialog.Content
           dir={dir}
-          className={clsx('anim-in fixed left-1/2 top-[8vh] z-[61] flex max-h-[84vh] w-[calc(100vw-32px)] -translate-x-1/2 flex-col rounded-lg border border-line bg-elevated shadow-3 outline-none', wide ? 'max-w-3xl' : 'max-w-lg')}
+          className={side
+            ? clsx('anim-panel fixed inset-y-3 end-3 z-[61] flex flex-col rounded-lg border border-line bg-elevated shadow-3 outline-none', wide ? 'w-[min(640px,calc(100vw-24px))]' : 'w-[min(480px,calc(100vw-24px))]')
+            : clsx('anim-in fixed left-1/2 top-[8vh] z-[61] flex max-h-[84vh] w-[calc(100vw-32px)] -translate-x-1/2 flex-col rounded-lg border border-line bg-elevated shadow-3 outline-none', wide ? 'max-w-3xl' : 'max-w-lg')}
         >
           <div className="flex items-start gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0 flex-1">

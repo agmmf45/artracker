@@ -43,7 +43,7 @@ export default function Schedule() {
                 const col = s.c.data.color ?? 'var(--study)';
                 return (
                   <button key={s.key} onClick={() => nav(`/study/courses?open=${s.c.id}`)} className="absolute inset-x-1 overflow-hidden rounded-[6px] border-s-[3px] px-1.5 py-1 text-start text-[11px] leading-tight"
-                    style={{ top, height: h, background: `color-mix(in oklab, ${col} 20%, var(--surface))`, borderInlineStartColor: col }}>
+                    style={{ top, height: h, background: `color-mix(in oklab, ${col} 40%, var(--surface))`, borderInlineStartColor: col }}>
                     <div className="truncate font-bold">{s.c.data.code || s.c.data.name}</div>
                     <div className="num truncate text-fg-2">{s.start}–{s.end}</div>
                     {s.room && <div className="truncate text-fg-3">{s.room}{s.kind && s.kind !== 'lecture' ? ` · ${s.kind === 'lab' ? L('معمل', 'Lab') : L('سريري', 'Clinical')}` : ''}</div>}

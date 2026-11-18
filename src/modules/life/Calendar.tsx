@@ -48,6 +48,8 @@ export default function CalendarPage() {
   const clash = useMemo(() => conflicts(items ?? []), [items]);
 
   useEffect(() => {
+    const day = params.get('date');
+    if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) { setCursor(day); setView('day'); params.delete('date'); setParams(params, { replace: true }); return; }
     const id = params.get('open');
     if (!id) return;
     void db().records.get(id).then((r) => { if (r?.type === 'event') setEditEvent({ rec: r as unknown as Rec<EventData> }); });
@@ -209,7 +211,7 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
         {days.map((d) => (
           <div key={d} className="min-h-7 space-y-0.5 border-s border-line p-0.5">
             {items.filter((i) => i.date === d && i.allDay).map((i) => (
-              <button key={i.key} onClick={() => onOpen(i)} className={clsx('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-start text-[11px] font-bold', i.done && 'line-through opacity-60')} style={{ background: `color-mix(in oklab, ${i.color} 22%, transparent)`, color: 'var(--text)' }}>{i.title}</button>
+              <button key={i.key} onClick={() => onOpen(i)} className={clsx('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-start text-[11px] font-bold', i.done && 'line-through opacity-60')} style={{ background: `color-mix(in oklab, ${i.color} 45%, var(--surface))`, color: 'var(--text)' }}>{i.title}</button>
             ))}
           </div>
         ))}
@@ -282,7 +284,7 @@ function GridItem({ it, col, cols, clash, onOpen }: { it: CalItem; col: number; 
       style={{
         top: (s / 60) * HOUR_PX + 1, height: ((e - s) / 60) * HOUR_PX - 2,
         insetInlineStart: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)`,
-        background: `color-mix(in oklab, ${it.color} 20%, var(--surface))`, borderInlineStartColor: it.color,
+        background: `color-mix(in oklab, ${it.color} 42%, var(--surface))`, borderInlineStartColor: it.color,
         transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
       }}
       title={it.title}

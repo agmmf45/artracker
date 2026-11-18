@@ -133,7 +133,7 @@ export default function Focus() {
         <Card className="flex flex-col items-center p-6 md:p-10">
           {active ? (
             <>
-              <div className={clsx('mb-2 rounded-full px-3 py-1 text-[12px] font-bold', active.phase === 'work' ? 'bg-[color-mix(in_oklab,var(--study)_15%,transparent)] text-study' : 'bg-[color-mix(in_oklab,var(--health)_15%,transparent)] text-health')}>
+              <div className={clsx('mb-2 rounded-full px-3 py-1 text-[12px] font-bold', active.phase === 'work' ? 'bg-[color-mix(in_oklab,var(--study)_38%,transparent)] text-study' : 'bg-[color-mix(in_oklab,var(--health)_38%,transparent)] text-health')}>
                 {active.phase === 'work' ? L('تركيز', 'Focus') : L('استراحة', 'Break')}{active.course_id ? ` · ${courseLabel(courses.find((c) => c.id === active.course_id))}` : ''}
               </div>
               <Ring value={remainingMs === null ? 1 : Math.max(0, remainingMs)} max={remainingMs === null ? 1 : active.planned_min * 60000} size={240} stroke={10} color={active.phase === 'work' ? 'var(--study)' : 'var(--health)'} label={L('الوقت المتبقي', 'Time left')}>

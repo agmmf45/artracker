@@ -184,7 +184,7 @@ function ActiveSession({ a, prs }: { a: ActiveWorkout; prs: Map<string, { weight
         <Button variant="primary" icon={<Check size={16} />} onClick={finish}>{L('إنهاء', 'Finish')}</Button>
       </div>
       {a.rest_until && restLeft > 0 && (
-        <div className="mb-4 flex items-center gap-3 rounded-md bg-[color-mix(in_oklab,var(--health)_15%,transparent)] px-4 py-3">
+        <div className="mb-4 flex items-center gap-3 rounded-md bg-[color-mix(in_oklab,var(--health)_38%,transparent)] px-4 py-3">
           <Timer size={18} className="text-health" /><span className="flex-1 font-bold">{L('راحة', 'Rest')}</span>
           <span className="num text-2xl font-black text-health">{mmss(restLeft)}</span>
           <Button size="sm" variant="ghost" onClick={() => save({ rest_until: new Date(Date.parse(a.rest_until!) + 15000).toISOString() })}>+15s</Button>

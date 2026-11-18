@@ -6,7 +6,7 @@ import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { Button, Card, Chip, PageHeader, Segmented } from '@/design/ui';
-import { DASH_PRESETS, WIDGETS, deviceKind, saveLayout, useLayout, type LayoutItem, type WSize } from '@/modules/life/overview/layout';
+import { DASH_PRESETS, DEVICE_DEFAULTS, WIDGETS, deviceKind, saveLayout, useLayout, type Device, type LayoutItem, type WSize } from '@/modules/life/overview/layout';
 import { toast } from '@/core/toast';
 
 function Row({ item, onChange }: { item: LayoutItem; onChange: (i: LayoutItem) => void }) {
@@ -25,10 +25,10 @@ function Row({ item, onChange }: { item: LayoutItem; onChange: (i: LayoutItem) =
 
 export default function DashboardSettings() {
   const { L } = useI18n();
-  const [kind, setKind] = useState<'d' | 'm'>(deviceKind());
+  const [kind, setKind] = useState<Device>(deviceKind());
   const layout = useLayout(kind);
   const [items, setItems] = useState<LayoutItem[]>([]);
-  const [preset, setPreset] = useState('complete');
+  const [preset, setPreset] = useState('device');
   useEffect(() => { if (layout) { setItems(layout.items); setPreset(layout.preset); } }, [layout]);
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
@@ -44,11 +44,12 @@ export default function DashboardSettings() {
     <div className="max-w-2xl">
       <PageHeader title={L('لوحة التحكم', 'Dashboard')} subtitle={L('رتّب وأخفِ وغيّر حجم ودجات الصفحة الرئيسية. يُحفظ لكل نوع جهاز.', 'Reorder, hide and resize overview widgets. Saved per device type.')} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Segmented value={kind} onChange={setKind} options={[{ value: 'd', label: L('الكمبيوتر', 'Desktop') }, { value: 'm', label: L('الجوال والتابلت', 'Phone & tablet') }]} />
+        <Segmented value={kind} onChange={setKind} options={[{ value: 'm', label: L('الجوال', 'Phone') }, { value: 't', label: L('التابلت', 'Tablet') }, { value: 'd', label: L('الكمبيوتر', 'Desktop') }]} />
       </div>
       <div className="mb-4">
         <div className="mb-1.5 text-[13px] font-bold text-fg-2">{L('قوالب جاهزة', 'Presets')}</div>
         <div className="flex flex-wrap gap-1.5">
+          <Chip active={preset === 'device'} onClick={async () => { await persist(DEVICE_DEFAULTS[kind], 'device'); toast(L('طُبّق القالب', 'Preset applied')); }}>{L('المقترح لهذا الجهاز', 'Recommended for this device')}</Chip>
           {Object.entries(DASH_PRESETS).map(([id, p]) => (
             <Chip key={id} active={preset === id} onClick={async () => { await persist(p.items, id); toast(L('طُبّق القالب', 'Preset applied')); }}>{L(p.ar, p.en)}</Chip>
           ))}
@@ -62,7 +63,7 @@ export default function DashboardSettings() {
           </SortableContext>
         </DndContext>
       </Card>
-      <Button variant="ghost" className="mt-3" onClick={() => persist(DASH_PRESETS.complete.items, 'complete')}>{L('استعادة الافتراضي', 'Reset to default')}</Button>
+      <Button variant="ghost" className="mt-3" onClick={() => persist(DEVICE_DEFAULTS[kind], 'device')}>{L('استعادة الافتراضي', 'Reset to default')}</Button>
     </div>
   );
 }

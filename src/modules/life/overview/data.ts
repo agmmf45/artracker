@@ -62,6 +62,11 @@ export interface DashData {
   spentInRange: number;
   activityByDay: Record<string, number>;
   exams: Array<Rec<{ title: string; date: string; course_id?: string }>>;
+  inbox: Array<Rec<TaskData>>;
+  /** tasks completed per day for the last 14 days (completion timestamps + recurring history) */
+  completedByDay: Record<string, number>;
+  /** study minutes per day for the last 14 days (independent of the selected range) */
+  study14: Record<string, number>;
 }
 
 export function useDashData(range: Range, weekStart: 0 | 1 | 6): DashData | undefined {
@@ -127,6 +132,17 @@ export function useDashData(range: Range, weekStart: 0 | 1 | 6): DashData | unde
     const completedInRange = tasks.filter((t) => t.status === 'done' && !!t.data.completed_at && t.data.completed_at.slice(0, 10) >= from && t.data.completed_at.slice(0, 10) <= to).length
       + tasks.reduce((n, t) => n + (t.data.history ?? []).filter((h) => h.at.slice(0, 10) >= from && h.at.slice(0, 10) <= to).length, 0);
 
+    const since14 = shiftKey(today, -13);
+    const completedByDay: Record<string, number> = {};
+    for (const t of tasks) {
+      const c = t.status === 'done' ? t.data.completed_at?.slice(0, 10) : undefined;
+      if (c && c >= since14) completedByDay[c] = (completedByDay[c] ?? 0) + 1;
+      for (const h of t.data.history ?? []) { const k = h.at.slice(0, 10); if (k >= since14) completedByDay[k] = (completedByDay[k] ?? 0) + 1; }
+    }
+    const study14: Record<string, number> = {};
+    for (const s of await byRange<{ duration_min: number }>('study_session', since14, today)) study14[s.date!.slice(0, 10)] = (study14[s.date!.slice(0, 10)] ?? 0) + (s.data.duration_min ?? 0);
+    const inbox = allTasks.filter((t) => t.status === 'inbox').sort((a, b) => b.created_at.localeCompare(a.created_at));
+
     const exams = (await byRange<{ title: string; date: string; course_id?: string }>('exam', today, shiftKey(today, 60))).sort((a, b) => a.date!.localeCompare(b.date!));
 
     return {
@@ -140,7 +156,7 @@ export function useDashData(range: Range, weekStart: 0 | 1 | 6): DashData | unde
       workoutsInRange: workouts.length, workoutToday,
       completedInRange,
       spentInRange: txns.filter((t) => t.data.kind === 'expense' && !t.data.saving).reduce((s, t) => s + t.data.amount, 0),
-      activityByDay, exams,
+      activityByDay, exams, inbox, completedByDay, study14,
     };
   }, [range, weekStart]);
 }

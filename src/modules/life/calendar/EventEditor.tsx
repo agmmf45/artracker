@@ -29,7 +29,7 @@ export function EventEditor({ rec, open, onOpenChange, defaults, occurrence }: {
   };
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title={rec ? L('تعديل الموعد', 'Edit event') : L('موعد جديد', 'New event')}
+    <Modal panel open={open} onOpenChange={onOpenChange} title={rec ? L('تعديل الموعد', 'Edit event') : L('موعد جديد', 'New event')}
       footer={<>
         {rec && (
           <div className="me-auto flex gap-1">

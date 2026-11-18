@@ -67,6 +67,7 @@ export function TaskEditor({ task, open, onOpenChange, defaults }: { task: Task 
       open={open}
       onOpenChange={onOpenChange}
       wide
+      panel
       title={task ? L('تعديل المهمة', 'Edit task') : L('مهمة جديدة', 'New task')}
       footer={
         <>

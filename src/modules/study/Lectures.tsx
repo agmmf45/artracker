@@ -114,7 +114,7 @@ function LectureEditor({ l, isNew, onClose, onOpenNote }: { l: Lecture; isNew: b
     onOpenNote(n.id);
   };
   return (
-    <Modal open onOpenChange={(v) => !v && onClose()} title={isNew ? L('محاضرة جديدة', 'New lecture') : L('المحاضرة', 'Lecture')} wide
+    <Modal panel open onOpenChange={(v) => !v && onClose()} title={isNew ? L('محاضرة جديدة', 'New lecture') : L('المحاضرة', 'Lecture')} wide
       footer={<>
         {!isNew && <IconButton className="me-auto" tone="danger" label={L('حذف', 'Delete')} onClick={async () => { const p = await remove(l.id); onClose(); undoToast(L('حُذفت', 'Deleted'), async () => { if (p) await revertTo(p as Rec); }); }}><Trash2 size={17} /></IconButton>}
         <Button variant="ghost" onClick={onClose}>{L('إلغاء', 'Cancel')}</Button><Button variant="primary" onClick={save}>{L('حفظ', 'Save')}</Button>

@@ -67,7 +67,7 @@ export default function StudyOverview() {
               const ready = covered.filter((l) => l.status === 'studied' || l.status === 'mastered').length;
               return (
                 <li key={e.id} className="flex items-center gap-3">
-                  <span className="num grid size-11 shrink-0 place-items-center rounded-sm bg-[color-mix(in_oklab,var(--study)_15%,transparent)] text-center text-study"><span><b className="block text-base leading-none">{daysBetween(today, e.date!)}</b><span className="text-[9px]">{L('يوم', 'd')}</span></span></span>
+                  <span className="num grid size-11 shrink-0 place-items-center rounded-sm bg-[color-mix(in_oklab,var(--study)_38%,transparent)] text-center text-study"><span><b className="block text-base leading-none">{daysBetween(today, e.date!)}</b><span className="text-[9px]">{L('يوم', 'd')}</span></span></span>
                   <div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{e.data.title}</div><div className="text-[12px] text-fg-3">{courseLabel(courses.find((c) => c.id === e.data.course_id))}{covered.length ? ` · ${L('جاهزية', 'ready')} ${ready}/${covered.length}` : ''}</div></div>
                 </li>
               );

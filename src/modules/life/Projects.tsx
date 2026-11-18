@@ -74,7 +74,7 @@ function ProjectEditor({ p, onClose, onCreated }: { p?: Project; onClose: () => 
     onClose();
   };
   return (
-    <Modal open onOpenChange={(v) => !v && onClose()} title={p ? L('تعديل المشروع', 'Edit project') : L('مشروع جديد', 'New project')}
+    <Modal panel open onOpenChange={(v) => !v && onClose()} title={p ? L('تعديل المشروع', 'Edit project') : L('مشروع جديد', 'New project')}
       footer={<><Button variant="ghost" onClick={onClose}>{L('إلغاء', 'Cancel')}</Button><Button variant="primary" onClick={save}>{L('حفظ', 'Save')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
         <Input className="sm:col-span-2" label={L('الاسم', 'Name')} value={d.title} onChange={(e) => set({ title: e.target.value })} autoFocus={!p} />

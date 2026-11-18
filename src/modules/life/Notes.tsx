@@ -87,7 +87,7 @@ export default function Notes() {
       <div className="card min-h-0 flex-1 divide-y divide-line overflow-y-auto scroll-thin lg:max-h-[calc(100dvh-280px)]">
         {!list.length ? <p className="p-6 text-center text-sm text-fg-3">{q ? L('لا نتائج', 'No results') : L('لا ملاحظات هنا بعد', 'No notes here yet')}</p> : list.filter((n) => !n.parent_id || folder !== 'all' || q).map((n) => (
           <div key={n.id}>
-            <button onClick={() => setSelected(n.id)} className={clsx('block w-full px-4 py-3 text-start hover:bg-surface-2', n.id === selected && 'bg-[color-mix(in_oklab,var(--accent)_10%,transparent)]')}>
+            <button onClick={() => setSelected(n.id)} className={clsx('block w-full px-4 py-3 text-start hover:bg-surface-2', n.id === selected && 'bg-[color-mix(in_oklab,var(--accent)_38%,transparent)]')}>
               <div className="flex items-center gap-1.5">
                 {n.data.pinned && <Pin size={12} className="shrink-0 text-accent" />}
                 <span className="truncate font-bold">{n.data.title || L('بدون عنوان', 'Untitled')}</span>
@@ -96,7 +96,7 @@ export default function Notes() {
               <div className="mt-0.5 line-clamp-2 text-[12.5px] text-fg-2">{snippet(n) || L('فارغة', 'Empty')}</div>
             </button>
             {!q && folder === 'all' && children(n.id).map((c) => (
-              <button key={c.id} onClick={() => setSelected(c.id)} className={clsx('block w-full py-2 pe-4 ps-9 text-start text-[13px] hover:bg-surface-2', c.id === selected && 'bg-[color-mix(in_oklab,var(--accent)_10%,transparent)]')}>↳ {c.data.title || L('بدون عنوان', 'Untitled')}</button>
+              <button key={c.id} onClick={() => setSelected(c.id)} className={clsx('block w-full py-2 pe-4 ps-9 text-start text-[13px] hover:bg-surface-2', c.id === selected && 'bg-[color-mix(in_oklab,var(--accent)_38%,transparent)]')}>↳ {c.data.title || L('بدون عنوان', 'Untitled')}</button>
             ))}
           </div>
         ))}

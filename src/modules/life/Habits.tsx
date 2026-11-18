@@ -75,7 +75,7 @@ export default function Habits() {
               const sch = list.filter((h) => isScheduled(h.data, d) && !isPaused(h.data, d));
               const dn = sch.filter((h) => logDone(h.data, idx.get(h.id)?.get(d))).length;
               return (
-                <button key={d} onClick={() => setDay(d)} className={clsx('flex min-w-14 shrink-0 flex-col items-center rounded-md border px-2 py-1.5', d === day ? 'border-accent bg-[color-mix(in_oklab,var(--accent)_12%,transparent)]' : 'border-line')}>
+                <button key={d} onClick={() => setDay(d)} className={clsx('flex min-w-14 shrink-0 flex-col items-center rounded-md border px-2 py-1.5', d === day ? 'border-accent bg-[color-mix(in_oklab,var(--accent)_38%,transparent)]' : 'border-line')}>
                   <span className="text-[11px] text-fg-3">{fmtDate(d, locale, { weekday: 'short' })}</span>
                   <span className="num font-black">{Number(d.slice(8))}</span>
                   <span className="num text-[10px] text-fg-3">{dn}/{sch.length}</span>

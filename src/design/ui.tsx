@@ -9,16 +9,16 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'subtle';
 type Size = 'sm' | 'md' | 'lg';
 
 const vClass: Record<Variant, string> = {
-  primary: 'bg-accent text-on-accent hover:brightness-[1.06] active:brightness-95 shadow-1',
-  secondary: 'bg-surface border border-line text-fg hover:bg-surface-2',
+  primary: 'bg-accent text-on-accent border border-[color-mix(in_oklab,var(--accent)_70%,var(--accent-ink))] hover:bg-[color-mix(in_oklab,var(--accent)_85%,var(--accent-ink))] active:translate-y-px',
+  secondary: 'bg-surface border border-line-strong text-fg hover:bg-surface-2',
   subtle: 'bg-surface-2 text-fg hover:bg-[color-mix(in_oklab,var(--surface-2)_80%,var(--border))]',
   ghost: 'text-fg-2 hover:bg-surface-2 hover:text-fg',
   danger: 'bg-danger text-white hover:brightness-110',
 };
 const sClass: Record<Size, string> = {
-  sm: 'h-8 px-3 text-[13px] gap-1.5 rounded-sm',
-  md: 'h-10 px-4 text-sm gap-2 rounded-sm',
-  lg: 'h-12 px-5 text-[15px] gap-2 rounded-md',
+  sm: 'h-8 px-3.5 text-[13px] gap-1.5 rounded-full',
+  md: 'h-10 px-4.5 text-sm gap-2 rounded-full',
+  lg: 'h-12 px-6 text-[15px] gap-2 rounded-full',
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -55,7 +55,7 @@ export const IconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTM
         aria-label={label}
         title={label}
         className={clsx(
-          'inline-flex shrink-0 items-center justify-center rounded-sm transition-colors',
+          'inline-flex shrink-0 items-center justify-center rounded-full transition-colors',
           size === 'sm' ? 'size-8' : 'size-10',
           tone === 'danger' ? 'text-fg-3 hover:bg-surface-2 hover:text-danger' : 'text-fg-2 hover:bg-surface-2 hover:text-fg',
           className,
@@ -91,7 +91,7 @@ export function PageHeader({ title, subtitle, actions, eyebrow }: { title: React
     <header className="mb-5 flex flex-wrap items-end gap-3">
       <div className="min-w-0 flex-1">
         {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
-        <h1 className="text-2xl font-black leading-tight tracking-tight md:text-[28px]">{title}</h1>
+        <h1 className="text-[26px] font-black leading-tight tracking-tight md:text-[30px]">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-fg-2">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -115,8 +115,8 @@ export function Section({ title, action, children, className }: { title?: ReactN
 
 export function EmptyState({ icon, title, hint, action }: { icon?: ReactNode; title: ReactNode; hint?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line px-6 py-10 text-center">
-      {icon && <div className="mb-1 text-fg-3">{icon}</div>}
+    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line-strong bg-[color-mix(in_oklab,var(--accent)_12%,var(--surface))] px-6 py-10 text-center">
+      {icon && <div className="mb-1 grid size-14 place-items-center rounded-full bg-[color-mix(in_oklab,var(--accent)_45%,var(--surface))] text-accent">{icon}</div>}
       <p className="font-bold">{title}</p>
       {hint && <p className="max-w-sm text-sm text-fg-2">{hint}</p>}
       {action && <div className="mt-2">{action}</div>}
@@ -200,7 +200,7 @@ export function Segmented<T extends string>({ value, onChange, options, size = '
   value: T; onChange: (v: T) => void; options: Array<{ value: T; label: ReactNode; icon?: ReactNode }>; size?: 'sm' | 'md'; className?: string;
 }) {
   return (
-    <div role="tablist" className={clsx('inline-flex max-w-full overflow-x-auto rounded-sm bg-surface-2 p-1 scroll-thin', className)}>
+    <div role="tablist" className={clsx('inline-flex max-w-full overflow-x-auto rounded-full border border-line bg-surface-2 p-1 scroll-thin', className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -208,9 +208,9 @@ export function Segmented<T extends string>({ value, onChange, options, size = '
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
           className={clsx(
-            'inline-flex shrink-0 items-center gap-1.5 rounded-[7px] font-bold transition-colors',
+            'inline-flex shrink-0 items-center gap-1.5 rounded-full font-bold transition-colors',
             size === 'sm' ? 'h-7 px-2.5 text-[12px]' : 'h-8 px-3 text-[13px]',
-            value === o.value ? 'bg-surface text-fg shadow-1' : 'text-fg-2 hover:text-fg',
+            value === o.value ? 'bg-accent text-on-accent' : 'text-fg-2 hover:text-fg',
           )}
         >
           {o.icon}
@@ -228,8 +228,8 @@ export function Chip({ active, onClick, children, className, tone }: { active?: 
       onClick={onClick}
       aria-pressed={onClick ? !!active : undefined}
       className={clsx(
-        'inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-[12px] font-bold transition-colors',
-        active ? 'border-accent bg-[color-mix(in_oklab,var(--accent)_14%,transparent)] text-fg' : 'border-line text-fg-2',
+        'inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[12.5px] font-bold transition-colors',
+        active ? 'border-accent bg-[color-mix(in_oklab,var(--accent)_45%,var(--surface))] text-fg' : 'border-line bg-surface text-fg-2',
         onClick && !active && 'hover:border-line-strong hover:text-fg',
         className,
       )}
@@ -244,7 +244,7 @@ export function Chip({ active, onClick, children, className, tone }: { active?: 
 export function Bar({ value, max = 1, color, className, label }: { value: number; max?: number; color?: string; className?: string; label?: string }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
-    <div className={clsx('h-1.5 w-full overflow-hidden rounded-full bg-surface-2', className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+    <div className={clsx('h-2 w-full overflow-hidden rounded-full bg-surface-2', className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
       <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: color ?? 'var(--accent)', transitionTimingFunction: 'var(--ease-out)' }} />
     </div>
   );

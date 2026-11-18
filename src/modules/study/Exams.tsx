@@ -52,7 +52,7 @@ export default function Exams() {
               <Card key={e.id} className="p-4" style={{ borderTop: `3px solid ${c?.data.color ?? 'var(--study)'}` }}>
                 <button className="flex w-full items-start gap-3 text-start" onClick={() => setEditing({ e, isNew: false })}>
                   {tab === 'upcoming' && (
-                    <div className={clsx('num grid size-14 shrink-0 place-items-center rounded-md text-center leading-none', days <= 3 ? 'bg-[color-mix(in_oklab,var(--danger)_15%,transparent)] text-danger' : 'bg-[color-mix(in_oklab,var(--study)_15%,transparent)] text-study')}>
+                    <div className={clsx('num grid size-14 shrink-0 place-items-center rounded-md text-center leading-none', days <= 3 ? 'bg-[color-mix(in_oklab,var(--danger)_15%,transparent)] text-danger' : 'bg-[color-mix(in_oklab,var(--study)_38%,transparent)] text-study')}>
                       <div><div className="text-xl font-black">{days}</div><div className="text-[10px]">{days === 0 ? L('اليوم', 'today') : L('يوم', 'days')}</div></div>
                     </div>
                   )}
@@ -91,7 +91,7 @@ function ExamEditor({ e, isNew, onClose }: { e: Exam; isNew: boolean; onClose: (
     onClose();
   };
   return (
-    <Modal open onOpenChange={(v) => !v && onClose()} title={isNew ? L('اختبار جديد', 'New exam') : L('الاختبار', 'Exam')} wide
+    <Modal panel open onOpenChange={(v) => !v && onClose()} title={isNew ? L('اختبار جديد', 'New exam') : L('الاختبار', 'Exam')} wide
       footer={<>
         {!isNew && <IconButton className="me-auto" tone="danger" label={L('حذف', 'Delete')} onClick={async () => { const p = await remove(e.id); onClose(); undoToast(L('حُذف', 'Deleted'), async () => { if (p) await revertTo(p as Rec); }); }}><Trash2 size={17} /></IconButton>}
         <Button variant="ghost" onClick={onClose}>{L('إلغاء', 'Cancel')}</Button><Button variant="primary" onClick={save}>{L('حفظ', 'Save')}</Button>

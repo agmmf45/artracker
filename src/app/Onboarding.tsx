@@ -63,7 +63,7 @@ export function Onboarding() {
                 key={id}
                 onClick={() => setPreset(id)}
                 aria-pressed={preset === id}
-                className={clsx('flex items-center gap-3 rounded-md border p-4 text-start transition-colors', preset === id ? 'border-life bg-[color-mix(in_oklab,var(--life)_10%,transparent)]' : 'border-line bg-surface hover:border-line-strong')}
+                className={clsx('flex items-center gap-3 rounded-md border p-4 text-start transition-colors', preset === id ? 'border-life bg-[color-mix(in_oklab,var(--life)_38%,transparent)]' : 'border-line bg-surface hover:border-line-strong')}
               >
                 <span className="flex-1">
                   <span className="block font-bold">{L(p.ar, p.en)}</span>

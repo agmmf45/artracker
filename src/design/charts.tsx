@@ -17,13 +17,13 @@ export function Bars({ data, height = 120, color = 'var(--accent)', format = (v:
       <div className="relative flex items-end gap-1.5" style={{ height }} role="img" aria-label={data.map((d) => `${d.label}: ${format(d.value)}`).join('، ')}>
         {goal ? <div className="pointer-events-none absolute inset-x-0 border-t border-dashed border-line-strong" style={{ bottom: `${(goal / max) * 100}%` }} /> : null}
         {data.map((d, i) => (
-          <div key={i} className="relative flex h-full flex-1 flex-col justify-end" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
+          <div key={i} className="relative flex h-full flex-1 flex-col justify-end rounded-full bg-[color-mix(in_oklab,var(--surface-2)_70%,transparent)]" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
             {hover === i && (
-              <div className="num absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-xs bg-fg px-1.5 py-0.5 text-[11px] font-bold text-bg">{format(d.value)}</div>
+              <div className="num absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-fg px-2 py-0.5 text-[11px] font-bold text-bg">{format(d.value)}</div>
             )}
             <div
-              className="w-full rounded-t-[4px] transition-[height] duration-500"
-              style={{ height: `${Math.max(d.value > 0 ? 3 : 0, (d.value / max) * 100)}%`, background: color, opacity: hover === null || hover === i ? 1 : 0.55, transitionTimingFunction: 'var(--ease-out)' }}
+              className="w-full rounded-full transition-[height] duration-500 motion-reduce:transition-none"
+              style={{ height: `${Math.max(d.value > 0 ? 6 : 0, (d.value / max) * 100)}%`, background: color, opacity: hover === null || hover === i ? 1 : 0.6, transitionTimingFunction: 'var(--ease-out)' }}
             />
           </div>
         ))}
