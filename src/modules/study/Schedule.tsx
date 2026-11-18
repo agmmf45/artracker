@@ -5,6 +5,7 @@ import { useSettings } from '@/core/hooks';
 import { fmtTime, hm } from '@/core/dates';
 import { Button, Card, EmptyState, PageHeader } from '@/design/ui';
 import { useCourses } from './shared';
+import { StudyPhotoImport } from './sheet/PhotoImport';
 
 const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -17,7 +18,7 @@ export default function Schedule() {
   const nav = useNavigate();
   const courses = useCourses();
   const sessions = courses.flatMap((c) => c.data.schedule.map((s, i) => ({ ...s, c, key: `${c.id}:${i}` })));
-  if (!sessions.length) return <div><PageHeader title={L('الجدول الدراسي', 'Timetable')} /><EmptyState icon={<CalendarRange size={30} />} title={L('لا مواعيد أسبوعية بعد', 'No weekly sessions yet')} hint={L('أضف مواعيد المحاضرات والمعامل والسريري من صفحة المقرر.', 'Add lecture, lab and clinical sessions from each course.')} action={<Button variant="primary" onClick={() => nav('/study/courses')}>{L('المقررات', 'Courses')}</Button>} /></div>;
+  if (!sessions.length) return <div><PageHeader title={L('الجدول الدراسي', 'Timetable')} /><StudyPhotoImport /><EmptyState icon={<CalendarRange size={30} />} title={L('لا مواعيد أسبوعية بعد', 'No weekly sessions yet')} hint={L('أضف مواعيد المحاضرات والمعامل والسريري من صفحة المقرر.', 'Add lecture, lab and clinical sessions from each course.')} action={<Button variant="primary" onClick={() => nav('/study/courses')}>{L('المقررات', 'Courses')}</Button>} /></div>;
   const order = Array.from({ length: 7 }, (_, i) => (settings.weekStart + i) % 7).filter((d) => sessions.some((s) => s.day === d) || d !== 5);
   const min = Math.min(...sessions.map((s) => hm(s.start) ?? 480));
   const max = Math.max(...sessions.map((s) => hm(s.end) ?? 960));
@@ -27,6 +28,7 @@ export default function Schedule() {
   return (
     <div>
       <PageHeader title={L('الجدول الدراسي', 'Timetable')} subtitle={L(`${sessions.length} موعد أسبوعي في ${courses.length} مقرر`, `${sessions.length} weekly sessions across ${courses.length} courses`)} />
+      <StudyPhotoImport />
       <Card className="overflow-x-auto p-3 scroll-thin">
         <div className="grid min-w-[640px]" style={{ gridTemplateColumns: `48px repeat(${order.length}, 1fr)` }}>
           <div />

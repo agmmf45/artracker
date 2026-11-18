@@ -5,14 +5,14 @@ import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useNow, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
 import { db } from '@/core/db';
-import { update } from '@/core/repo';
+import { create, update } from '@/core/repo';
+import { toast } from '@/core/toast';
 import { daysBetween, fmtTime, hm, shiftKey, todayKey, weekStartKey } from '@/core/dates';
 import { Box } from '@/modules/life/today/Trackers';
-import { courseGrade, gpa, pointsFor, type AssignmentData, type Course, type CourseData, type ExamData, type LectureData, type SemesterData, type StudySessionData } from './model';
+import { blankExam, courseGrade, gpa, pointsFor, type AssignmentData, type Course, type CourseData, type ExamData, type LectureData, type SemesterData, type StudySessionData } from './model';
 import { courseLabel, useCourses } from './shared';
 import { isDue, type SrsState } from './srs';
 import { mmss, useFocusEngine, type ActiveFocus } from './focusEngine';
-import { PhotoImport } from './sheet/PhotoImport';
 
 const DAYS_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -126,8 +126,6 @@ export default function StudySheet() {
         <Link to="/life/today" className="font-bold text-study-ink">{L('افتح يومي ←', 'Open my day →')}</Link>
       </div>
 
-      <div className="mb-4"><PhotoImport courses={current} semesterId={sem?.id ?? null} /></div>
-
       <div className="@container/nb">
         <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] @[1060px]/nb:gap-0">
           {/* ── page one: now ── */}
@@ -141,7 +139,7 @@ export default function StudySheet() {
                     <p className="text-[13.5px] opacity-85">{next.inDays === 0 ? L('اليوم', 'Today') : next.inDays === 1 ? L('بكرة', 'Tomorrow') : days[next.s.day]} {fmtTime(next.s.start, locale, h12)}{next.s.room ? ` · ${next.s.room}` : ''}</p>
                     {next.inDays === 0 && <span className="mt-2 inline-flex h-6 items-center rounded-full bg-reward px-2.5 text-[12px] font-bold text-on-accent">{L(`بعد ${next.a - nowMin < 60 ? `${next.a - nowMin} د` : `${Math.floor((next.a - nowMin) / 60)} س ${(next.a - nowMin) % 60} د`}`, `in ${next.a - nowMin} min`)}</span>}
                   </>
-                ) : <p className="mt-1 text-[15px] opacity-85">{L('ما فيه جدول بعد — صوّره فوق أو أضفه في المواد.', 'No timetable yet — photograph it above or add it in a course.')}</p>}
+                ) : <p className="mt-1 text-[15px] opacity-85">{L('ما فيه جدول بعد.', 'No timetable yet.')} <Link to="/study/schedule" className="font-bold underline">{L('صوّره أو أضفه', 'Photograph or add it')}</Link></p>}
               </div>
               <Box title={L('اليوم', 'Today')} extra={L(`${todaySlots.length} محاضرات`, `${todaySlots.length} classes`)}>
                 {!todaySlots.length ? <p className="text-[13px] text-fg-2">{L('ما عندك محاضرات اليوم.', 'No classes today.')}</p> : (
@@ -156,7 +154,7 @@ export default function StudySheet() {
 
             <div>
               <h2 className="nb-title mb-2 text-xl text-study-ink">{L('الجدول الأسبوعي', 'Weekly timetable')} <span className="text-[12px] font-medium text-fg-2" style={{ fontFamily: 'var(--font-sans)' }}>{L('اضغط مادة تحت عشان تبرز', 'Tap a course below to highlight it')}</span></h2>
-              {!slots.length ? <p className="rounded-sm bg-surface-2 p-3 text-[13.5px] text-fg-2">{L('الجدول فاضي. صوّره فوق، أو افتح مادة وأضف أوقاتها.', 'Empty. Photograph it above, or open a course and add its times.')}</p> : (
+              {!slots.length ? <p className="rounded-sm bg-surface-2 p-3 text-[13.5px] text-fg-2">{L('الجدول فاضي.', 'Empty.')} <Link to="/study/schedule" className="font-bold text-accent-ink">{L('✨ صوّر جدولك وينزل لحاله', '✨ Photograph your timetable')}</Link></p> : (
                 <div className="overflow-x-auto scroll-thin">
                   <div className="grid min-w-[520px] rounded-md border-[1.5px] border-line bg-surface/95" style={{ gridTemplateColumns: `40px repeat(${weekDays.length}, minmax(0, 1fr))` }}>
                     <span />
@@ -199,6 +197,7 @@ export default function StudySheet() {
                   })}
                 </ul>
               )}
+              <AddDue courses={current} />
             </Box>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -270,7 +269,7 @@ export default function StudySheet() {
           <h2 className="nb-title text-2xl text-study-ink">{L('المواد', 'Courses')}</h2>
           <Link to="/study/courses" className="text-[13px] font-bold text-accent-ink">{L('+ مادة يدوياً', '+ Add manually')}</Link>
         </div>
-        {!current.length ? <p className="text-[14px] text-fg-2">{L('ما فيه مواد بعد. صوّر موادك فوق وتنضاف بثواني.', 'No courses yet. Photograph them above.')}</p> : (
+        {!current.length ? <p className="text-[14px] text-fg-2">{L('ما فيه مواد بعد.', 'No courses yet.')} <Link to="/study/courses" className="font-bold text-accent-ink">{L('✨ صوّر موادك وتنضاف بثواني', '✨ Photograph your courses')}</Link></p> : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {current.map((c) => {
               const ls = (lectures ?? []).filter((l) => l.data.course_id === c.id);
@@ -300,6 +299,45 @@ export default function StudySheet() {
   );
 }
 
+/** Add an exam, quiz or piece of work right from the sheet (lands in Exams/Assignments, the calendar and Week). */
+function AddDue({ courses }: { courses: Course[] }) {
+  const { L } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [kind, setKind] = useState<'exam' | 'quiz' | 'work'>('exam');
+  const [title, setTitle] = useState('');
+  const [course, setCourse] = useState<string>(courses[0]?.id ?? '');
+  const [date, setDate] = useState(shiftKey(todayKey(), 7));
+  const [time, setTime] = useState('');
+  const save = async () => {
+    const t = title.trim() || (kind === 'work' ? L('تسليم', 'Assignment') : kind === 'quiz' ? L('كويز', 'Quiz') : L('اختبار', 'Exam'));
+    const cid = course || null;
+    if (kind === 'work') await create('assignment', { title: t, course_id: cid, due: date, due_time: time || null, weight: null, score: null, max: 100, notes: '', link: null, state: 'todo' }, { date, status: 'todo', parent_id: cid });
+    else await create<ExamData>('exam', blankExam({ title: t, course_id: cid, kind: kind === 'quiz' ? 'quiz' : 'midterm', time: time || null }), { date, parent_id: cid });
+    toast(L('انضاف — ويطلع في التقويم والأسبوع', 'Added — it shows in the calendar and Week'));
+    setTitle(''); setTime(''); setOpen(false);
+  };
+  if (!open) return <button onClick={() => setOpen(true)} className="mt-2 text-[13px] font-bold text-accent-ink">+ {L('أضف اختبار أو تسليم', 'Add an exam or due work')}</button>;
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); void save(); }} className="mt-3 flex flex-col gap-2 rounded-sm border border-dashed border-line-strong p-2.5">
+      <div className="flex flex-wrap gap-1.5">
+        {([['exam', '★ اختبار', '★ Exam'], ['quiz', '؟ كويز', '? Quiz'], ['work', '📝 تسليم', '📝 Due work']] as const).map(([k, ar, en]) => (
+          <button type="button" key={k} onClick={() => setKind(k)} aria-pressed={kind === k} className={clsx('h-8 rounded-full border-[1.5px] px-3 text-[12.5px] font-bold', kind === k ? 'border-fg bg-fg text-bg' : 'border-line bg-surface')}>{L(ar, en)}</button>
+        ))}
+      </div>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={L('العنوان (مثلاً: ميد الأشعة)', 'Title (e.g. Radiology midterm)')} aria-label={L('العنوان', 'Title')} className="nb-write text-[15px]" />
+      <div className="flex flex-wrap items-center gap-2 text-[13px]">
+        <select value={course} onChange={(e) => setCourse(e.target.value)} aria-label={L('المادة', 'Course')} className="h-9 rounded-full border border-line bg-surface px-2">
+          <option value="">{L('بدون مادة', 'No course')}</option>
+          {courses.map((c) => <option key={c.id} value={c.id}>{c.data.name}</option>)}
+        </select>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label={L('التاريخ', 'Date')} className="h-9 rounded-full border border-line bg-surface px-2" />
+        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-label={L('الوقت', 'Time')} className="h-9 rounded-full border border-line bg-surface px-2" />
+      </div>
+      <div className="flex gap-2"><button type="submit" className="h-9 rounded-full bg-fg px-4 text-[13px] font-bold text-bg">{L('أضف', 'Add')}</button><button type="button" onClick={() => setOpen(false)} className="h-9 rounded-full border border-line px-3 text-[13px] font-bold">{L('إلغاء', 'Cancel')}</button></div>
+    </form>
+  );
+}
+
 function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
   return (
     <li className="flex items-center gap-2">
@@ -318,8 +356,9 @@ function FocusCard({ courses, focusToday, focusWeek }: { courses: Course[]; focu
   const settings = useSettings();
   const [mode, setMode] = useState<ActiveFocus['mode']>('pomodoro');
   const [course, setCourse] = useState<string | null>(courses[0]?.id ?? null);
+  const [mins, setMins] = useState(40);
   const { active, elapsedMs, remainingMs, start, pause, resume, stop } = useFocusEngine();
-  const plannedMs = active ? active.planned_min * 60000 : (mode === 'pomodoro' ? settings.focus.work : mode === 'custom' ? 50 : 0) * 60000;
+  const plannedMs = active ? active.planned_min * 60000 : (mode === 'pomodoro' ? settings.focus.work : mode === 'custom' ? mins : 0) * 60000;
   const shown = active ? (remainingMs ?? elapsedMs) : plannedMs;
   const frac = active && remainingMs != null && plannedMs ? 1 - Math.max(0, remainingMs) / plannedMs : 0;
   const cur = courses.find((c) => c.id === (active?.course_id ?? course));
@@ -338,10 +377,20 @@ function FocusCard({ courses, focusToday, focusWeek }: { courses: Course[]; focu
           {!active && (
             <>
               <div className="flex flex-wrap gap-1.5">
-                {([['pomodoro', `🍅 ${L('طماطم', 'Pomodoro')} ${settings.focus.work}/${settings.focus.short}`], ['custom', '50/10'], ['stopwatch', L('ساعة تركيز', 'Stopwatch')]] as const).map(([m, label]) => (
+                {([['pomodoro', `🍅 ${L('طماطم', 'Pomodoro')} ${settings.focus.work}/${settings.focus.short}`], ['custom', L('⏳ مدة أختارها', '⏳ My own length')], ['stopwatch', L('⏱ مفتوح', '⏱ Open-ended')]] as const).map(([m, label]) => (
                   <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m} className={clsx('h-8 rounded-full border-[1.5px] px-3 text-[12.5px] font-bold', mode === m ? 'border-fg bg-fg text-bg' : 'border-line bg-surface')}>{label}</button>
                 ))}
               </div>
+              {mode === 'custom' && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[20, 30, 40, 45, 60, 90].map((m) => (
+                    <button key={m} onClick={() => setMins(m)} aria-pressed={mins === m} className={clsx('num h-7 rounded-full border-[1.5px] px-2.5 text-[12px] font-bold', mins === m ? 'border-study-ink bg-study-ink text-surface' : 'border-line bg-surface')}>
+                      {m === 30 ? L('نص ساعة', '30 min') : m === 60 ? L('ساعة', '1 h') : m === 90 ? L('ساعة ونص', '1.5 h') : L(`${m} د`, `${m} min`)}
+                    </button>
+                  ))}
+                  <label className="flex items-center gap-1 text-[12px] text-fg-2"><input type="number" min={5} max={240} value={mins} onChange={(e) => setMins(Math.max(5, Math.min(240, Number(e.target.value) || 5)))} className="nb-write num !w-14 text-center text-[14px]" aria-label={L('الدقائق', 'Minutes')} />{L('دقيقة', 'min')}</label>
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[12.5px] text-fg-2">{L('تذاكر:', 'Studying:')}</span>
                 {courses.slice(0, 6).map((c) => (
@@ -354,7 +403,7 @@ function FocusCard({ courses, focusToday, focusWeek }: { courses: Course[]; focu
           )}
           {active && <p className="text-[13.5px]">{L('تذاكر', 'Studying')} <b>{courseLabel(cur) || L('عام', 'General')}</b></p>}
           <div className="flex flex-wrap gap-2">
-            {!active && <button onClick={() => void start({ mode, customMin: 50, course })} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg">▶ {L('ابدأ', 'Start')}</button>}
+            {!active && <button onClick={() => void start({ mode, customMin: mins, course })} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg">▶ {L('ابدأ', 'Start')}</button>}
             {active && (active.paused_at
               ? <button onClick={() => void resume()} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg">▶ {L('كمّل', 'Resume')}</button>
               : <button onClick={() => void pause()} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg">⏸ {L('إيقاف مؤقت', 'Pause')}</button>)}

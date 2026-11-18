@@ -23,6 +23,8 @@ export interface PageDef {
   defaultOn?: boolean;
   /** a hub page that holds other pages as tabs: it is on when any of these page ids is on */
   members?: string[];
+  /** false = reachable by link (e.g. from the Study sheet) but not listed in navigation */
+  nav?: boolean;
   /** merged into a hub: not in navigation; its old path redirects here (query string kept) */
   redirect?: string;
 }
@@ -74,18 +76,18 @@ const ALL: PageDef[] = [
   p({ id: 'study.overview', section: 'study', path: '/study', ar: 'ورقة الدراسة', en: 'Study sheet', icon: LayoutDashboard, core: true, file: 'study/Sheet' }),
   p({ id: 'study.courses', section: 'study', path: '/study/courses', ar: 'المقررات', en: 'Courses', icon: BookOpen, file: 'study/Courses' }),
   p({ id: 'study.schedule', section: 'study', path: '/study/schedule', ar: 'الجدول', en: 'Schedule', icon: CalendarRange, file: 'study/Schedule' }),
-  p({ id: 'study.lectures', section: 'study', path: '/study/lectures', ar: 'المحاضرات', en: 'Lectures', icon: Presentation, file: 'study/Lectures' }),
-  p({ id: 'study.assignments', section: 'study', path: '/study/assignments', ar: 'الواجبات', en: 'Assignments', icon: FileCheck2, file: 'study/Assignments' }),
-  p({ id: 'study.exams', section: 'study', path: '/study/exams', ar: 'الاختبارات', en: 'Exams', icon: FileClock, file: 'study/Exams' }),
-  p({ id: 'study.planner', section: 'study', path: '/study/planner', ar: 'مخطط المذاكرة', en: 'Study Planner', icon: CalendarClock, file: 'study/StudyPlanner' }),
-  p({ id: 'study.focus', section: 'study', path: '/study/focus', ar: 'جلسات التركيز', en: 'Focus', icon: Timer, file: 'study/Focus' }),
-  p({ id: 'study.flashcards', section: 'study', path: '/study/flashcards', ar: 'البطاقات', en: 'Flashcards', icon: Layers, file: 'study/Flashcards' }),
-  p({ id: 'study.qbank', section: 'study', path: '/study/qbank', ar: 'بنك الأسئلة', en: 'Question Bank', icon: CircleHelp, file: 'study/QBank' }),
+  p({ id: 'study.lectures', section: 'study', path: '/study/lectures', ar: 'المحاضرات', en: 'Lectures', icon: Presentation, file: 'study/Lectures', nav: false }),
+  p({ id: 'study.assignments', section: 'study', path: '/study/assignments', ar: 'الواجبات', en: 'Assignments', icon: FileCheck2, file: 'study/Assignments', nav: false }),
+  p({ id: 'study.exams', section: 'study', path: '/study/exams', ar: 'الاختبارات', en: 'Exams', icon: FileClock, file: 'study/Exams', nav: false }),
+  p({ id: 'study.planner', section: 'study', path: '/study/planner', ar: 'مخطط المذاكرة', en: 'Study Planner', icon: CalendarClock, file: 'study/StudyPlanner', nav: false }),
+  p({ id: 'study.focus', section: 'study', path: '/study/focus', ar: 'جلسات التركيز', en: 'Focus', icon: Timer, file: 'study/Focus', nav: false }),
+  p({ id: 'study.flashcards', section: 'study', path: '/study/flashcards', ar: 'البطاقات', en: 'Flashcards', icon: Layers, file: 'study/Flashcards', nav: false }),
+  p({ id: 'study.qbank', section: 'study', path: '/study/qbank', ar: 'بنك الأسئلة', en: 'Question Bank', icon: CircleHelp, file: 'study/QBank', nav: false }),
   p({ id: 'study.clinical', section: 'study', path: '/study/clinical', ar: 'المتطلبات السريرية', en: 'Clinical Tracker', icon: Stethoscope, file: 'study/Clinical' }),
-  p({ id: 'study.research', section: 'study', path: '/study/research', ar: 'البحث العلمي', en: 'Research', icon: FlaskConical, file: 'study/Research' }),
-  p({ id: 'study.resources', section: 'study', path: '/study/resources', ar: 'المصادر', en: 'Resources', icon: Link2, file: 'study/Resources' }),
-  p({ id: 'study.grades', section: 'study', path: '/study/grades', ar: 'الدرجات والمعدل', en: 'Grades & GPA', icon: Award, file: 'study/Grades' }),
-  p({ id: 'study.analytics', section: 'study', path: '/study/analytics', ar: 'التحليلات', en: 'Analytics', icon: BarChart3, file: 'study/Analytics' }),
+  p({ id: 'study.research', section: 'study', path: '/study/research', ar: 'البحث العلمي', en: 'Research', icon: FlaskConical, file: 'study/Research', nav: false }),
+  p({ id: 'study.resources', section: 'study', path: '/study/resources', ar: 'المصادر', en: 'Resources', icon: Link2, file: 'study/Resources', nav: false }),
+  p({ id: 'study.grades', section: 'study', path: '/study/grades', ar: 'الدرجات والمعدل', en: 'Grades & GPA', icon: Award, file: 'study/Grades', nav: false }),
+  p({ id: 'study.analytics', section: 'study', path: '/study/analytics', ar: 'التحليلات', en: 'Analytics', icon: BarChart3, file: 'study/Analytics', nav: false }),
 
   // ── HEALTH ──
   p({ id: 'health.overview', section: 'health', path: '/health', ar: 'نظرة عامة', en: 'Overview', icon: LayoutDashboard, core: true, file: 'health/Overview' }),

@@ -2,11 +2,11 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
-import { useSettings } from '@/core/hooks';
+import { useRecords, useSettings } from '@/core/hooks';
 import { create, update } from '@/core/repo';
 import { api, ApiError } from '@/core/api';
-import { blankCourse, type Course, type CourseData, type Session } from '../model';
-import { COURSE_COLORS } from '../shared';
+import { blankCourse, type Course, type CourseData, type SemesterData, type Session } from '../model';
+import { COURSE_COLORS, useCourses } from '../shared';
 
 interface ReadCourse { name: string; code: string | null; credits: number | null; instructor?: string | null; confidence?: number }
 interface ReadSession { course: string; code: string | null; day: number; start: string; end: string; kind?: 'lecture' | 'lab' | 'clinical'; room: string | null; confidence?: number }
@@ -177,4 +177,12 @@ export function PhotoImport({ courses, semesterId, compact }: { courses: Course[
       <p className="mt-2 text-[11.5px] text-fg-3">🔒 {L('الصورة تنرسل للمساعد الذكي للقراءة بس، وما تنحفظ.', 'The photo goes to the AI only to read it; it isn’t stored.')}</p>
     </section>
   );
+}
+
+/** The photo import with its own data — dropped into the Courses and Schedule pages. */
+export function StudyPhotoImport() {
+  const courses = useCourses();
+  const semesters = useRecords<SemesterData>('semester');
+  const sem = (semesters ?? []).find((s) => s.data.active);
+  return <div className="mb-5"><PhotoImport courses={courses} semesterId={sem?.id ?? null} /></div>;
 }

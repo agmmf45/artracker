@@ -63,7 +63,7 @@ export function Shell() {
   const toggleRail = () => setRailOpen((v) => { try { localStorage.setItem(RAIL_KEY, v ? '0' : '1'); } catch { /* ignore */ } return !v; });
   const fullSidebar = desktop || (tablet && railOpen);
 
-  const pages = useMemo(() => PAGES.filter((p) => !p.redirect && isPageOn(p, settings.modules, settings.modulePreset)), [settings.modules, settings.modulePreset]);
+  const pages = useMemo(() => PAGES.filter((p) => !p.redirect && p.nav !== false && isPageOn(p, settings.modules, settings.modulePreset)), [settings.modules, settings.modulePreset]);
   const sectionPages = pages.filter((p) => p.section === section);
   const sec = SECTIONS.find((s) => s.id === section)!;
 

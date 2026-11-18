@@ -10,6 +10,7 @@ import { todayKey } from '@/core/dates';
 import { undoToast, toast } from '@/core/toast';
 import { Modal } from '@/design/overlay';
 import { Bar, Button, Card, Chip, EmptyState, IconButton, Input, PageHeader, Select, Stat } from '@/design/ui';
+import { StudyPhotoImport } from './sheet/PhotoImport';
 import { blankCourse, courseGrade, pointsFor, type Course, type CourseData, type LectureData, type SemesterData, type Session, LECTURE_STATES } from './model';
 import { COURSE_COLORS } from './shared';
 
@@ -43,6 +44,7 @@ export default function Courses() {
         {(semesters ?? []).map((s) => <Chip key={s.id} active={sem === s.id} onClick={() => setSem(s.id)}>{s.data.name} {s.data.year}{s.data.active ? ' ●' : ''}</Chip>)}
         <Chip active={archived} onClick={() => setArchived(!archived)}><Archive size={12} />{L('المؤرشفة', 'Archived')}</Chip>
       </div>
+      <StudyPhotoImport />
       {!list.length ? <EmptyState icon={<BookOpen size={30} />} title={L('أضف مقرراتك لهذا الفصل', 'Add your courses for this semester')} hint={L('الجدول والمحاضرات والاختبارات والدرجات كلها ترتبط بالمقرر.', 'Schedule, lectures, exams and grades all hang off a course.')} action={<Button variant="primary" onClick={() => setEditing('new')}>{L('أضف مقرراً', 'Add a course')}</Button>} /> : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {list.map((c) => {
