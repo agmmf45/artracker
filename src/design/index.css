@@ -111,3 +111,10 @@
   background: linear-gradient(90deg, var(--surface-2) 0, var(--border) 50%, var(--surface-2) 100%);
   background-size: 400px 100%; animation: dq-shimmer 1.2s linear infinite; border-radius: var(--r-sm);
 }
+
+/* print: only the report area (monthly finance report, reviews) */
+@media print {
+  body * { visibility: hidden !important; }
+  .print-area, .print-area * { visibility: visible !important; }
+  .print-area { position: absolute; inset: 0; padding: 24px; background: #fff; color: #000; }
+}

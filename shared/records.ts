@@ -17,10 +17,10 @@ export const RECORD_TYPES = [
   // study
   'semester', 'course', 'lecture', 'exam', 'assignment', 'grade',
   'study_session', 'deck', 'flashcard', 'card_review', 'question', 'question_attempt',
-  'clinical_req', 'clinical_log', 'research', 'reference',
+  'clinical_req', 'clinical_log', 'research', 'reference', 'resource',
   // health
   'workout', 'program', 'pr', 'meal', 'food', 'meal_plan', 'water_log', 'sleep_log',
-  'measurement', 'medication', 'med_log', 'health_record', 'activity_log',
+  'measurement', 'medication', 'med_log', 'health_record', 'activity_log', 'soreness',
   // motivation
   'xp', 'achievement', 'reward', 'redemption', 'quest',
   // binary payloads kept inline until R2 is provisioned
