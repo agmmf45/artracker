@@ -7,6 +7,7 @@ import { useMedia, useProfile, useSettings } from '@/core/hooks';
 import { useSyncStatus, syncNow } from '@/core/sync';
 import { LIFE_MAIN, PAGES, SECTIONS, isPageOn, type SectionId } from './registry';
 import { Brand } from './Splash';
+import { Tour } from './Tour';
 import { QuickCapture } from './QuickCapture';
 import { CommandPalette } from './CommandPalette';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -115,6 +116,7 @@ export function Shell() {
       key={p.id}
       to={p.path}
       end
+      data-tour={`nav-${p.id}`}
       className={({ isActive }) => clsx(
         'flex items-center gap-2.5 rounded-full px-3 py-1.5 text-[13.5px] transition-colors',
         isActive ? 'bg-[color-mix(in_oklab,var(--accent)_45%,var(--surface))] font-bold text-fg' : 'text-fg-2 hover:bg-surface-2 hover:text-fg',
@@ -166,7 +168,7 @@ export function Shell() {
             })}
           </nav>
           <div className="border-t border-line p-3" data-section="life">
-            <button onClick={() => setCapture(true)} className="mb-2 flex w-full items-center justify-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--life)_70%,var(--life-ink))] bg-life py-2.5 text-sm font-bold text-on-accent hover:bg-[color-mix(in_oklab,var(--life)_85%,var(--life-ink))]">
+            <button data-tour="quick-add" onClick={() => setCapture(true)} className="mb-2 flex w-full items-center justify-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--life)_70%,var(--life-ink))] bg-life py-2.5 text-sm font-bold text-on-accent hover:bg-[color-mix(in_oklab,var(--life)_85%,var(--life-ink))]">
               <Plus size={17} /> {L('إضافة سريعة', 'Quick add')} {desktop && <kbd className="rounded-full bg-black/10 px-1.5 text-[11px]">N</kbd>}
             </button>
             <div className="flex items-center gap-2">
@@ -195,7 +197,7 @@ export function Shell() {
           })}
           <span className="flex-1" />
           <button onClick={() => setPalette(true)} className="grid size-10 place-items-center rounded-full text-fg-2 hover:bg-surface-2" aria-label={L('بحث وأوامر', 'Search & commands')}><Search size={19} /></button>
-          <button data-section="life" onClick={() => setCapture(true)} className="my-1 grid size-12 place-items-center rounded-full bg-life text-on-accent shadow-2" aria-label={L('إضافة سريعة', 'Quick add')}><Plus size={22} /></button>
+          <button data-tour="quick-add" data-section="life" onClick={() => setCapture(true)} className="my-1 grid size-12 place-items-center rounded-full bg-life text-on-accent shadow-2" aria-label={L('إضافة سريعة', 'Quick add')}><Plus size={22} /></button>
           <SyncBadge compact />
           <NavLink to="/settings" aria-label={L('الملف الشخصي', 'Profile')} className="mt-1"><Avatar profile={profile} size={34} /></NavLink>
         </aside>
@@ -214,7 +216,7 @@ export function Shell() {
           </div>
           <nav className="flex gap-1.5 overflow-x-auto px-3 pb-2.5 scroll-thin md:px-6 md:py-3" aria-label={L('صفحات القسم', 'Section pages')}>
             {sectionPages.map((p) => (
-              <NavLink key={p.id} to={p.path} end
+              <NavLink key={p.id} to={p.path} end data-tour={`nav-${p.id}`}
                 className={({ isActive }) => clsx('inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors', isActive ? 'border-transparent bg-accent text-on-accent' : 'border-line bg-surface text-fg-2')}>
                 <p.icon size={14} className="hidden md:block" />{L(p.ar, p.en)}
               </NavLink>
@@ -230,6 +232,7 @@ export function Shell() {
       {/* ── Phone: floating quick-add + bottom navigation ── */}
       <button
         data-section="life"
+        data-tour="quick-add"
         onClick={() => setCapture(true)}
         aria-label={L('إضافة سريعة', 'Quick add')}
         className="fixed end-4 z-30 grid size-15 place-items-center rounded-full border border-[color-mix(in_oklab,var(--life)_60%,var(--life-ink))] bg-life text-on-accent shadow-3 transition-transform active:scale-95 md:hidden"
@@ -257,6 +260,7 @@ export function Shell() {
       <UpdatePrompt />
       <ReminderEngine />
       <AchievementWatcher />
+      <Tour />
     </div>
   );
 }

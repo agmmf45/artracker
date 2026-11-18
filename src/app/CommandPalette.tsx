@@ -60,7 +60,8 @@ export function CommandPalette({ open, onOpenChange, onCapture }: { open: boolea
     { id: 'timer', label: L('ابدأ جلسة تركيز', 'Start focus timer'), icon: Timer, run: () => go('/study/focus?start=1'), kw: 'timer pomodoro focus تركيز مؤقت' },
     { id: 'workout', label: L('ابدأ تمرين', 'Start workout'), icon: Dumbbell, run: () => go('/health/workouts?start=1'), kw: 'workout gym تمرين' },
     { id: 'today', label: L('جدول اليوم', "Today's schedule"), icon: CalendarDays, run: () => go('/life/today'), kw: 'today اليوم' },
-    { id: 'week', label: L('خطط أسبوعك', 'Plan your week'), icon: CalendarClock, run: () => go('/life/reviews?weekly=1'), kw: 'week planner اسبوع' },
+    { id: 'week', label: L('خطط أسبوعك', 'Plan your week'), icon: CalendarClock, run: () => go('/life/week'), kw: 'week planner اسبوع' },
+    { id: 'tour', label: L('الجولة التعريفية', 'Guided tour'), icon: CalendarDays, run: async () => { onOpenChange(false); await updateSettings({ tourPending: true }); }, kw: 'tour help guide جولة مساعدة شرح' },
     { id: 'kb', label: L('ابحث في العقل الثاني', 'Search knowledge base'), icon: Search, run: () => go('/life/brain'), kw: 'brain knowledge معرفة' },
     {
       id: 'theme', label: L('بدّل الوضع الفاتح/الداكن', 'Toggle light/dark'), icon: SunMoon,

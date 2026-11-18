@@ -4,6 +4,8 @@ export interface LifeArea { id: string; name: string; icon: string; color: strin
 
 export interface Settings {
   onboarded: boolean;
+  /** set at the end of onboarding (or from Settings) to run the guided tour on the Day page */
+  tourPending: boolean;
   language: 'ar' | 'en';
   theme: 'system' | 'light' | 'dark';
   legacyTheme: string | null;
@@ -52,6 +54,7 @@ export const DEFAULT_GRADE_SCALE_5 = [
 
 export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
+  tourPending: false,
   language: 'ar',
   theme: 'light',
   legacyTheme: null,

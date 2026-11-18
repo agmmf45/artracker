@@ -96,14 +96,21 @@ export function parseCapture(input: string, now: Date = new Date()): Parsed {
   // ── money ──
   const spent = /(?:صرفت|دفعت|اشتريت|شريت|spent|paid|bought)\s+(\d+(?:\.\d+)?)\s*(?:ريال|ر\.?س|ر|sar|sr|\$)?\s*(?:على|في|for|on)?\s*(.*)/i.exec(t);
   const priced = /(.*?)\s+(\d+(?:\.\d+)?)\s*(?:ريال|ر\.?س|sar|sr)(?=\s|$)\s*(.*)/i.exec(t);
+  // "قهوة 15" / "15 بنزين": a known spending word next to a bare number (no time words) is an expense
+  const bareRe = /^\s*(?:(.+?)\s+(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s+(.+?))\s*$/;
+  const bareM = bareRe.exec(t);
+  const timeWord = /الساعة|الساعه|الصبح|الصباح|صباح|العصر|المغرب|العشاء|الظهر|الليل|مساء|بكر|اليوم|am|pm/i;
+  const bare = bareM && !timeWord.test(t) && EXPENSE_CATS.some(([re]) => re.test(original)) ? bareM : null;
   const income = /(?:استلمت|راتب|دخل|received|salary|income)\s+(\d+(?:\.\d+)?)\s*(?:ريال|ر\.?س|ر|sar|sr)?\s*(.*)/i.exec(t);
-  if (!forced && (income || spent || priced)) {
+  if (!forced && (income || spent || priced || bare)) {
     if (income) {
       out.kind = 'income'; out.amount = Number(income[1]); out.title = (income[2] || '').trim() || (/راتب|salary/i.test(t) ? 'راتب' : 'دخل');
     } else if (spent) {
       out.kind = 'expense'; out.amount = Number(spent[1]); out.title = spent[2].trim() || original;
     } else if (priced) {
       out.kind = 'expense'; out.amount = Number(priced[2]); out.title = `${priced[1]} ${priced[3]}`.trim() || original;
+    } else if (bare) {
+      out.kind = 'expense'; out.amount = Number(bare[2] ?? bare[3]); out.title = (bare[1] ?? bare[4] ?? original).trim();
     }
     for (const [re, cat] of EXPENSE_CATS) if (re.test(original)) { out.category = cat; break; }
     detected.push(`${out.amount} SAR`);

@@ -109,3 +109,13 @@ describe('plan level (week / month without a day)', () => {
     expect(p.date).toBe('2026-11-19');
   });
 });
+
+describe('bare spending lines', () => {
+  const now = new Date(2026, 10, 18, 10, 0);
+  it('"قهوة 15" and "15 بنزين" are expenses; a time keeps it a task', () => {
+    expect(parseCapture('قهوة 15', now)).toMatchObject({ kind: 'expense', amount: 15, title: 'قهوة' });
+    expect(parseCapture('60 بنزين', now)).toMatchObject({ kind: 'expense', amount: 60, title: 'بنزين' });
+    expect(parseCapture('غداء مع الشباب 7 المغرب', now).kind).not.toBe('expense');
+    expect(parseCapture('اقرأ 10 صفحات', now).kind).not.toBe('expense');
+  });
+});

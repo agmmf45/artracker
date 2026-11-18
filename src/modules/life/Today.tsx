@@ -116,12 +116,12 @@ export default function Today() {
           <span className="nb-washi -top-3 end-14 rotate-3" aria-hidden="true" />
           <div className="grid grid-cols-1 gap-7 @[720px]/pa:grid-cols-[minmax(0,1fr)_210px]">
             <div className="min-w-0">
-              <label className="mb-5 flex items-center gap-2.5">
+              <label data-tour="focus" className="mb-5 flex items-center gap-2.5">
                 <span className="shrink-0 text-[13.5px] font-bold">{L('تركيز اليوم:', 'Today’s focus:')}</span>
                 <WriteLine value={prompts.focus ?? ''} label={L('تركيز اليوم', 'Today’s focus')} placeholder={L('جملة وحدة: وش أهم شي اليوم؟', 'One line: what matters most today?')} onSave={(v) => setPrompt('focus', v)} className="text-[16px]" />
               </label>
               <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('أهم 3', 'Top 3')}</h2>
-              <ol className="mb-6 flex flex-col gap-1.5">
+              <ol data-tour="top3" className="mb-6 flex flex-col gap-1.5">
                 {[0, 1, 2].map((k) => {
                   const x = t.top[k];
                   return (
@@ -168,11 +168,13 @@ export default function Today() {
                 </div>
               )}
 
+              <div data-tour="log">
               <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('السجل السريع', 'Rapid log')}</h2>
               <RapidLog day={day} tasks={t.open} doneTasks={t.done} recurringDone={t.recurringDone} events={events} notes={notes} txns={txns} settings={settings} onOpen={setEditing} />
+              </div>
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0" data-tour="hours">
               <h2 className="nb-title mb-3 text-xl text-life-ink">{L('جدول الساعات', 'Hours')}</h2>
               <TimeBlocks items={items ?? []} day={day} today={today} dayStart={settings.dayStart} dayEnd={settings.dayEnd} h12={h12} />
             </div>
@@ -180,7 +182,7 @@ export default function Today() {
         </section>
 
         {/* ── page two: trackers ── */}
-        <section className={clsx('nb-paper nb-page nb-b px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('متتبعات اليوم', 'Day trackers')}>
+        <section data-tour="trackers" className={clsx('nb-paper nb-page nb-b px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('متتبعات اليوم', 'Day trackers')}>
           <span className="nb-washi -top-2.5 start-16 -rotate-6" style={{ ['--washi' as string]: 'var(--study)' }} aria-hidden="true" />
           <h2 className="nb-title mb-4 text-2xl text-life-ink">{L('متتبّعات اليوم', 'Day trackers')}</h2>
           <Trackers day={day} settings={settings} />
@@ -190,6 +192,7 @@ export default function Today() {
           </Box>
 
           {day === today && (
+            <div data-tour="shutdown">
             <Box title={L('إغلاق اليوم', 'Shut down the day')} extra={L('دقيقتين قبل النوم', 'two minutes before bed')} className="mt-3.5 !bg-[color-mix(in_oklab,var(--health)_22%,var(--surface))]">
               <label className="mb-3 flex items-center gap-2.5">
                 <span className="shrink-0 text-[13.5px] font-bold">🏆 {L('فوز اليوم:', 'Today’s win:')}</span>
@@ -210,6 +213,7 @@ export default function Today() {
                   : <button onClick={() => setPrompt('closed', new Date().toISOString())} className="h-10 rounded-full bg-fg px-5 text-sm font-bold text-bg hover:opacity-90">☾ {L('سكّر اليوم', 'Close the day')}</button>}
               </div>
             </Box>
+            </div>
           )}
         </section>
       </div>

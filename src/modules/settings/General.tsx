@@ -29,6 +29,11 @@ export default function General() {
   return (
     <div className="max-w-2xl">
       <PageHeader title={L('عام', 'General')} />
+      <Card className="mb-4 flex flex-wrap items-center gap-3 p-4">
+        <span className="text-2xl">🧭</span>
+        <div className="min-w-0 flex-1"><b className="block">{L('الجولة التعريفية', 'Guided tour')}</b><span className="text-[13px] text-fg-2">{L('دقيقة توريك وش كل جزء في صفحة اليوم ووين تكتب.', 'A minute showing each part of the Day page and where to write.')}</span></div>
+        <Button onClick={() => void updateSettings({ tourPending: true })}>{L('ابدأ الجولة', 'Start the tour')}</Button>
+      </Card>
       <InstallCard />
       <Card className="grid gap-4 p-5 sm:grid-cols-2">
         <Select label={L('اللغة', 'Language')} value={s.language} onChange={(e) => updateSettings({ language: e.target.value as 'ar' | 'en' })}>
