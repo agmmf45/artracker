@@ -71,7 +71,7 @@ const ALL: PageDef[] = [
   p({ id: 'life.friends', section: 'life', path: '/life/friends', ar: 'الأصدقاء', en: 'Friends', icon: Users, file: 'life/Friends' }),
 
   // ── STUDY ──
-  p({ id: 'study.overview', section: 'study', path: '/study', ar: 'نظرة عامة', en: 'Overview', icon: LayoutDashboard, core: true, file: 'study/Overview' }),
+  p({ id: 'study.overview', section: 'study', path: '/study', ar: 'ورقة الدراسة', en: 'Study sheet', icon: LayoutDashboard, core: true, file: 'study/Sheet' }),
   p({ id: 'study.courses', section: 'study', path: '/study/courses', ar: 'المقررات', en: 'Courses', icon: BookOpen, file: 'study/Courses' }),
   p({ id: 'study.schedule', section: 'study', path: '/study/schedule', ar: 'الجدول', en: 'Schedule', icon: CalendarRange, file: 'study/Schedule' }),
   p({ id: 'study.lectures', section: 'study', path: '/study/lectures', ar: 'المحاضرات', en: 'Lectures', icon: Presentation, file: 'study/Lectures' }),
@@ -117,7 +117,7 @@ const ALL: PageDef[] = [
 ];
 
 /** The Life section's notebook pages, shown first; other Life pages are grouped under "Tools". */
-export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook']);
+export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook', 'study.overview']);
 
 export const PAGES: Page[] = ALL.flatMap((def) => {
   const load = FILES[`/src/modules/${def.file}.tsx`] as Page['load'] | undefined;

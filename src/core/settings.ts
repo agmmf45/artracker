@@ -36,7 +36,13 @@ export interface Settings {
   privacy: { hideJournalPreviews: boolean; hideHealthInCalendar: boolean; lockJournal: boolean; ai: { enabled: boolean; health: boolean; finance: boolean; journal: boolean } };
   health: { calorieGoal: number; proteinGoal: number | null; carbGoal: number | null; fatGoal: number | null; waterGoal: number; waterServings: number[]; sleepGoalHours: number; heightCm: number | null; weightGoal?: number | null };
   finance: { monthlyBudget: number | null; currency: string };
-  study: { gpaScale: number; gradeScale: Array<{ min: number; letter: string; points: number }>; dailyStudyGoalMin: number; dental: boolean };
+  study: {
+    gpaScale: number; gradeScale: Array<{ min: number; letter: string; points: number }>; dailyStudyGoalMin: number; dental: boolean;
+    /** study reminders: minutes before each lecture (null = off), 2 days before exams, the day before due work, daily flashcards at a time */
+    reminders?: { lectureMin: number | null; examDays: boolean; dueDay: boolean; cardsAt: string | null };
+    /** cumulative GPA and credits before this semester, for the sheet's calculator when past grades aren't entered */
+    priorGpa?: number | null; priorCredits?: number | null;
+  };
   prayer: { enabled: boolean; lat: number | null; lng: number | null; city: string | null; method: 'umm_al_qura' | 'mwl' | 'isna' | 'egypt' };
 }
 
@@ -94,7 +100,7 @@ export const DEFAULT_SETTINGS: Settings = {
   privacy: { hideJournalPreviews: true, hideHealthInCalendar: true, lockJournal: false, ai: { enabled: false, health: false, finance: false, journal: false } },
   health: { calorieGoal: 2000, proteinGoal: null, carbGoal: null, fatGoal: null, waterGoal: 2000, waterServings: [150, 250, 330, 500], sleepGoalHours: 8, heightCm: null, weightGoal: null },
   finance: { monthlyBudget: null, currency: 'SAR' },
-  study: { gpaScale: 5, gradeScale: DEFAULT_GRADE_SCALE_5, dailyStudyGoalMin: 120, dental: true },
+  study: { gpaScale: 5, gradeScale: DEFAULT_GRADE_SCALE_5, dailyStudyGoalMin: 120, dental: true, reminders: { lectureMin: 15, examDays: true, dueDay: false, cardsAt: '21:00' }, priorGpa: null, priorCredits: null },
   prayer: { enabled: false, lat: null, lng: null, city: null, method: 'umm_al_qura' },
 };
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSettings } from '@/core/hooks';
 import { db, getMeta, setMeta } from '@/core/db';
-import { fromKey, hm, nowMinutes, todayKey } from '@/core/dates';
+import { fromKey, hm, nowMinutes, shiftKey, todayKey } from '@/core/dates';
 import { toast } from '@/core/toast';
 import type { TaskData } from '@/modules/life/tasks/model';
 import type { EventData } from '@/modules/shared/domain';
@@ -53,6 +53,27 @@ export function ReminderEngine() {
         }
         if (r.type === 'habit' && d.reminder && r.status !== 'archived') add(r.id, hm(d.reminder), `${d.icon ?? ''} ${d.name}`, '', '/life/habits');
         if (r.type === 'medication' && r.status !== 'stopped') for (const t of (d.times ?? []) as string[]) add(`${r.id}:${t}`, hm(t), `💊 ${d.name}`, d.dose ?? '', '/health/medication');
+      }
+      // study: lectures today, exams in two days, work due tomorrow, flashcards due
+      const sr = s.study.reminders;
+      if (sr) {
+        const study = await db().records.where('type').anyOf('course', 'exam', 'assignment').filter((r) => !r.deleted_at).toArray();
+        const in2 = shiftKey(today, 2); const in1 = shiftKey(today, 1);
+        for (const r of study) {
+          const d = r.data as Record<string, any>;
+          if (r.type === 'course' && sr.lectureMin != null && !d.archived) {
+            for (const se of (d.schedule ?? []) as Array<{ day: number; start: string; room?: string }>) {
+              if (se.day === dow) add(`${r.id}:lec:${se.start}`, (hm(se.start) ?? 0) - sr.lectureMin, `🎓 ${d.name}`, `${se.start}${se.room ? ` · ${se.room}` : ''}`, '/study');
+            }
+          }
+          if (r.type === 'exam' && sr.examDays && r.date?.slice(0, 10) === in2) add(`${r.id}:exam2`, 20 * 60, `★ ${d.title} بعد يومين`, 'وقت خطة المراجعة', '/study');
+          if (r.type === 'assignment' && sr.dueDay && r.status !== 'done' && r.date?.slice(0, 10) === in1) add(`${r.id}:due1`, 18 * 60, `📝 ${d.title} — التسليم بكرة`, '', '/study');
+        }
+        if (sr.cardsAt) {
+          const cards = await db().records.where('type').equals('flashcard').filter((r) => !r.deleted_at).toArray();
+          const n = cards.filter((r) => { const due = (r.data as { srs?: { due?: string } }).srs?.due; return !!due && Date.parse(due) <= Date.now(); }).length;
+          if (n) add('cards', hm(sr.cardsAt), `🗂 ${n} بطاقة للمراجعة`, '', '/study/flashcards');
+        }
       }
       if (!due.length) return;
 

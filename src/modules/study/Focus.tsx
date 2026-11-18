@@ -1,42 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { Play, Pause, Square, Coffee, Timer, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
-import { useNow, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
-import { db, setMeta } from '@/core/db';
-import { create, remove } from '@/core/repo';
-import { dateKey, fmtDuration, rangeKeys, shiftKey, todayKey } from '@/core/dates';
-import { grantXp } from '@/core/xp';
-import { toast } from '@/core/toast';
+import { useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
+import { remove } from '@/core/repo';
+import { fmtDuration, rangeKeys, shiftKey, todayKey } from '@/core/dates';
 import { Button, Card, EmptyState, IconButton, PageHeader, Ring, Section, Segmented, Stat, Textarea } from '@/design/ui';
 import { Bars } from '@/design/charts';
 import type { LectureData, StudySessionData } from './model';
 import { CourseSelect, courseLabel, useCourses } from './shared';
-import { effectiveMinutes, subtractOverlaps } from './focusLogic';
-
-interface Active {
-  phase: 'work' | 'break';
-  mode: 'pomodoro' | 'custom' | 'stopwatch';
-  started_at: string;
-  planned_min: number;
-  paused_ms: number;
-  paused_at: string | null;
-  course_id: string | null;
-  lecture_id: string | null;
-  cycle: number;
-}
-
-function beep() {
-  try {
-    const ctx = new AudioContext();
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.frequency.value = 660; o.connect(g); g.connect(ctx.destination);
-    g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-    o.start(); o.stop(ctx.currentTime + 0.85);
-  } catch { /* audio not available */ }
-}
+import { mmss, useFocusEngine, type ActiveFocus } from './focusEngine';
 
 export default function Focus() {
   const { L, lang } = useI18n();
@@ -44,75 +18,19 @@ export default function Focus() {
   const courses = useCourses();
   const lectures = useRecords<LectureData>('lecture');
   const [params, setParams] = useSearchParams();
-  const active = useLiveQuery(() => db().meta.get('focus_active').then((r) => (r?.value as Active | null) ?? null), []);
-  const now = useNow(1000);
-  const [mode, setMode] = useState<Active['mode']>('pomodoro');
+  const [mode, setMode] = useState<ActiveFocus['mode']>('pomodoro');
   const [custom, setCustom] = useState(45);
   const [course, setCourse] = useState<string | null>(null);
   const [lecture, setLecture] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
-  const finishing = useRef(false);
+  const notesRef = useRef(notes); notesRef.current = notes;
   const sessions = useRecordsInRange<StudySessionData>('study_session', shiftKey(todayKey(), -29), todayKey());
-
-  const start = async (phase: Active['phase'] = 'work', cycle = active?.cycle ?? 0) => {
-    const planned = phase === 'break' ? ((cycle % settings.focus.longEvery === 0 && cycle > 0) ? settings.focus.long : settings.focus.short) : mode === 'pomodoro' ? settings.focus.work : mode === 'custom' ? custom : 0;
-    await setMeta('focus_active', { phase, mode, started_at: new Date().toISOString(), planned_min: planned, paused_ms: 0, paused_at: null, course_id: course, lecture_id: lecture, cycle } satisfies Active);
-  };
+  const engine = useFocusEngine(() => notesRef.current);
+  const { active, elapsedMs, remainingMs, pause, resume } = engine;
+  const start = () => engine.start({ mode, customMin: custom, course, lecture });
+  const stop = async () => { await engine.stop(); setNotes(''); };
 
   useEffect(() => { if (params.get('start') && active === null) { params.delete('start'); setParams(params, { replace: true }); void start(); } }, [params, active]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const elapsedMs = active ? (active.paused_at ? Date.parse(active.paused_at) : now.getTime()) - Date.parse(active.started_at) - active.paused_ms : 0;
-  const remainingMs = active && active.planned_min ? active.planned_min * 60000 - elapsedMs : null;
-
-  const saveSession = async (a: Active, endedAt: string) => {
-    const mins = effectiveMinutes(a.started_at, endedAt, a.paused_ms);
-    if (mins < 1) { toast(L('الجلسة أقصر من دقيقة — لم تُحفظ', 'Session under a minute — not saved')); return 0; }
-    // clip against existing sessions so overlapping time is never double-counted
-    const day = dateKey(new Date(a.started_at));
-    const existing = (await db().records.where('[type+date]').between(['study_session', shiftKey(day, -1)], ['study_session', `${shiftKey(day, 1)}￿`]).filter((r) => !r.deleted_at).toArray())
-      .map((r) => r.data as unknown as StudySessionData).map((s) => ({ start: Date.parse(s.started_at), end: Date.parse(s.ended_at) }));
-    const startMs = Date.parse(a.started_at) + 0;
-    const endMs = Date.parse(endedAt) - a.paused_ms;
-    const parts = subtractOverlaps({ start: startMs, end: endMs }, existing);
-    let saved = 0;
-    for (const p of parts) {
-      const m = Math.round((p.end - p.start) / 60000);
-      saved += m;
-      await create<StudySessionData>('study_session', { course_id: a.course_id, lecture_id: a.lecture_id, mode: a.mode, started_at: new Date(p.start).toISOString(), ended_at: new Date(p.end).toISOString(), duration_min: m, notes }, { date: dateKey(new Date(p.start)), parent_id: a.course_id });
-    }
-    if (saved < mins) toast(L(`تجاهلنا ${mins - saved} دقيقة متداخلة مع جلسة سابقة`, `Ignored ${mins - saved} minutes overlapping an earlier session`));
-    if (saved >= 20) await grantXp(`focus:${a.started_at}`, 'focus', settings, L('جلسة تركيز', 'Focus session'));
-    setNotes('');
-    return saved;
-  };
-
-  // auto-complete when a timed phase ends (also works after a refresh: computed from timestamps)
-  useEffect(() => {
-    if (!active || remainingMs === null || remainingMs > 0 || active.paused_at || finishing.current) return;
-    finishing.current = true;
-    (async () => {
-      const end = new Date(Date.parse(active.started_at) + active.paused_ms + active.planned_min * 60000).toISOString();
-      if (settings.focus.sound) beep();
-      if (active.phase === 'work') {
-        const m = await saveSession(active, end);
-        toast(L(`أحسنت! ${m} دقيقة تركيز. خذ استراحة.`, `Nice! ${m} focused minutes. Take a break.`), { tone: 'reward' });
-        if (active.mode === 'pomodoro') await start('break', active.cycle + 1); else await setMeta('focus_active', null);
-      } else {
-        toast(L('انتهت الاستراحة', 'Break over'));
-        await setMeta('focus_active', null);
-      }
-      finishing.current = false;
-    })();
-  }, [remainingMs, active]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const pause = async () => active && setMeta('focus_active', { ...active, paused_at: new Date().toISOString() });
-  const resume = async () => active?.paused_at && setMeta('focus_active', { ...active, paused_ms: active.paused_ms + (Date.now() - Date.parse(active.paused_at)), paused_at: null });
-  const stop = async () => {
-    if (!active) return;
-    const a = active.paused_at ? { ...active, paused_ms: active.paused_ms + (Date.now() - Date.parse(active.paused_at)), paused_at: null } : active;
-    await setMeta('focus_active', null);
-    if (a.phase === 'work') { const m = await saveSession(a, new Date().toISOString()); if (m) toast(L(`حُفظت ${m} دقيقة`, `Saved ${m} minutes`)); }
-  };
 
   const today = todayKey();
   const stats = useMemo(() => {
@@ -123,7 +41,7 @@ export default function Focus() {
     return { byDay, byCourse, today: byDay[today] ?? 0, week: rangeKeys(shiftKey(today, -6), 7).reduce((s, d) => s + (byDay[d] ?? 0), 0), count: xs.length };
   }, [sessions, today]);
 
-  const mm = (ms: number) => { const s = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+  const mm = mmss;
   const courseLectures = (lectures ?? []).filter((l) => !course || l.data.course_id === course);
 
   return (

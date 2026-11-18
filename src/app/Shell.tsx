@@ -154,7 +154,7 @@ export function Shell() {
                   </NavLink>
                   {active && (
                     <div className="mb-2 mt-1 space-y-0.5 ps-4">
-                      {s.id === 'life' ? (
+                      {s.id === 'life' || s.id === 'study' ? (
                         <>
                           {list.filter((p) => LIFE_MAIN.has(p.id)).map(pageLink)}
                           <div className="px-3 pb-0.5 pt-3 text-[11.5px] font-bold text-fg-3">{L('أدوات', 'Tools')}</div>
