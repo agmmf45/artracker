@@ -11,6 +11,7 @@ import { QuickCapture } from './QuickCapture';
 import { CommandPalette } from './CommandPalette';
 import { UpdatePrompt } from './UpdatePrompt';
 import { ReminderEngine } from './ReminderEngine';
+import { AchievementWatcher } from './AchievementWatcher';
 import { Avatar } from '@/modules/shared/Avatar';
 
 function useSection(): SectionId {
@@ -67,6 +68,7 @@ export function Shell() {
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [loc.pathname]);
+  useEffect(() => { try { if (sessionStorage.getItem('_pendingSMS') && loc.pathname !== '/life/finance') nav('/life/finance'); } catch { /* ignore */ } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-dvh lg:ps-[var(--sidebar-w)]">
@@ -190,6 +192,7 @@ export function Shell() {
       <CommandPalette open={palette} onOpenChange={setPalette} onCapture={() => { setPalette(false); setCapture(true); }} />
       <UpdatePrompt />
       <ReminderEngine />
+      <AchievementWatcher />
     </div>
   );
 }

@@ -57,6 +57,7 @@ async function publicCards(env: Env, ids: string[]) {
       status_note: share ? ((p.status_note as string) ?? null) : null,
       level: share ? ((p.level as number) ?? null) : null,
       streak: share ? ((p.best_streak as number) ?? null) : null,
+      today: share ? ((p.today as { date: string; pct: number } | undefined) ?? null) : null,
     };
   });
 }

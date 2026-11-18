@@ -63,7 +63,7 @@ export interface Profile {
   avatar_photo: string | null;
   status_note: string | null;
   share_progress?: boolean;
-  level?: number;
+  level?: number | null;
   best_streak?: number;
 }
 
