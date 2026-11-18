@@ -138,3 +138,29 @@
   .print-area, .print-area * { visibility: visible !important; }
   .print-area { position: absolute; inset: 0; padding: 24px; background: #fff; color: #000; }
 }
+
+/* ── Notebook (Today page): paper, washi tape, highlighter, open-book spread ── */
+.nb-paper { background-color: var(--surface); border: 1px solid var(--border); }
+.nb-paper.paper-dots { background-image: radial-gradient(color-mix(in oklab, var(--border-strong) 90%, transparent) 1.1px, transparent 1.4px); background-size: 22px 22px; background-position: 11px 11px; }
+.nb-paper.paper-lines { background-image: linear-gradient(transparent 31px, color-mix(in oklab, var(--border) 85%, transparent) 32px); background-size: 100% 32px; }
+.nb-paper.paper-grid { background-image: linear-gradient(color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px); background-size: 22px 22px; }
+.nb-page { position: relative; border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+@container nb (min-width: 1060px) {
+  .nb-page.nb-a { border-start-end-radius: 4px; border-end-end-radius: 4px; box-shadow: inset -26px 0 26px -26px rgb(47 41 38 / 0.22), var(--shadow-2); }
+  .nb-page.nb-b { border-start-start-radius: 4px; border-end-start-radius: 4px; border-inline-start: 0; box-shadow: inset 26px 0 26px -26px rgb(47 41 38 / 0.22), var(--shadow-2); }
+  [dir='rtl'] .nb-page.nb-a { box-shadow: inset 26px 0 26px -26px rgb(47 41 38 / 0.22), var(--shadow-2); }
+  [dir='rtl'] .nb-page.nb-b { box-shadow: inset -26px 0 26px -26px rgb(47 41 38 / 0.22), var(--shadow-2); }
+}
+.nb-washi {
+  position: absolute; height: 24px; width: 108px; opacity: 0.8; pointer-events: none;
+  background: repeating-linear-gradient(45deg, rgb(255 255 255 / 0.35) 0 6px, transparent 6px 12px), var(--washi, var(--life));
+  box-shadow: 0 1px 2px rgb(47 41 38 / 0.12);
+}
+.nb-hl { background: linear-gradient(transparent 56%, color-mix(in oklab, var(--reward) 55%, transparent) 56%); padding-inline: 2px; }
+.nb-title { font-family: var(--font-display); font-weight: 900; letter-spacing: 0; }
+.nb-box { border: 1.5px solid var(--border); border-radius: var(--r-md); background: color-mix(in oklab, var(--surface) 86%, transparent); padding: 14px 16px; }
+.nb-sticky { background: color-mix(in oklab, var(--reward) 38%, var(--surface)); box-shadow: 0 10px 18px -12px rgb(47 41 38 / 0.5); transform: rotate(-1.5deg); }
+.nb-line { border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent); }
+.nb-write { background: transparent; border: 0; border-bottom: 1px dashed var(--border-strong); border-radius: 0; outline: none; width: 100%; padding: 4px 2px; color: var(--text); }
+.nb-write:focus { border-bottom-color: var(--accent-ink); }
+.nb-write::placeholder { color: var(--text-3); }

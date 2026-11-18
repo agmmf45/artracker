@@ -1,117 +1,182 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
-import { Plus, CalendarArrowDown, Sun, Clock } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
+import { ChevronLeft, ChevronRight, CalendarClock, Star, Check } from 'lucide-react';
+import clsx from 'clsx';
+import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
-import { useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
-import { fmtDate, fmtTime, hijri, shiftKey, todayKey } from '@/core/dates';
-import { Button, Card, CheckCircle, EmptyState, PageHeader, Section } from '@/design/ui';
-import { TaskRow } from './tasks/TaskRow';
+import { updateSettings, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
+import { bulk, revertTo } from '@/core/repo';
+import { dateKey, fmtDate, hijri, relativeDay, shiftKey, todayKey } from '@/core/dates';
+import { undoToast } from '@/core/toast';
+import type { Settings } from '@/core/settings';
+import { Segmented } from '@/design/ui';
+import type { NoteData, TxnData } from '@/modules/shared/domain';
 import { TaskEditor } from './tasks/TaskEditor';
-import { createTask, isDone, saveTask, taskDay, type Task, type TaskData } from './tasks/model';
-import { indexLogs, isPaused, isScheduled, logDone, toggleHabit, type HabitData, type HabitLogData } from './habits/model';
+import { isDone, saveTask, taskDay, type Task, type TaskData } from './tasks/model';
 import { useCalendarItems } from './calendar/sources';
+import { RapidLog } from './today/RapidLog';
+import { TimeBlocks } from './today/TimeBlocks';
+import { Trackers, Box } from './today/Trackers';
+import { dayPageId, type DayPageData } from './today/dayPage';
 
+type Paper = Settings['notebook']['paper'];
+const localDay = (iso: string | null | undefined) => (iso ? dateKey(new Date(iso)) : null);
+
+/**
+ * Today, as a notebook page (bullet-journal style): rapid log with keys, top 3, hour column,
+ * and the day's trackers (meals, water, sleep, mood, habits, gratitude) — all from real records,
+ * so each line also appears in Tasks, Calendar, Health and Journal.
+ */
 export default function Today() {
   const { L, lang, locale } = useI18n();
   const settings = useSettings();
+  const [params, setParams] = useSearchParams();
   const today = todayKey();
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? params.get('date')! : today;
+  const setDay = (d: string) => setParams(d === today ? {} : { date: d }, { replace: true });
+  const tomorrow = shiftKey(day, 1);
+
   const tasks = useRecords<TaskData>('task');
-  const habits = useRecords<HabitData>('habit');
-  const logs = useRecordsInRange<HabitLogData>('habit_log', today, today);
-  const items = useCalendarItems(today, today, settings);
-  const [title, setTitle] = useState('');
+  const items = useCalendarItems(day, day, settings);
+  const notesAll = useRecords<NoteData>('note');
+  const txnsDay = useRecordsInRange<TxnData>('txn', day, day);
+  const journalDay = useRecordsInRange<DayPageData>('journal', day, day);
   const [editing, setEditing] = useState<Task | null>(null);
+  const paper: Paper = settings.notebook?.paper ?? 'dots';
+  const h12 = settings.timeFormat === '12';
 
-  const { overdue, todays, done } = useMemo(() => {
-    const xs = (tasks ?? []).filter((t) => t.status !== 'archived' && t.status !== 'inbox');
-    return {
-      overdue: xs.filter((t) => !isDone(t) && ((t.data.due && t.data.due < today) || (t.data.start && t.data.start < today && (!t.data.due || t.data.due >= today)))),
-      todays: xs.filter((t) => !isDone(t) && (taskDay(t.data) === today || t.data.due === today)),
-      done: xs.filter((t) => isDone(t) && t.data.completed_at?.slice(0, 10) === today),
-    };
-  }, [tasks, today]);
+  const t = useMemo(() => {
+    const xs = (tasks ?? []).filter((x) => x.status !== 'archived' && x.status !== 'inbox');
+    const open = xs.filter((x) => !isDone(x) && (taskDay(x.data) === day || x.data.due === day));
+    const done = xs.filter((x) => isDone(x) && localDay(x.data.completed_at) === day);
+    const recurringDone = xs.filter((x) => !isDone(x) && x.data.recurrence && taskDay(x.data) !== day && (x.data.history ?? []).some((h) => h.date === day));
+    const overdue = day === today ? xs.filter((x) => !isDone(x) && !open.includes(x) && ((x.data.start && x.data.start < today) || (!x.data.start && x.data.due && x.data.due < today))) : [];
+    const top = [...open, ...done].filter((x) => x.data.important).slice(0, 3);
+    const tomorrowTop = xs.some((x) => !isDone(x) && x.data.important && taskDay(x.data) === shiftKey(day, 1));
+    return { open, done, recurringDone, overdue, top, tomorrowTop };
+  }, [tasks, day, today]);
 
-  const logIdx = useMemo(() => indexLogs(logs), [logs]);
-  const todaysHabits = (habits ?? []).filter((h) => h.status !== 'archived' && isScheduled(h.data, today) && !isPaused(h.data, today)).sort((a, b) => a.data.order - b.data.order);
-  const timed = (items ?? []).filter((i) => !i.allDay && i.kind !== 'task');
+  const events = (items ?? []).filter((i) => i.kind !== 'task' && i.kind !== 'deadline');
+  const notes = (notesAll ?? []).filter((n) => (n.data.note_type === 'quick' || n.data.note_type === 'idea') && localDay(n.created_at) === day);
+  const txns = (txnsDay ?? []).filter((x) => x.data.kind !== 'transfer');
+  const page = journalDay?.find((e) => e.id === dayPageId(day))?.data;
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    await createTask({ title: title.trim(), start: today, priority: settings.tasks.defaultPriority });
-    setTitle('');
+  const moveAll = async (list: Task[], to: string) => {
+    const snaps = list.map((x) => x as unknown as Rec);
+    await bulk(async () => { for (const x of list) await saveTask(x.id, { ...x.data, start: to }); });
+    undoToast(L(`رُحّلت ${list.length} مهمة لـ${relativeDay(to, lang, locale)}`, `${list.length} moved to ${relativeDay(to, lang, locale)}`), async () => { for (const s of snaps) await revertTo(s); });
   };
 
+  const shutdown = [
+    { ok: t.open.length === 0, ar: 'ما بقى شي مفتوح لليوم', en: 'Nothing left open today',
+      act: t.open.length ? <button onClick={() => void moveAll(t.open, tomorrow)} className="font-bold text-accent-ink hover:underline">{L(`رحّل الباقي (${t.open.length}) لبكرة`, `Move the rest (${t.open.length}) to tomorrow`)}</button> : null },
+    { ok: t.tomorrowTop, ar: 'حدّدت أهم مهمة لبكرة', en: 'Picked tomorrow’s top task',
+      act: !t.tomorrowTop ? <button onClick={() => setDay(tomorrow)} className="font-bold text-accent-ink hover:underline">{L('افتح صفحة بكرة', 'Open tomorrow')}</button> : null },
+    { ok: !!page?.prompts?.line, ar: 'كتبت سطر اليوم', en: 'Wrote the line of the day', act: null },
+  ];
+
+  const dayNum = fmtDate(day, locale, { day: 'numeric' });
+  const rest = fmtDate(day, locale, { month: 'long' });
+  const weekday = fmtDate(day, locale, { weekday: 'long' });
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <PageHeader eyebrow={hijri(today, lang)} title={fmtDate(today, locale)} subtitle={L(`${todays.length} مهمة · ${todaysHabits.length} عادة · ${timed.length} موعد`, `${todays.length} tasks · ${todaysHabits.length} habits · ${timed.length} events`)}
-        actions={<Link to="/life/planner"><Button icon={<CalendarArrowDown size={16} />}>{L('خطط يومك', 'Plan your day')}</Button></Link>} />
+    <div className="mx-auto max-w-[1360px]">
+      <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div>
+          <p className="text-[13px] font-bold text-fg-2">{day === today ? L('اليوم', 'Today') : relativeDay(day, lang, locale)}</p>
+          <h1 className="nb-title text-[34px] leading-tight md:text-[40px]">{weekday}، <span className="nb-hl">{dayNum} {rest}</span></h1>
+          <p className="mt-0.5 text-[13.5px] text-fg-2">{hijri(day, lang)}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center rounded-full border border-line bg-surface">
+            <button onClick={() => setDay(shiftKey(day, -1))} aria-label={L('اليوم السابق', 'Previous day')} className="grid size-10 place-items-center rounded-full hover:bg-surface-2"><ChevronRight size={18} className="ltr:rotate-180" /></button>
+            <button onClick={() => setDay(today)} disabled={day === today} className="h-10 px-3 text-sm font-bold disabled:text-fg-3">{L('اليوم', 'Today')}</button>
+            <button onClick={() => setDay(shiftKey(day, 1))} aria-label={L('اليوم التالي', 'Next day')} className="grid size-10 place-items-center rounded-full hover:bg-surface-2"><ChevronLeft size={18} className="ltr:rotate-180" /></button>
+          </div>
+          <Segmented size="sm" value={paper} onChange={(v) => void updateSettings({ notebook: { paper: v } })}
+            options={[{ value: 'dots', label: L('نقاط', 'Dots') }, { value: 'lines', label: L('سطور', 'Lines') }, { value: 'grid', label: L('مربعات', 'Grid') }, { value: 'plain', label: L('سادة', 'Plain') }]} />
+          <Link to="/life/planner" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:bg-surface-2"><CalendarClock size={16} />{L('المخطط', 'Planner')}</Link>
+        </div>
+      </header>
 
-      <form onSubmit={add} className="mb-6 flex gap-2">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="field" placeholder={L('أضف مهمة لليوم…', 'Add a task for today…')} aria-label={L('مهمة جديدة لليوم', 'New task for today')} />
-        <Button type="submit" variant="primary" icon={<Plus size={17} />} disabled={!title.trim()}>{L('أضف', 'Add')}</Button>
-      </form>
+      <div className="@container/nb">
+      <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-2 @[1060px]/nb:gap-0">
+        {/* ── page one: the log ── */}
+        <section className={clsx('nb-paper nb-page nb-a @container/pa px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('سجل اليوم', 'Daily log')}>
+          <span className="nb-washi -top-3 end-14 rotate-3" aria-hidden="true" />
+          <div className="grid grid-cols-1 gap-7 @[720px]/pa:grid-cols-[minmax(0,1fr)_210px]">
+            <div className="min-w-0">
+              <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('أهم 3', 'Top 3')}</h2>
+              <ol className="mb-6 flex flex-col gap-1.5">
+                {[0, 1, 2].map((k) => {
+                  const x = t.top[k];
+                  return (
+                    <li key={k} className="flex min-h-9 items-center gap-2.5 text-[15.5px]">
+                      <span className={clsx('num grid size-7 shrink-0 place-items-center rounded-full border-[1.5px] text-[13px] font-black', x && isDone(x) ? 'border-study-ink bg-study' : 'border-fg')}>
+                        {x && isDone(x) ? <Check size={14} /> : k + 1}
+                      </span>
+                      {x ? (
+                        <button onClick={() => setEditing(x)} className={clsx('min-w-0 truncate text-start', isDone(x) ? 'text-fg-2 line-through' : 'nb-hl')}>{x.data.title}</button>
+                      ) : (
+                        <span className="text-[13.5px] text-fg-3">{k === 0 ? <>{L('اضغط', 'Tap')} <Star size={12} className="inline" /> {L('جنب أي مهمة تحت', 'next to any task below')}</> : '—'}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
 
-      {overdue.length > 0 && (
-        <Section title={<span className="text-danger">{L('من أيام سابقة', 'Carried over')} · {overdue.length}</span>}
-          action={<Button size="sm" variant="ghost" onClick={async () => { for (const t of overdue) await saveTask(t.id, { ...t.data, start: today }); }}>{L('خطّطها كلها لليوم', 'Plan all for today')}</Button>}>
-          <Card className="divide-y divide-line p-1.5">
-            {overdue.map((t) => (
-              <div key={t.id} className="flex items-center gap-1">
-                <div className="min-w-0 flex-1"><TaskRow task={t} onOpen={setEditing} /></div>
-                <Button size="sm" variant="ghost" onClick={() => saveTask(t.id, { ...t.data, start: today })}>{L('لليوم', 'Today')}</Button>
-                <Button size="sm" variant="ghost" onClick={() => saveTask(t.id, { ...t.data, start: shiftKey(today, 1) })}>{L('بكرة', 'Tmrw')}</Button>
-              </div>
-            ))}
-          </Card>
-          <p className="mt-1.5 text-[12px] text-fg-3">{L('نغيّر موعد العمل فقط — الموعد النهائي يبقى كما هو.', 'Only the scheduled date changes — deadlines stay as they are.')}</p>
-        </Section>
-      )}
-
-      {timed.length > 0 && (
-        <Section title={L('مواعيد اليوم', "Today's events")}>
-          <Card className="divide-y divide-line">
-            {timed.map((i) => (
-              <div key={i.key} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="h-7 w-1 rounded-full" style={{ background: i.color }} />
-                <span className="num w-28 text-[12px] text-fg-2"><Clock size={12} className="me-1 inline" />{fmtTime(i.start, locale, settings.timeFormat === '12')}{i.end ? `–${fmtTime(i.end, locale, settings.timeFormat === '12')}` : ''}</span>
-                <span className="min-w-0 flex-1 truncate text-sm font-bold">{i.title}</span>
-              </div>
-            ))}
-          </Card>
-        </Section>
-      )}
-
-      <Section title={L('مهام اليوم', "Today's tasks")}>
-        {todays.length ? (
-          <Card className="divide-y divide-line p-1.5">{todays.sort((a, b) => (a.data.start_time ?? '99').localeCompare(b.data.start_time ?? '99') || b.data.priority - a.data.priority).map((t) => <TaskRow key={t.id} task={t} onOpen={setEditing} showDate={false} />)}</Card>
-        ) : <EmptyState icon={<Sun size={26} />} title={L('يومك هادئ.', 'A calm day.')} hint={L('اختر خطوة واحدة تقدّمك، وابدأ.', 'Pick one step that moves you forward, and start.')} />}
-      </Section>
-
-      {todaysHabits.length > 0 && (
-        <Section title={L('عادات اليوم', "Today's habits")} action={<Link to="/life/habits" className="text-[12px] font-bold text-accent">{L('العادات', 'Habits')}</Link>}>
-          <Card className="grid gap-1 p-2 sm:grid-cols-2">
-            {todaysHabits.map((h) => {
-              const log = logIdx.get(h.id)?.get(today);
-              const ok = logDone(h.data, log);
-              return (
-                <div key={h.id} className="flex items-center gap-2.5 rounded-sm px-2 py-2 hover:bg-surface-2">
-                  <CheckCircle checked={ok} onToggle={() => void toggleHabit(h, today, log, settings)} label={h.data.name} color="var(--life)" />
-                  <span className="text-lg">{h.data.icon}</span>
-                  <span className={`truncate text-sm ${ok ? 'text-fg-3 line-through' : ''}`}>{h.data.name}</span>
-                  {h.data.kind !== 'check' && <span className="num ms-auto text-[12px] text-fg-3">{log?.data.value ?? 0}/{h.data.target} {h.data.unit ?? ''}</span>}
+              {t.overdue.length > 0 && (
+                <div className="nb-box mb-5 !py-3">
+                  <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-[14px] font-bold text-danger">{L('من أيام سابقة', 'Carried over')} · <span className="num">{t.overdue.length}</span></h3>
+                    <button onClick={() => void moveAll(t.overdue, today)} className="text-[13px] font-bold text-accent-ink hover:underline">{L('كلها لليوم', 'All to today')}</button>
+                  </div>
+                  <ul>
+                    {t.overdue.slice(0, 6).map((x) => (
+                      <li key={x.id} className="flex min-h-10 items-center gap-2 text-[14px]">
+                        <button onClick={() => setEditing(x)} className="min-w-0 flex-1 truncate text-start">{x.data.title}</button>
+                        <button onClick={() => void saveTask(x.id, { ...x.data, start: today })} className="h-9 rounded-xs px-2 text-[12.5px] font-bold hover:bg-surface-2">{L('لليوم', 'Today')}</button>
+                        <button onClick={() => void saveTask(x.id, { ...x.data, start: shiftKey(today, 1) })} className="h-9 rounded-xs px-2 text-[12.5px] font-bold hover:bg-surface-2">{L('بكرة', 'Tmrw')}</button>
+                      </li>
+                    ))}
+                  </ul>
+                  {t.overdue.length > 6 && <Link to="/life/tasks" className="text-[12.5px] font-bold text-accent-ink">{L(`+${t.overdue.length - 6} في المهام`, `+${t.overdue.length - 6} in Tasks`)}</Link>}
                 </div>
-              );
-            })}
-          </Card>
-        </Section>
-      )}
+              )}
 
-      {settings.tasks.showCompletedInToday && done.length > 0 && (
-        <Section title={L(`أنجزت اليوم · ${done.length}`, `Done today · ${done.length}`)}>
-          <Card className="divide-y divide-line p-1.5 opacity-80">{done.map((t) => <TaskRow key={t.id} task={t} onOpen={setEditing} compact />)}</Card>
-        </Section>
-      )}
+              <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('السجل السريع', 'Rapid log')}</h2>
+              <RapidLog day={day} tasks={t.open} doneTasks={t.done} recurringDone={t.recurringDone} events={events} notes={notes} txns={txns} settings={settings} onOpen={setEditing} />
+            </div>
+
+            <div className="min-w-0">
+              <h2 className="nb-title mb-3 text-xl text-life-ink">{L('جدول الساعات', 'Hours')}</h2>
+              <TimeBlocks items={items ?? []} day={day} today={today} dayStart={settings.dayStart} dayEnd={settings.dayEnd} h12={h12} />
+            </div>
+          </div>
+        </section>
+
+        {/* ── page two: trackers ── */}
+        <section className={clsx('nb-paper nb-page nb-b px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('متتبعات اليوم', 'Day trackers')}>
+          <span className="nb-washi -top-2.5 start-16 -rotate-6" style={{ ['--washi' as string]: 'var(--study)' }} aria-hidden="true" />
+          <h2 className="nb-title mb-4 text-2xl text-life-ink">{L('متتبّعات اليوم', 'Day trackers')}</h2>
+          <Trackers day={day} settings={settings} />
+
+          {day === today && (
+            <Box title={L('إغلاق اليوم', 'Shut down the day')} extra={L('دقيقتين قبل النوم', 'two minutes before bed')} className="mt-3.5 !bg-[color-mix(in_oklab,var(--health)_22%,var(--surface))]">
+              <ul className="flex flex-col gap-2">
+                {shutdown.map((s) => (
+                  <li key={s.en} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[14.5px]">
+                    <span className={clsx('grid size-6 shrink-0 place-items-center rounded-[7px] border-[1.5px]', s.ok ? 'border-study-ink bg-study-ink text-surface' : 'border-line-strong')} aria-hidden="true">{s.ok && <Check size={14} />}</span>
+                    <span className={clsx(s.ok && 'text-fg-2')}>{L(s.ar, s.en)}<span className="sr-only">{s.ok ? L(' — تم', ' — done') : L(' — باقي', ' — not yet')}</span></span>
+                    {s.act && <span className="text-[13px]">{s.act}</span>}
+                  </li>
+                ))}
+              </ul>
+            </Box>
+          )}
+        </section>
+      </div>
+      </div>
 
       <TaskEditor task={editing} open={!!editing} onOpenChange={(v) => !v && setEditing(null)} />
     </div>

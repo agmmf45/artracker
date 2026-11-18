@@ -3,13 +3,11 @@ import { CalendarDays, Clock, Timer, Hash, Wallet, Droplets, ListChecks, Inbox, 
 import { useI18n } from '@/core/i18n';
 import { useSettings } from '@/core/hooks';
 import { parseCapture, type CaptureKind } from '@/core/capture/parse';
-import { create } from '@/core/repo';
-import { fmtTime, relativeDay, todayKey } from '@/core/dates';
+import { fmtTime, relativeDay } from '@/core/dates';
 import { toast } from '@/core/toast';
 import { Modal } from '@/design/overlay';
 import { Button, Chip, Input } from '@/design/ui';
-import { createTask } from '@/modules/life/tasks/model';
-import { addTxn, blankEvent, blankNote, logWater, type CaptureData, type EventData, type JournalData, type NoteData } from '@/modules/shared/domain';
+import { saveCapture } from '@/modules/shared/captureSave';
 
 const KINDS: Array<{ k: CaptureKind; ar: string; en: string; icon: typeof Inbox }> = [
   { k: 'inbox', ar: 'الوارد', en: 'Inbox', icon: Inbox },
@@ -46,45 +44,8 @@ export function QuickCapture({ open, onOpenChange }: { open: boolean; onOpenChan
     if (!raw) return;
     setBusy(true);
     try {
-      const title = parsed.title || raw;
-      switch (kind) {
-        case 'task':
-          await createTask({
-            title, priority: parsed.priority ?? settings.tasks.defaultPriority, tags: parsed.tags, category: parsed.category,
-            start: parsed.date, start_time: parsed.time, duration_min: parsed.duration_min, estimate_min: parsed.duration_min, capture_text: raw, source: 'capture',
-          });
-          toast(L('أُضيفت المهمة', 'Task added'));
-          break;
-        case 'event':
-          await create<EventData>('event', blankEvent({
-            title, start: parsed.date ?? todayKey(), end: parsed.date ?? todayKey(), start_time: parsed.time, all_day: !parsed.time,
-            end_time: parsed.time && parsed.duration_min ? addMin(parsed.time, parsed.duration_min) : parsed.time ? addMin(parsed.time, 60) : null,
-            notes: raw === title ? '' : raw, source: 'capture',
-          }), { date: parsed.date ?? todayKey() });
-          toast(L('أُضيف الموعد للتقويم', 'Event added to calendar'));
-          break;
-        case 'note':
-          await create<NoteData>('note', blankNote({ title, body: '', tags: parsed.tags, note_type: /فكرة|idea/i.test(raw) ? 'idea' : 'quick' }));
-          toast(L('حُفظت الملاحظة', 'Note saved'));
-          break;
-        case 'expense':
-        case 'income':
-          if (!parsed.amount) { toast(L('اكتب المبلغ، مثل: قهوة 15', 'Add an amount, e.g. coffee 15'), { tone: 'error' }); setBusy(false); return; }
-          await addTxn({ kind, amount: parsed.amount, description: title, category: kind === 'expense' ? parsed.category ?? settings.categories.expenses.at(-1) ?? null : null }, parsed.date ?? todayKey());
-          toast(L(`سُجّل ${parsed.amount} ر.س`, `Logged ${parsed.amount} SAR`));
-          break;
-        case 'water':
-          await logWater(parsed.ml ?? 250);
-          toast(L(`+${parsed.ml ?? 250} مل ماء`, `+${parsed.ml ?? 250} ml water`));
-          break;
-        case 'journal':
-          await create<JournalData>('journal', { body: raw, time: new Date().toTimeString().slice(0, 5), mood: null, energy: null, prompts: {} }, { date: todayKey() });
-          toast(L('أُضيفت لليوميات', 'Added to journal'));
-          break;
-        default:
-          await create<CaptureData>('capture', { text: raw, source: 'quick', parsed }, { status: 'open', date: todayKey() });
-          toast(L('في الوارد — رتّبه لاحقاً', 'In your inbox — sort it later'));
-      }
+      const [ar, en] = await saveCapture(kind, raw, parsed, settings);
+      toast(L(ar, en));
       onOpenChange(false);
     } catch (e) {
       toast((e as Error).message, { tone: 'error' });
@@ -139,10 +100,4 @@ export function QuickCapture({ open, onOpenChange }: { open: boolean; onOpenChan
       )}
     </Modal>
   );
-}
-
-function addMin(time: string, min: number): string {
-  const [h, m] = time.split(':').map(Number);
-  const total = Math.min(23 * 60 + 59, h * 60 + m + min);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }

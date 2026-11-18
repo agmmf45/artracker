@@ -25,6 +25,8 @@ export interface Settings {
   lifeAreas: LifeArea[];
   categories: { tasks: string[]; expenses: string[]; notes: string[] };
   tasks: { defaultPriority: number; showCompletedInToday: boolean; defaultView: 'list' | 'kanban' | 'matrix' | 'timeline' | 'calendar' };
+  /** the notebook-style Today page */
+  notebook: { paper: 'dots' | 'lines' | 'grid' | 'plain' };
   calendar: { defaultView: 'day' | 'week' | 'month' | 'agenda'; showTasks: boolean; showHealth: boolean };
   focus: { work: number; short: number; long: number; longEvery: number; sound: boolean };
   gamification: { enabled: boolean; xp: Partial<Record<XpAction, number>>; levelTitles: Array<[number, string, string]> | null; vacation: boolean; animations: boolean; garden: boolean };
@@ -81,6 +83,7 @@ export const DEFAULT_SETTINGS: Settings = {
     notes: ['عام', 'دراسة', 'أفكار', 'مراجع'],
   },
   tasks: { defaultPriority: 2, showCompletedInToday: true, defaultView: 'list' },
+  notebook: { paper: 'dots' },
   calendar: { defaultView: 'week', showTasks: true, showHealth: false },
   focus: { work: 25, short: 5, long: 15, longEvery: 4, sound: true },
   gamification: { enabled: true, xp: {}, levelTitles: null, vacation: false, animations: true, garden: true },
