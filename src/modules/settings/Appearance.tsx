@@ -4,7 +4,7 @@ import { useI18n } from '@/core/i18n';
 import { updateSettings, useSettings } from '@/core/hooks';
 import { Card, PageHeader, Segmented, Section, Switch } from '@/design/ui';
 
-const LEGACY: Array<{ id: string | null; ar: string; en: string; color: string }> = [
+const LEGACY: Array<{ id: string | null; ar: string; en: string; color: string; dark?: boolean }> = [
   { id: null, ar: 'دقيق (افتراضي)', en: 'Daqeeq (default)', color: '#6E62A8' },
   { id: 'classic', ar: 'كلاسيكي', en: 'Classic', color: '#B45309' },
   { id: 'rose', ar: 'وردي', en: 'Rose', color: '#C2557A' },
@@ -12,6 +12,12 @@ const LEGACY: Array<{ id: string | null; ar: string; en: string; color: string }
   { id: 'lavender', ar: 'لافندر', en: 'Lavender', color: '#7A5CC4' },
   { id: 'mint', ar: 'نعناع', en: 'Mint', color: '#23876B' },
   { id: 'sunset', ar: 'غروب', en: 'Sunset', color: '#C2622D' },
+  { id: 'ice', ar: 'جليد', en: 'Ice', color: '#6CB4EE' },
+  { id: 'navy', ar: 'كحلي (داكن)', en: 'Navy (dark)', color: '#0C1322', dark: true },
+  { id: 'inferno', ar: 'جحيم (داكن)', en: 'Inferno (dark)', color: '#FF7A45', dark: true },
+  { id: 'electric', ar: 'كهربائي (داكن)', en: 'Electric (dark)', color: '#5CE1E6', dark: true },
+  { id: 'galaxy', ar: 'مجرة (داكن)', en: 'Galaxy (dark)', color: '#B794F6', dark: true },
+  { id: 'nature', ar: 'طبيعة (داكن)', en: 'Nature (dark)', color: '#6FCF97', dark: true },
 ];
 
 export default function Appearance() {
@@ -30,7 +36,7 @@ export default function Appearance() {
       <Section title={L('لون التمييز', 'Accent')}>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {LEGACY.map((t) => (
-            <button key={t.id ?? 'default'} onClick={() => updateSettings({ legacyTheme: t.id })} aria-pressed={s.legacyTheme === t.id}
+            <button key={t.id ?? 'default'} onClick={() => updateSettings(t.dark ? { legacyTheme: t.id, theme: 'dark' } : { legacyTheme: t.id })} aria-pressed={s.legacyTheme === t.id}
               className={clsx('flex items-center gap-2 rounded-md border p-3 text-sm font-bold', s.legacyTheme === t.id ? 'border-fg' : 'border-line hover:border-line-strong')}>
               <span className="size-5 rounded-full" style={{ background: t.color }} /> {L(t.ar, t.en)}
             </button>

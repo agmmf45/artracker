@@ -2,7 +2,9 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": [
+      "ES2023"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
@@ -12,9 +14,21 @@
     "isolatedModules": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "types": ["@cloudflare/workers-types"],
+    "types": [
+      "@cloudflare/workers-types"
+    ],
     "baseUrl": ".",
-    "paths": { "@shared/*": ["shared/*"] }
+    "paths": {
+      "@shared/*": [
+        "shared/*"
+      ]
+    }
   },
-  "include": ["worker", "shared"]
+  "include": [
+    "worker",
+    "shared"
+  ],
+  "exclude": [
+    "**/*.test.ts"
+  ]
 }

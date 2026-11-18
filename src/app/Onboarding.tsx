@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
@@ -19,10 +19,13 @@ export function Onboarding() {
   const [preset, setPreset] = useState<string>(migration && migration.total > 0 ? 'complete' : 'productivity');
   const [language, setLanguage] = useState<'ar' | 'en'>(lang);
   const [busy, setBusy] = useState(false);
+  const touched = useRef(false);
+  // the migrated v4 display name loads asynchronously — use it unless the user already typed
+  useEffect(() => { if (!touched.current && profile.display_name) setName(profile.display_name); }, [profile.display_name]);
 
   const finish = async (usePreset: boolean) => {
     setBusy(true);
-    if (name.trim()) await upsert('profile', 'profile', { display_name: name.trim() });
+    if (name.trim() && name.trim() !== profile.display_name) await upsert('profile', 'profile', { display_name: name.trim() });
     await updateSettings({ onboarded: true, language, modulePreset: usePreset ? preset : null });
   };
 
@@ -41,7 +44,7 @@ export function Onboarding() {
               {L(`نقلنا ${migration.total} عنصر من بياناتك السابقة. كل شي في مكانه.`, `We moved ${migration.total} items from your previous data. Everything is in place.`)}
             </p>
           )}
-          <Input label={L('وش نناديك؟', 'What should we call you?')} value={name} onChange={(e) => setName(e.target.value)} />
+          <Input label={L('وش نناديك؟', 'What should we call you?')} value={name} onChange={(e) => { touched.current = true; setName(e.target.value); }} />
           <div>
             <div className="mb-1.5 text-[13px] font-bold text-fg-2">{L('اللغة', 'Language')}</div>
             <Segmented value={language} onChange={setLanguage} options={[{ value: 'ar', label: 'العربية' }, { value: 'en', label: 'English' }]} />

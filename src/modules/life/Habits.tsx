@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Flame, Play, Check, Settings2, Minus, ListOrdered, X } from 'lucide-react';
+import { Plus, Flame, Play, Check, Settings2, Minus, ListOrdered, X, StickyNote, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
@@ -8,7 +8,9 @@ import { fmtDate, rangeKeys, relativeDay, shiftKey, todayKey, weekStartKey } fro
 import { create, update, remove } from '@/core/repo';
 import { newId } from '@/core/ids';
 import { toast } from '@/core/toast';
-import { Modal } from '@/design/overlay';
+import { Modal, confirm, prompt } from '@/design/overlay';
+import { api } from '@/core/api';
+import { createTask } from './tasks/model';
 import { Bar, Button, Card, CheckCircle, Chip, EmptyState, IconButton, Input, PageHeader, Segmented, Select, Stat } from '@/design/ui';
 import { Bars, Heatmap } from '@/design/charts';
 import { HabitEditor } from './habits/HabitEditor';
@@ -43,7 +45,20 @@ export default function Habits() {
   return (
     <div>
       <PageHeader title={L('العادات', 'Habits')} subtitle={L('الاستمرار أهم من الكمال. أيام الراحة لا تُحسب غياباً.', 'Consistency over perfection. Rest days never count as misses.')}
-        actions={<Button variant="primary" icon={<Plus size={17} />} onClick={() => { setEditing(null); setEditorOpen(true); }}>{L('عادة', 'Habit')}</Button>} />
+        actions={<>
+          {settings.privacy.ai.enabled && <Button icon={<Sparkles size={16} />} onClick={async () => {
+            const text = await prompt(L('صف روتينك أو ما تريد تحقيقه', 'Describe your routine or what you want to achieve'), { placeholder: L('أبي أصحى بدري، أقرأ، وأذاكر ساعتين يومياً…', 'I want to wake up early, read, and study 2 hours a day…') });
+            if (!text?.trim()) return;
+            try {
+              const r = await api<{ result: { habits?: Array<{ name: string; icon: string }>; tasks?: Array<{ title: string; priority?: number; due?: string | null }>; message?: string } }>('/ai/capture_organize', { input: { text, existing_habits: (habits ?? []).map((h) => h.data.name) }, today: today });
+              const hs = r.result.habits ?? []; const ts = r.result.tasks ?? [];
+              if (!(await confirm(L('اقتراحات المساعد', 'Assistant suggestions'), { message: [r.result.message ?? '', '', ...hs.map((x) => x.icon + ' ' + x.name), '', ...ts.map((x) => '• ' + x.title)].join(String.fromCharCode(10)), okText: L('أضفها', 'Add them') }))) return;
+              for (const x of hs) await create<HabitData>('habit', { name: x.name, icon: x.icon || '✅', kind: 'check', target: 1, unit: null, schedule: { type: 'daily' }, subtasks: [], order: Date.now(), category: null, start: today }, { status: 'active' });
+              for (const x of ts) await createTask({ title: x.title, priority: x.priority ?? 2, due: x.due ?? null, source: 'ai' });
+            } catch (e) { toast((e as Error).message, { tone: 'error' }); }
+          }}>{L('اقترح لي', 'Suggest')}</Button>}
+          <Button variant="primary" icon={<Plus size={17} />} onClick={() => { setEditing(null); setEditorOpen(true); }}>{L('عادة', 'Habit')}</Button>
+        </>} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Segmented value={tab} onChange={setTab} options={[{ value: 'day', label: L('اليوم', 'Day') }, { value: 'week', label: L('الأسبوع', 'Week') }, { value: 'routines', label: L('الروتينات', 'Routines') }]} />
         <span className="flex-1" />
@@ -111,8 +126,15 @@ function HabitCard({ h, day, logs, onEdit, onDetail }: { h: Habit; day: string; 
             {paused && <span>{L('راحة', 'Rest')}</span>}
           </div>
         </button>
+        <IconButton size="sm" label={L('ملاحظة اليوم', 'Note for the day')} className={log?.data.note ? 'text-accent' : ''} onClick={async () => {
+          const t = await prompt(L('ملاحظة على هذا اليوم', 'Note for this day'), { value: log?.data.note ?? '' });
+          if (t === null) return;
+          if (log) await update<HabitLogData>(log.id, { data: { note: t.trim() || null } });
+          else await create<HabitLogData>('habit_log', { habit_id: h.id, value: 0, subtasks: {}, note: t.trim() || null }, { id: `hl:${h.id}:${day}`, parent_id: h.id, date: day, status: 'partial' });
+        }}><StickyNote size={15} /></IconButton>
         <IconButton size="sm" label={L('تعديل', 'Edit')} onClick={onEdit}><Settings2 size={16} /></IconButton>
       </div>
+      {log?.data.note && <p className="mt-2 rounded-sm bg-surface-2 px-2.5 py-1.5 text-[12.5px] text-fg-2">📝 {log.data.note}</p>}
       {h.data.kind !== 'check' && <Bar className="mt-2.5" value={log?.data.value ?? 0} max={h.data.target} color="var(--life)" />}
       {!!h.data.subtasks.length && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">

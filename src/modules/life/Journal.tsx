@@ -11,6 +11,7 @@ import { Button, Card, EmptyState, IconButton, Input, Label, PageHeader, Segment
 import { Line } from '@/design/charts';
 import { Markdown } from '@/modules/shared/markdown';
 import type { JournalData } from '@/modules/shared/domain';
+import { JOURNAL_TEMPLATES } from '@/modules/shared/legacyContent';
 
 const MOODS = ['😞', '😕', '😐', '🙂', '😄'];
 const PROMPTS: Array<[string, string, string]> = [
@@ -129,7 +130,12 @@ function EntryEditor({ entry, onClose }: { entry: Rec<JournalData>; onClose: () 
             <div className="flex gap-1">{[1, 2, 3, 4, 5].map((n) => <button key={n} aria-pressed={d.energy === n} onClick={() => set({ energy: d.energy === n ? null : n })} className={clsx('num size-10 rounded-full font-black', (d.energy ?? 0) >= n ? 'bg-health text-on-accent' : 'bg-surface-2 text-fg-3')}>{n}</button>)}</div>
           </div>
         </div>
-        <div className="mb-2 flex justify-end"><Segmented size="sm" value={preview ? 'p' : 'e'} onChange={(v) => setPreview(v === 'p')} options={[{ value: 'e', label: L('كتابة', 'Write') }, { value: 'p', label: L('عرض', 'Read') }]} /></div>
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <select className="field h-8 min-h-0 w-auto py-0 text-[12px]" value="" aria-label={L('قالب', 'Template')} onChange={(e) => { const t = JOURNAL_TEMPLATES[e.target.value]; if (t) { set({ body: d.body ? `${d.body}\n\n${t.text}` : t.text }); setPreview(false); } }}>
+            <option value="">{L('قالب…', 'Template…')}</option>{Object.entries(JOURNAL_TEMPLATES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+          </select>
+          <Segmented size="sm" value={preview ? 'p' : 'e'} onChange={(v) => setPreview(v === 'p')} options={[{ value: 'e', label: L('كتابة', 'Write') }, { value: 'p', label: L('عرض', 'Read') }]} />
+        </div>
         {preview ? <div className="min-h-40" onDoubleClick={() => setPreview(false)}><Markdown text={d.body || L('*لا شيء بعد*', '*Nothing yet*')} /></div>
           : <textarea autoFocus value={d.body} onChange={(e) => set({ body: e.target.value })} placeholder={L('اكتب بحرية…', 'Write freely…')} className="min-h-56 w-full resize-y bg-transparent text-[17px] leading-[1.9] outline-none placeholder:text-fg-3" />}
         <div className="mt-6 space-y-4 border-t border-line pt-5">

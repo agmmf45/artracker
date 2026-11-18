@@ -68,6 +68,30 @@ export function Shell() {
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [loc.pathname]);
+
+  // v4 gesture: swipe horizontally to move between pages of the current section (phones only)
+  useEffect(() => {
+    let x0 = 0; let y0 = 0; let skip = false;
+    const start = (e: TouchEvent) => {
+      const t = e.target as HTMLElement;
+      skip = window.innerWidth >= 1024 || !!t.closest('input,textarea,select,[contenteditable],[role=dialog],.scroll-thin,svg,[data-no-swipe]');
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    };
+    const end = (e: TouchEvent) => {
+      if (skip) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      const dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) < 80 || Math.abs(dy) > 45) return;
+      const i = sectionPages.findIndex((p) => p.path === loc.pathname);
+      if (i < 0) return;
+      const forward = document.documentElement.dir === 'rtl' ? dx > 0 : dx < 0;
+      const next = sectionPages[i + (forward ? 1 : -1)];
+      if (next) nav(next.path);
+    };
+    window.addEventListener('touchstart', start, { passive: true });
+    window.addEventListener('touchend', end, { passive: true });
+    return () => { window.removeEventListener('touchstart', start); window.removeEventListener('touchend', end); };
+  }, [sectionPages, loc.pathname, nav]);
   useEffect(() => { try { if (sessionStorage.getItem('_pendingSMS') && loc.pathname !== '/life/finance') nav('/life/finance'); } catch { /* ignore */ } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -1,6 +1,24 @@
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useSettings } from '@/core/hooks';
-import { Card, Input, PageHeader, Select, Switch } from '@/design/ui';
+import { useState } from 'react';
+import { Download } from 'lucide-react';
+import { Button, Card, Input, PageHeader, Select, Switch } from '@/design/ui';
+
+function InstallCard() {
+  const { L } = useI18n();
+  const [prompted, setPrompted] = useState(false);
+  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone;
+  const ev = (window as unknown as { __dqInstall?: { prompt: () => Promise<void> } }).__dqInstall;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (standalone) return null;
+  return (
+    <Card className="mb-4 flex flex-wrap items-center gap-3 p-4">
+      <Download size={20} className="text-life" />
+      <div className="min-w-0 flex-1"><div className="font-bold">{L('ثبّت دقيق على جهازك', 'Install Daqeeq on your device')}</div><div className="text-[13px] text-fg-2">{ios ? L('في Safari: زر المشاركة ← «إضافة إلى الشاشة الرئيسية».', 'In Safari: Share → “Add to Home Screen”.') : L('يفتح كتطبيق مستقل ويعمل بدون إنترنت.', 'Opens as its own app and works offline.')}</div></div>
+      {ev && !prompted && <Button variant="primary" onClick={async () => { setPrompted(true); await ev.prompt(); }}>{L('تثبيت', 'Install')}</Button>}
+    </Card>
+  );
+}
 
 const ZONES = ['Asia/Riyadh', 'Asia/Dubai', 'Asia/Kuwait', 'Asia/Qatar', 'Asia/Bahrain', 'Africa/Cairo', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'America/Los_Angeles', 'Asia/Kuala_Lumpur'];
 
@@ -11,6 +29,7 @@ export default function General() {
   return (
     <div className="max-w-2xl">
       <PageHeader title={L('عام', 'General')} />
+      <InstallCard />
       <Card className="grid gap-4 p-5 sm:grid-cols-2">
         <Select label={L('اللغة', 'Language')} value={s.language} onChange={(e) => updateSettings({ language: e.target.value as 'ar' | 'en' })}>
           <option value="ar">العربية</option><option value="en">English</option>

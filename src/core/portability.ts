@@ -34,7 +34,7 @@ export async function exportCsv(type: RecordType, columns: string[]): Promise<vo
   const head = ['id', 'date', 'status', ...columns];
   const lines = [head.join(',')];
   for (const r of rows) lines.push([r.id, r.date, r.status, ...columns.map((c) => (r.data as Record<string, unknown>)[c])].map(csvCell).join(','));
-  download(`daqeeq-${type}-${new Date().toISOString().slice(0, 10)}.csv`, `﻿${lines.join('\n')}`, 'text/csv;charset=utf-8');
+  download(`daqeeq-${type}-${new Date().toISOString().slice(0, 10)}.csv`, `${String.fromCharCode(0xfeff)}${lines.join('\n')}`, 'text/csv;charset=utf-8');
 }
 
 export async function exportNotesMarkdown(): Promise<void> {

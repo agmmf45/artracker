@@ -42,7 +42,7 @@ export function renderMarkdown(src: string, ctx: MdContext = {}): string {
     return id ? `<a href="#" data-note="${escapeHtml(id)}" class="md-link">${escapeHtml(t)}</a>` : `<a href="#" data-new-note="${escapeHtml(t)}" class="md-link md-missing">${escapeHtml(t)}</a>`;
   });
   // linked tasks
-  text = text.replace(/\{\{task:([\w:.\-]{1,160})\}\}/g, (_, id: string) => {
+  text = text.replace(/\{\{task:([\w:.-]{1,160})\}\}/g, (_, id: string) => {
     const t = ctx.tasks?.get(id);
     if (!t) return `<span class="md-task md-missing">(مهمة محذوفة)</span>`;
     return `<button type="button" data-task="${escapeHtml(id)}" class="md-task${t.done ? ' md-done' : ''}" aria-pressed="${t.done}"><span class="md-box">${t.done ? '✓' : ''}</span>${escapeHtml(t.title)}</button>`;

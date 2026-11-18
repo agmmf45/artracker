@@ -5,7 +5,7 @@ import { api } from '@/core/api';
 import { useAuth } from '@/core/auth';
 import { useTrash } from '@/core/hooks';
 import { db } from '@/core/db';
-import { purge, restore } from '@/core/repo';
+import { purge, remove, restore } from '@/core/repo';
 import { toast } from '@/core/toast';
 import { toIcs } from '@/core/ics';
 import { commitImport, download, exportCsv, exportJson, exportNotesMarkdown, previewImport, undoLastImport, type ImportPreview } from '@/core/portability';
@@ -100,6 +100,17 @@ export default function DataSettings() {
       </Section>
 
       <Section title={L('منطقة الخطر', 'Danger zone')}>
+        <Card className="mb-3 p-4">
+          <p className="mb-2 text-sm text-fg-2">{L('تصفير البيانات: ينقل كل مهامك وعاداتك وملاحظاتك وسجلاتك إلى السلة (قابلة للاستعادة). يبقى ملفك وإعداداتك وإنجازاتك ونقاطك.', 'Reset data: moves all tasks, habits, notes and logs to the trash (restorable). Your profile, settings, achievements and XP stay.')}</p>
+          <Button variant="secondary" onClick={async () => {
+            const typed = await prompt(L('اكتب RESET للتأكيد', 'Type RESET to confirm'), { placeholder: 'RESET' });
+            if (typed !== 'RESET') return;
+            const keep = new Set(['settings', 'profile', 'layout', 'xp', 'redemption', 'achievement']);
+            const all = await db().records.filter((r) => !r.deleted_at && !keep.has(r.type)).toArray();
+            for (const r of all) await remove(r.id);
+            toast(L(`نُقل ${all.length} عنصر إلى السلة`, `${all.length} items moved to trash`));
+          }}>{L('تصفير البيانات', 'Reset data')}</Button>
+        </Card>
         <Card className="p-4" style={{ borderColor: 'var(--danger)' }}>
           <Button variant="danger" icon={<Trash2 size={16} />} onClick={deleteAccount}>{L('حذف الحساب وكل البيانات', 'Delete account and all data')}</Button>
         </Card>

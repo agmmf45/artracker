@@ -17,6 +17,14 @@ import { confirm, Modal, prompt } from '@/design/overlay';
 import { Button, Card, Chip, EmptyState, IconButton, Input, PageHeader, Section, Segmented, Stat } from '@/design/ui';
 import { Bars } from '@/design/charts';
 import { MuscleMap, MUSCLES } from './MuscleMap';
+import { EXERCISE_VIDEOS, RECOVERY_TIPS } from '@/modules/shared/legacyContent';
+
+/** v4 curated tutorial videos per muscle (privacy-enhanced youtube-nocookie embeds). */
+const MUSCLE_VIDEOS: Record<string, string[]> = {
+  'صدر': ['bench press', 'incline bench press', 'cable fly'], 'ظهر': ['deadlift', 'pull-up', 'lat pulldown', 'barbell row'], 'أسفل الظهر': ['deadlift', 'romanian deadlift'],
+  'كتف': ['overhead press', 'lateral raise'], 'بايسبس': ['bicep curl', 'hammer curl'], 'ترايسبس': ['tricep pushdown', 'skull crusher'], 'ساعد': ['hammer curl'],
+  'فخذ': ['barbell squat', 'leg press', 'lunge'], 'رجل': ['barbell squat', 'leg press', 'lunge'], 'خلفي الفخذ': ['romanian deadlift', 'deadlift'], 'أرداف': ['romanian deadlift', 'lunge', 'barbell squat'], 'بطن': ['plank'],
+};
 import { bestSets, e1rm, EXDB, EXERCISES, num, setsPerMuscle, TEMPLATES, volume, type ActiveWorkout, type ProgramData, type WExercise, type Workout, type WorkoutData } from './workouts/model';
 
 const muscleName = (id: string, L: (a: string, e: string) => string) => { const m = MUSCLES.find((x) => x.id === id); return m ? L(m.ar, m.en) : id; };
@@ -247,7 +255,8 @@ interface ExdbItem { id: string; name: string; target: string; equipment: string
 function MusclePanel({ muscle, onClose, workouts }: { muscle: string; onClose: () => void; workouts: Workout[] }) {
   const { L, lang, locale } = useI18n();
   const settings = useSettings();
-  const [tab, setTab] = useState<'log' | 'library'>('log');
+  const [tab, setTab] = useState<'log' | 'library' | 'videos' | 'recovery'>('log');
+  const [playing, setPlaying] = useState<string | null>(null);
   const [lib, setLib] = useState<ExdbItem[] | null>(null);
   const [libState, setLibState] = useState<'idle' | 'loading' | 'off' | 'error'>('idle');
   const [quick, setQuick] = useState<{ name: string; sets: Array<{ weight: string; reps: string }> } | null>(null);
@@ -283,8 +292,29 @@ function MusclePanel({ muscle, onClose, workouts }: { muscle: string; onClose: (
 
   return (
     <Modal open onOpenChange={(v) => !v && onClose()} title={muscleName(muscle, L)} wide description={last ? `${L('آخر تمرين', 'Last trained')}: ${fmtDate(last.date!, locale, { weekday: 'long', day: 'numeric', month: 'short' })}` : L('لم تُمرَّن بعد', 'Not trained yet')}>
-      <Segmented className="mb-3" value={tab} onChange={setTab} options={[{ value: 'log', label: L('سجّل بسرعة', 'Quick log') }, { value: 'library', label: L('مكتبة التمارين', 'Exercise library'), icon: <ImageIcon size={14} /> }]} />
-      {tab === 'log' ? (
+      <Segmented className="mb-3" value={tab} onChange={setTab} options={[{ value: 'log', label: L('سجّل بسرعة', 'Quick log') }, { value: 'library', label: L('مكتبة التمارين', 'Exercise library'), icon: <ImageIcon size={14} /> }, { value: 'videos', label: L('فيديوهات', 'Videos') }, { value: 'recovery', label: L('الاستشفاء', 'Recovery') }]} />
+      {tab === 'videos' ? (
+        <div>
+          {playing && <div className="mb-3 aspect-video w-full overflow-hidden rounded-md bg-black"><iframe title="video" className="h-full w-full" src={`https://www.youtube-nocookie.com/embed/${playing}?autoplay=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /></div>}
+          {!(MUSCLE_VIDEOS[muscle] ?? []).length ? <p className="text-sm text-fg-3">{L('لا فيديوهات مختارة لهذه العضلة.', 'No curated videos for this muscle.')}</p> : (
+            <ul className="space-y-1.5">{(MUSCLE_VIDEOS[muscle] ?? []).flatMap((k) => (EXERCISE_VIDEOS[k] ?? []).map((v) => (
+              <li key={v.id}><button onClick={() => setPlaying(v.id)} className="flex w-full items-center gap-3 rounded-sm p-1.5 text-start hover:bg-surface-2"><img src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`} alt="" className="h-14 w-24 rounded-xs object-cover" loading="lazy" /><span className="min-w-0 flex-1" dir="ltr"><span className="block truncate text-sm font-bold">{v.title}</span><span className="text-[12px] text-fg-3">{v.ch}</span></span></button></li>
+            )))}</ul>
+          )}
+          <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const raw = String(new FormData(e.currentTarget).get('u') ?? ''); const id = /(?:v=|youtu\.be\/|shorts\/)([\w-]{11})/.exec(raw)?.[1] ?? (/^[\w-]{11}$/.test(raw) ? raw : null); if (id) setPlaying(id); else toast(L('رابط يوتيوب غير صحيح', 'Invalid YouTube link'), { tone: 'error' }); }}>
+            <input name="u" className="field" dir="ltr" placeholder={L('شغّل رابط يوتيوب…', 'Play a YouTube link…')} /><Button type="submit">{L('تشغيل', 'Play')}</Button>
+          </form>
+        </div>
+      ) : tab === 'recovery' ? (
+        (() => { const r = RECOVERY_TIPS[EXDB[muscle]?.bodyPart ?? '']; return !r ? <p className="text-sm text-fg-3">—</p> : (
+          <div className="space-y-2 text-sm">
+            {r.rest && <p><b>{L('مدة الراحة', 'Rest')}:</b> {String(r.rest)}</p>}
+            {r.vol && <p><b>{L('الحجم الأسبوعي', 'Weekly volume')}:</b> {String(r.vol)}</p>}
+            {Array.isArray(r.tips) && <ul className="list-disc space-y-1 ps-5">{r.tips.map((t) => <li key={t}>{t}</li>)}</ul>}
+            <p className="text-[12px] text-fg-3">{L('إرشادات عامة، وليست وصفة طبية.', 'General guidance, not medical advice.')}</p>
+          </div>
+        ); })()
+      ) : tab === 'log' ? (
         quick ? (
           <div>
             <div className="mb-2 font-bold">{quick.name}</div>

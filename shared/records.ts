@@ -59,7 +59,7 @@ export interface Rec<T = Record<string, unknown>> {
 const isoish = z.string().min(10).max(40);
 
 export const recordEnvelopeSchema = z.object({
-  id: z.string().min(1).max(160).regex(/^[\w:.\-]+$/),
+  id: z.string().min(1).max(160).regex(/^[\w:.-]+$/),
   type: z.enum(RECORD_TYPES),
   data: z.record(z.unknown()),
   parent_id: z.string().max(160).nullable(),

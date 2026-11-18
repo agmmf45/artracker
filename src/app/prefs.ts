@@ -17,8 +17,12 @@ export function readPrefs(): Prefs {
   }
 }
 
+const DARK_THEMES = new Set(['dark', 'navy', 'inferno', 'electric', 'galaxy', 'nature']);
+
 export function applyPrefs(p: Prefs) {
   const el = document.documentElement;
+  // v4 dark themes only work on the dark palette
+  if (p.legacyTheme && DARK_THEMES.has(p.legacyTheme)) p = { ...p, theme: 'dark' };
   el.lang = p.language;
   el.dir = p.language === 'ar' ? 'rtl' : 'ltr';
   if (p.theme === 'system') el.removeAttribute('data-theme');

@@ -23,7 +23,7 @@ export interface MigrationResult {
 const DATE_RE = /^\d{4}-\d{2}-\d{2}/;
 
 function safeId(v: unknown): string {
-  return String(v ?? '').replace(/[^\w:.\-]/g, '_').slice(0, 100) || 'x';
+  return String(v ?? '').replace(/[^\w:.-]/g, '_').slice(0, 100) || 'x';
 }
 
 function isDate(v: unknown): v is string {

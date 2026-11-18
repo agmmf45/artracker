@@ -55,7 +55,7 @@ export function parseExpensesLocally(text: string): ParsedTxn[] {
     if (!amount || amount > 10_000_000) continue;
     const income = /إيداع|راتب|حوالة واردة|استلام|deposit|salary|credited|received/i.test(b);
     const saving = /ادخار|ادخرت|وفرت|saving/i.test(b);
-    const merchant = /(?:لدى|من|عند|في|at|from|@)\s*[:\-]?\s*([^\n\d:]{2,40}?)(?:\s+(?:في|بتاريخ|on|بطاقة|card)|[\n.,]|$)/i.exec(b)?.[1]?.trim();
+    const merchant = /(?:لدى|من|عند|في|at|from|@)\s*[:-]?\s*([^\n\d:]{2,40}?)(?:\s+(?:في|بتاريخ|on|بطاقة|card)|[\n.,]|$)/i.exec(b)?.[1]?.trim();
     const date = /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/.exec(b) ?? /(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})/.exec(b);
     let iso: string | null = null;
     if (date) {

@@ -26,7 +26,7 @@ export function Modal({ open, onOpenChange, title, description, children, footer
             <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-line-strong" aria-hidden />
             <div className="px-5 pb-2 pt-3">
               <Drawer.Title className="text-lg font-black">{title}</Drawer.Title>
-              {description ? <Drawer.Description className="mt-0.5 text-sm text-fg-2">{description}</Drawer.Description> : <Drawer.Description className="sr-only">{typeof title === 'string' ? title : ''}</Drawer.Description>}
+              {description ? <Drawer.Description className="mt-0.5 whitespace-pre-line text-sm text-fg-2">{description}</Drawer.Description> : <Drawer.Description className="sr-only">{typeof title === 'string' ? title : ''}</Drawer.Description>}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 scroll-thin">{children}</div>
             {footer && <div className="safe-bottom flex gap-2 border-t border-line px-5 py-3">{footer}</div>}
@@ -47,7 +47,7 @@ export function Modal({ open, onOpenChange, title, description, children, footer
           <div className="flex items-start gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0 flex-1">
               <Dialog.Title className="text-lg font-black">{title}</Dialog.Title>
-              {description ? <Dialog.Description className="mt-0.5 text-sm text-fg-2">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{typeof title === 'string' ? title : ''}</Dialog.Description>}
+              {description ? <Dialog.Description className="mt-0.5 whitespace-pre-line text-sm text-fg-2">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{typeof title === 'string' ? title : ''}</Dialog.Description>}
             </div>
             <Dialog.Close asChild><IconButton label={L('إغلاق', 'Close')} size="sm"><X size={18} /></IconButton></Dialog.Close>
           </div>

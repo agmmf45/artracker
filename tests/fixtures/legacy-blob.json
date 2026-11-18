@@ -1,0 +1,52 @@
+{
+  "display_name": "أحمد التجريبي",
+  "avatar_emoji": "🦷",
+  "avatar_color": "#E9E3F5",
+  "status_note": "أذاكر للبورد",
+  "friend_code": "TESTB1",
+  "theme": "ocean",
+  "habits_list": [
+    { "id": "h_1", "name": "قراءة 10 صفحات", "icon": "📖", "subtasks": [{ "id": "s1", "name": "كتاب" }, { "id": "s2", "name": "ملخص" }] },
+    { "id": "h_2", "name": "شرب ماء", "icon": "💧", "subtasks": [] }
+  ],
+  "done": {
+    "2026-11-15": { "h_1": true, "h_2": true, "h_1_sub_s1": true },
+    "2026-11-16": { "h_1": true },
+    "2026-11-17": { "h_2": true }
+  },
+  "habit_notes": { "2026-11-16:h_1": "قرأت فصل التشريح" },
+  "todos": [
+    { "id": 1731800000000, "text": "تسليم تقرير المختبر", "priority": "high", "cat": "دراسة", "due": "2026-11-20", "done": false, "createdAt": 1731800000000 },
+    { "id": 1731700000000, "text": "حجز موعد العيادة", "priority": "normal", "cat": "شخصي", "due": "", "done": true, "doneAt": 1731750000000 }
+  ],
+  "budget": 3000,
+  "_migrated": true,
+  "expenses": [{ "id": 11, "name": "قهوة", "amount": 15, "cat": "🍔 أكل", "date": "2026-11-16" }],
+  "wallets": [
+    { "id": "w_default", "name": "المحفظة الرئيسية", "icon": "💰", "balance": 2000 },
+    { "id": "w_save", "name": "ادخار السفر", "icon": "✈️", "type": "savings", "goal": 5000, "balance": 0 }
+  ],
+  "transactions": [
+    { "id": 11, "walletId": "w_default", "type": "spend", "amount": 15, "desc": "قهوة", "cat": "🍔 أكل", "date": "2026-11-16" },
+    { "id": 12, "walletId": "w_default", "type": "add", "amount": 500, "desc": "مكافأة", "cat": "➕ إيداع", "date": "2026-11-16" },
+    { "id": 13, "walletId": "w_save", "type": "save", "amount": 300, "desc": "ادخار", "cat": "💰 ادخار", "date": "2026-11-17", "linkId": "lk_1" },
+    { "id": 14, "walletId": "w_default", "type": "transfer", "amount": 300, "desc": "تحويل إلى ادخار السفر", "cat": "🔄 تحويل ادخار", "date": "2026-11-17", "transferTo": "w_save", "linkId": "lk_1" }
+  ],
+  "daily_notes": { "2026-11-16_21:30": "يوم طويل لكن منتج.", "2026-11-10": "ملاحظة قديمة" },
+  "cal_reminders": { "2026-11-25": ["اختبار الباثولوجي"] },
+  "reminders": [{ "id": "r_1", "label": "شرب ماء", "time": "10:00", "days": [0, 1, 2, 3, 4], "enabled": true }],
+  "_trophies": { "first_habit": { "unlockedAt": 1731000000000, "isNew": false } },
+  "fitness": {
+    "workouts": [{ "id": "wo_1", "name": "Push", "date": "2026-11-16", "startTime": 1731772800000, "duration": 55, "exercises": [{ "id": "ex_1", "name": "🏋️ بنش برس", "muscle": "صدر", "notes": "", "sets": [{ "reps": 8, "weight": 70, "rpe": "", "done": true }, { "reps": 6, "weight": 75, "rpe": "8", "done": true }] }] }],
+    "programs": [{ "id": "prog_1", "name": "PPL", "days": [{ "name": "Push", "exercises": [{ "name": "🏋️ بنش برس", "muscle": "صدر" }] }] }],
+    "bodyweight": [{ "date": "2026-11-01", "w": 78.4 }, { "date": "2026-11-15", "w": 77.6 }],
+    "prs": { "🏋️ بنش برس": { "weight": 75, "reps": 6, "date": "2026-11-16" } }
+  },
+  "nutrition": {
+    "goal": 2200,
+    "log": { "2026-11-17": [{ "id": "meal_1", "type": "lunch", "name": "كبسة دجاج", "cal": 650, "p": 40, "c": 70, "f": 20, "source": "ai_vision", "confidence": 72 }] },
+    "water": { "2026-11-16": 1500 },
+    "waterLog": { "2026-11-17": [{ "time": "09:00", "ml": 250 }, { "time": "12:00", "ml": 500 }] },
+    "waterGoal": 2500
+  }
+}

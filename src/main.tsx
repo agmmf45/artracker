@@ -15,6 +15,9 @@ try {
   }
 } catch { /* storage unavailable */ }
 
+// PWA install prompt (v4 had an install button) — kept for Settings › General
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); (window as unknown as { __dqInstall?: Event }).__dqInstall = e; });
+
 // Apply language/theme before first paint (mirrored from synced settings into localStorage).
 applyPrefs(readPrefs());
 

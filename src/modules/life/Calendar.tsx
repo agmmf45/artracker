@@ -75,7 +75,7 @@ export default function CalendarPage() {
     const evs = parseIcs(await f.text());
     let added = 0;
     for (const e of evs) {
-      const id = `ics:${e.uid.replace(/[^\w:.\-]/g, '_')}`;
+      const id = `ics:${e.uid.replace(/[^\w:.-]/g, '_')}`;
       if (await db().records.get(id)) continue; // duplicate detection by UID
       await create<EventData>('event', e.data, { id, date: e.data.start });
       added++;

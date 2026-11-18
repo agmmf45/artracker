@@ -143,3 +143,11 @@
   :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+
+/* v4 dark themes (applied together with dark mode) */
+:root[data-legacy-theme='navy'], :root[data-legacy-theme='dark'] { --life: #8FA8FF; --bg: #0C1322; --surface: #111A2C; --surface-2: #16203A; --elevated: #17213A; --border: #24304A; }
+:root[data-legacy-theme='inferno'] { --life: #FF7A45; --bg: #140D0B; --surface: #1C1311; --surface-2: #241815; --elevated: #26191A; --border: #3A2620; }
+:root[data-legacy-theme='electric'] { --life: #5CE1E6; --bg: #0B1016; --surface: #101820; --surface-2: #142029; --elevated: #15222C; --border: #22323D; }
+:root[data-legacy-theme='galaxy'] { --life: #B794F6; --bg: #0F0B1A; --surface: #161127; --surface-2: #1C1631; --elevated: #1E1834; --border: #2D2448; }
+:root[data-legacy-theme='nature'] { --life: #6FCF97; --bg: #0C140F; --surface: #111C15; --surface-2: #16241B; --elevated: #17261C; --border: #24382A; }
+:root[data-legacy-theme='ice'] { --life: #6CB4EE; --bg: #F2F8FC; --surface: #FFFFFF; --surface-2: #E8F1F8; --border: #D3E3EF; }

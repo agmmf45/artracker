@@ -34,6 +34,8 @@ export default defineConfig({
       workbox: {
         // App shell only. Private records live in IndexedDB, never in the HTTP cache.
         globPatterns: ['**/*.{js,css,html,woff2,png,svg}'],
+        // math rendering is loaded on demand only
+        globIgnores: ['**/katex*', '**/KaTeX_*', 'og-image.png'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
@@ -54,5 +56,21 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        // stable vendor chunks: app updates don't invalidate cached libraries
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/](react|react-dom|scheduler|react-router)[\\/]/.test(id)) return 'react';
+          if (/[\\/](@radix-ui|radix-ui|vaul|cmdk|@floating-ui|aria-hidden|react-remove-scroll)/.test(id)) return 'ui';
+          if (/[\\/](dexie|dexie-react-hooks)[\\/]/.test(id)) return 'dexie';
+          if (/[\\/](date-fns|rrule)[\\/]/.test(id)) return 'dates';
+          if (/[\\/]lucide-react[\\/]/.test(id)) return 'icons';
+          if (/[\\/](zod)[\\/]/.test(id)) return 'zod';
+          if (/[\\/]@dnd-kit[\\/]/.test(id)) return 'dnd';
+          return undefined;
+        },
+      },
+    },
   },
 });

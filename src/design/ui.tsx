@@ -275,7 +275,7 @@ export function CheckCircle({ checked, onToggle, label, color, size = 22 }: { ch
       role="checkbox"
       aria-checked={checked}
       aria-label={label}
-      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      onClick={(e) => { e.stopPropagation(); if (!checked) navigator.vibrate?.(12); onToggle(); }}
       className={clsx('grid shrink-0 place-items-center rounded-full border-2 transition-colors', checked ? 'anim-pop' : 'hover:bg-surface-2')}
       style={{
         width: size, height: size,
