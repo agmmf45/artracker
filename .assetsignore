@@ -29,6 +29,7 @@ health-sync/test.html
 
 # مستودع git وأدوات البناء — يجب ألا تُنشر إطلاقاً
 .git/
+.git
 .gitignore
 .gitattributes
 .wrangler/
