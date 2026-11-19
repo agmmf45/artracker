@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import clsx from 'clsx';
@@ -350,6 +350,9 @@ function PriorGpa({ fromPast, gpaValue, credits, scaleMax, savedGpa, savedCredit
   const { L } = useI18n();
   const [g, setG] = useState(savedGpa != null ? String(savedGpa) : '');
   const [h, setH] = useState(savedCredits != null ? String(savedCredits) : '');
+  // one write after you stop typing — a write per keystroke can jam the phone's storage
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   if (fromPast) {
     return (
       <div className="mt-3 rounded-sm border border-dashed border-line-strong p-3 text-[13px]">
@@ -358,10 +361,18 @@ function PriorGpa({ fromPast, gpaValue, credits, scaleMax, savedGpa, savedCredit
       </div>
     );
   }
-  const save = (gv: string, hv: string) => {
-    const gn = Number(gv), hn = Number(hv);
-    void updateSettings({ study: { priorGpa: gv.trim() && gn > 0 && gn <= scaleMax ? gn : null, priorCredits: hv.trim() && hn > 0 ? Math.round(hn) : null } });
+  const commit = (gv: string, hv: string) => {
+    const gn = Number(gv.replace(',', '.').replace('٫', '.')), hn = Number(hv);
+    const nextG = gv.trim() && gn > 0 && gn <= scaleMax ? Math.round(gn * 100) / 100 : null;
+    const nextH = hv.trim() && hn > 0 ? Math.round(hn) : null;
+    if (nextG === savedGpa && nextH === savedCredits) return;
+    void updateSettings({ study: { priorGpa: nextG, priorCredits: nextH } });
   };
+  const save = (gv: string, hv: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => commit(gv, hv), 800);
+  };
+  const flush = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; commit(g, h); } };
   const bad = g.trim() !== '' && (Number(g) <= 0 || Number(g) > scaleMax);
   return (
     <div className="mt-3 rounded-sm border border-dashed border-line-strong p-3">
@@ -369,11 +380,11 @@ function PriorGpa({ fromPast, gpaValue, credits, scaleMax, savedGpa, savedCredit
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-[12px] text-fg-2">{L('المعدل', 'GPA')}
           <input type="number" inputMode="decimal" step="0.01" min={0} max={scaleMax} value={g} placeholder={L(`من ${scaleMax}`, `of ${scaleMax}`)}
-            onChange={(e) => { setG(e.target.value); save(e.target.value, h); }} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('المعدل التراكمي السابق', 'Previous cumulative GPA')} />
+            onChange={(e) => { setG(e.target.value); save(e.target.value, h); }} onBlur={flush} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('المعدل التراكمي السابق', 'Previous cumulative GPA')} />
         </label>
         <label className="flex flex-col gap-1 text-[12px] text-fg-2">{L('الساعات المجتازة', 'Credits completed')}
           <input type="number" inputMode="numeric" min={0} value={h} placeholder="0"
-            onChange={(e) => { setH(e.target.value); save(g, e.target.value); }} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('الساعات السابقة', 'Previous credits')} />
+            onChange={(e) => { setH(e.target.value); save(g, e.target.value); }} onBlur={flush} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('الساعات السابقة', 'Previous credits')} />
         </label>
       </div>
       {bad && <p className="mt-1.5 text-[12px] text-danger">{L(`المعدل لازم بين 0 و ${scaleMax}`, `GPA must be between 0 and ${scaleMax}`)}</p>}

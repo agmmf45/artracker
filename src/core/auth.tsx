@@ -46,6 +46,14 @@ async function adoptLegacyToken() {
   // v4's cached copy of the data (artrk_data_v1_*) is intentionally left in place, never deleted.
 }
 
+/** An abort signal that fires after `ms` (AbortSignal.timeout isn't in every phone browser yet). */
+function timeoutSignal(ms: number): AbortSignal {
+  if (typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [user, setUser] = useState<User | null>(null);
@@ -87,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       await adoptLegacyToken();
       try {
-        const res = await api<{ user: User }>('/auth/session');
+        const res = await api<{ user: User }>('/auth/session', undefined, { signal: timeoutSignal(10_000) });
         await enter(res.user);
       } catch (e) {
         if (e instanceof ApiError && e.status === 0) {
