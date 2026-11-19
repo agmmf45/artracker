@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useRecords, useSettings } from '@/core/hooks';
-import { fmtDate, monthGrid, rangeKeys, relativeDay, shiftKey, todayKey } from '@/core/dates';
+import { dateKey, fmtDate, monthGrid, rangeKeys, relativeDay, shiftKey, todayKey } from '@/core/dates';
 import { remove, revertTo, update } from '@/core/repo';
 import { undoToast } from '@/core/toast';
 import { Button, Chip, EmptyState, IconButton, PageHeader, Segmented, Select } from '@/design/ui';
@@ -55,8 +55,10 @@ export default function TasksPage() {
   const filtered = useMemo(() => {
     let xs = (tasks ?? []).filter((t) => t.status !== 'inbox');
     const day = (t: Task) => taskDay(t.data);
+    // ticked tasks stay where they were (crossed out) instead of vanishing into "Done"
+    const doneOn = (t: Task) => (isDone(t) && t.data.completed_at ? dateKey(new Date(t.data.completed_at)) : null);
     switch (list) {
-      case 'today': xs = xs.filter((t) => !isDone(t) && t.status !== 'archived' && ((day(t) && day(t)! <= today) || t.data.due === today)); break;
+      case 'today': xs = xs.filter((t) => t.status !== 'archived' && (isDone(t) ? doneOn(t) === today : (day(t) && day(t)! <= today) || t.data.due === today)); break;
       case 'tomorrow': xs = xs.filter((t) => !isDone(t) && day(t) === shiftKey(today, 1)); break;
       case 'upcoming': xs = xs.filter((t) => !isDone(t) && t.status !== 'archived' && !!day(t) && day(t)! > today); break;
       case 'overdue': xs = xs.filter((t) => isOverdue(t, today)); break;
@@ -65,7 +67,7 @@ export default function TasksPage() {
       case 'completed': xs = xs.filter((t) => isDone(t)); break;
       case 'archived': xs = xs.filter((t) => t.status === 'archived'); break;
       case 'favorites': xs = xs.filter((t) => t.data.favorite && t.status !== 'archived'); break;
-      default: xs = xs.filter((t) => t.status !== 'archived' && (!isDone(t) || view === 'kanban'));
+      default: xs = xs.filter((t) => t.status !== 'archived' && (!isDone(t) || view === 'kanban' || (doneOn(t) ?? '') >= shiftKey(today, -6)));
     }
     if (q.trim()) { const s = q.trim().toLowerCase(); xs = xs.filter((t) => `${t.data.title} ${t.data.notes} ${t.data.tags.join(' ')}`.toLowerCase().includes(s)); }
     if (category) xs = xs.filter((t) => t.data.category === category);
@@ -73,6 +75,7 @@ export default function TasksPage() {
     if (priority) xs = xs.filter((t) => String(t.data.priority) === priority);
     if (project) xs = xs.filter((t) => t.data.project_id === project);
     return xs.sort((a, b) =>
+      Number(isDone(a)) - Number(isDone(b)) ||
       Number(b.data.pinned) - Number(a.data.pinned) ||
       (day(a) ?? '9999').localeCompare(day(b) ?? '9999') ||
       (a.data.start_time ?? '99').localeCompare(b.data.start_time ?? '99') ||
@@ -219,17 +222,18 @@ export default function TasksPage() {
     const groups = new Map<string, Task[]>();
     for (const t of xs) {
       const d = taskDay(t.data);
-      const key = !d ? 'none' : d < today ? 'overdue' : d;
+      const key = isDone(t) && d && d < today ? 'donePast' : !d ? 'none' : d < today ? 'overdue' : d;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(t);
     }
-    const keys = [...groups.keys()].sort((a, b) => (a === 'overdue' ? -1 : b === 'overdue' ? 1 : a === 'none' ? 1 : b === 'none' ? -1 : a.localeCompare(b)));
+    const rank = (k: string) => (k === 'overdue' ? 0 : k === 'none' ? 2 : k === 'donePast' ? 3 : 1);
+    const keys = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
     return (
       <div className="space-y-4">
         {keys.map((k) => (
           <section key={k}>
             <h2 className={clsx('mb-1.5 px-2 text-[13px] font-bold', k === 'overdue' ? 'text-danger' : 'text-fg-2')}>
-              {k === 'overdue' ? L('متأخرة', 'Overdue') : k === 'none' ? L('بدون تاريخ', 'No date') : `${relativeDay(k, lang, locale)} · ${fmtDate(k, locale, { day: 'numeric', month: 'short' })}`}
+              {k === 'overdue' ? L('متأخرة', 'Overdue') : k === 'none' ? L('بدون تاريخ', 'No date') : k === 'donePast' ? L('أنجزتها هالأسبوع', 'Done this week') : `${relativeDay(k, lang, locale)} · ${fmtDate(k, locale, { day: 'numeric', month: 'short' })}`}
               <span className="num ms-1.5 text-fg-3">{groups.get(k)!.length}</span>
             </h2>
             <div className="card divide-y divide-line p-1.5">

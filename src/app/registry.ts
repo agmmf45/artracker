@@ -54,11 +54,11 @@ const ALL: PageDef[] = [
   p({ id: 'life.week', section: 'life', path: '/life/week', ar: 'الأسبوع', en: 'Week', icon: CalendarRange, core: true, file: 'life/Week' }),
   p({ id: 'life.month', section: 'life', path: '/life/month', ar: 'الشهر', en: 'Month', icon: CalendarDays, core: true, file: 'life/Month' }),
   p({ id: 'life.notebook', section: 'life', path: '/life/notebook', ar: 'الدفتر', en: 'Notebook', icon: BookOpen, core: true, file: 'life/Notebook' }),
-  p({ id: 'life.planner', section: 'life', path: '/life/planner', ar: 'المخطط', en: 'Planner', icon: CalendarClock, file: 'life/Planner' }),
-  p({ id: 'life.calendar', section: 'life', path: '/life/calendar', ar: 'التقويم', en: 'Calendar', icon: CalendarDays, file: 'life/Calendar' }),
   // merged pages: Tasks holds the Inbox; Goals holds Projects and Habits; the Notebook holds Notes
   p({ id: 'life.tasks', section: 'life', path: '/life/tasks', ar: 'المهام', en: 'Tasks', icon: ListChecks, file: 'life/TasksHub', members: ['life.tasks', 'life.inbox'] }),
   p({ id: 'life.goals', section: 'life', path: '/life/goals', ar: 'الأهداف والعادات', en: 'Goals & habits', icon: Target, file: 'life/GoalsHub', members: ['life.goals', 'life.projects', 'life.habits'] }),
+  p({ id: 'life.planner', section: 'life', path: '/life/planner', ar: 'المخطط', en: 'Planner', icon: CalendarClock, file: 'life/Planner' }),
+  p({ id: 'life.calendar', section: 'life', path: '/life/calendar', ar: 'التقويم', en: 'Calendar', icon: CalendarDays, file: 'life/Calendar' }),
   p({ id: 'life.inbox', section: 'life', path: '/life/inbox', ar: 'الوارد', en: 'Inbox', icon: Inbox, file: 'life/Inbox', redirect: '/life/tasks?tab=inbox' }),
   p({ id: 'life.habits', section: 'life', path: '/life/habits', ar: 'العادات', en: 'Habits', icon: Repeat, file: 'life/Habits', redirect: '/life/goals?tab=habits' }),
   p({ id: 'life.projects', section: 'life', path: '/life/projects', ar: 'المشاريع', en: 'Projects', icon: FolderKanban, file: 'life/Projects', redirect: '/life/goals?tab=projects' }),
@@ -119,7 +119,7 @@ const ALL: PageDef[] = [
 ];
 
 /** Each section's main pages, shown first; the rest are grouped under "Tools". */
-export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook', 'study.overview', 'health.workouts', 'health.nutrition']);
+export const LIFE_MAIN = new Set(['life.today', 'life.week', 'life.month', 'life.notebook', 'life.tasks', 'life.goals', 'life.planner', 'study.overview', 'health.workouts', 'health.nutrition']);
 
 export const PAGES: Page[] = ALL.flatMap((def) => {
   const load = FILES[`/src/modules/${def.file}.tsx`] as Page['load'] | undefined;

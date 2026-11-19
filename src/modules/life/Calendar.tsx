@@ -204,15 +204,28 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
   const narrow = useMedia('(max-width: 639px)') && days.length > 1;
 
   useEffect(() => { scroller.current?.scrollTo({ top: Math.max(0, ((hm(settings.dayStart) ?? 420) / 60) * HOUR_PX - 8) }); }, [settings.dayStart]);
-  // open the sideways week on today (or the first day), centred
+  // phones: exactly three whole days on screen (no half-cut column), snapping a day at a time
+  const [colW, setColW] = useState(96);
   useEffect(() => {
     const sc = scroller.current;
     if (!sc || !narrow) return;
-    const cell = sc.querySelector<HTMLElement>(`[data-day="${days.includes(today) ? today : days[0]}"]`);
+    const fit = () => setColW(Math.max(80, Math.floor((sc.clientWidth - 52) / 3)));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(sc);
+    return () => ro.disconnect();
+  }, [narrow]);
+  // open the sideways week with today as the first of the three days on screen
+  useEffect(() => {
+    const sc = scroller.current;
+    if (!sc || !narrow) return;
+    const i = Math.max(0, Math.min(days.length - 3, days.indexOf(today) >= 0 ? days.indexOf(today) : 0));
+    const cell = sc.querySelector<HTMLElement>(`[data-day="${days[i]}"]`);
     if (!cell) return;
     const a = cell.getBoundingClientRect(), b = sc.getBoundingClientRect();
-    sc.scrollLeft += (a.left + a.width / 2) - (b.left + b.width / 2);
-  }, [narrow, days[0]]); // eslint-disable-line react-hooks/exhaustive-deps
+    const rtl = getComputedStyle(sc).direction === 'rtl';
+    sc.scrollLeft += rtl ? a.right - (b.right - 52) : a.left - (b.left + 52);
+  }, [narrow, colW, days[0]]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onEnd = async (e: DragEndEvent) => {
     const it = items.find((x) => x.key === e.active.id);
@@ -241,10 +254,10 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
   const cols = `52px repeat(${days.length}, minmax(0, 1fr))`;
   const stick = 'sticky start-0 z-30 bg-surface';
   return (
-    <div className="card overflow-hidden">
+    <div className="card isolate overflow-hidden">
       <DndContext sensors={sensors} onDragEnd={onEnd}>
-        <div ref={scroller} className="relative max-h-[68vh] overflow-auto overscroll-contain scroll-thin">
-          <div style={{ minWidth: narrow ? 52 + days.length * 96 : undefined }}>
+        <div ref={scroller} className={clsx('relative max-h-[68vh] overflow-auto overscroll-contain scroll-thin', narrow && 'snap-x snap-mandatory scroll-ps-[52px]')}>
+          <div style={{ width: narrow ? 52 + days.length * colW : undefined }}>
             <div className="sticky top-0 z-40 bg-surface">
               <div className="grid border-b border-line" style={{ gridTemplateColumns: cols }}>
                 <div className={stick} />
@@ -252,7 +265,7 @@ function TimeGrid({ days, items, clash, onOpen, onCreate }: { days: string[]; it
                   const sp = specialDay(d, lang);
                   const hd = hijri(d, lang, { day: 'numeric' });
                   return (
-                    <div key={d} data-day={d} className={clsx('min-w-0 px-1 py-2 text-center', d === today && 'text-accent')}>
+                    <div key={d} data-day={d} className={clsx('min-w-0 snap-start px-1 py-2 text-center', d === today && 'text-accent')}>
                       <div className="text-[11px] font-bold text-fg-3">{fmtDate(d, locale, { weekday: 'short' })}</div>
                       <div className="num text-lg font-black leading-tight">{fromKey(d).getDate()}</div>
                       {settings.calendarDisplay !== 'gregorian' && (
