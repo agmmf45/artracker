@@ -6,7 +6,7 @@ import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useRecord, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
 import { bulk, revertTo } from '@/core/repo';
-import { dateKey, relativeDay, shiftKey, todayKey, dayWord } from '@/core/dates';
+import { dateKey, fmtDate, relativeDay, shiftKey, todayKey, dayWord } from '@/core/dates';
 import { undoToast } from '@/core/toast';
 import type { Settings } from '@/core/settings';
 import { Segmented } from '@/design/ui';
@@ -37,6 +37,9 @@ export default function Today() {
   const day = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? params.get('date')! : today;
   const setDay = (d: string) => setParams(d === today ? {} : { date: d }, { replace: true });
   const tomorrow = shiftKey(day, 1);
+  // the nav button names the day on screen: اليوم · بكرة · أمس, else the date (e.g. «السبت، 21 نوفمبر»)
+  const near = Math.round((Date.parse(day) - Date.parse(today)) / 864e5);
+  const dayLabel = Math.abs(near) <= 1 ? relativeDay(day, lang, locale) : fmtDate(day, locale, { weekday: 'long', day: 'numeric', month: 'long' });
 
   const tasks = useRecords<TaskData>('task');
   const items = useCalendarItems(day, day, settings);
@@ -94,7 +97,10 @@ export default function Today() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-full border border-line bg-surface">
             <button onClick={() => setDay(shiftKey(day, -1))} aria-label={L('اليوم السابق', 'Previous day')} className="grid size-10 place-items-center rounded-full hover:bg-surface-2"><ChevronRight size={18} className="ltr:rotate-180" /></button>
-            <button onClick={() => setDay(today)} disabled={day === today} className="h-10 px-3 text-sm font-bold disabled:text-fg-3">{L('اليوم', 'Today')}</button>
+            {/* shows the day you're on (اليوم / بكرة / أمس / the date); tap to go back to today */}
+            <button onClick={() => setDay(today)} disabled={day === today} title={day === today ? undefined : L('ارجع لليوم', 'Back to today')}
+              aria-label={day === today ? L('اليوم', 'Today') : L(`${dayLabel} — ارجع لليوم`, `${dayLabel} — back to today`)}
+              className="h-10 min-w-16 px-3 text-sm font-bold disabled:text-fg-2">{dayLabel}</button>
             <button onClick={() => setDay(shiftKey(day, 1))} aria-label={L('اليوم التالي', 'Next day')} className="grid size-10 place-items-center rounded-full hover:bg-surface-2"><ChevronLeft size={18} className="ltr:rotate-180" /></button>
           </div>
           <Segmented size="sm" value={paper} onChange={(v) => void updateSettings({ notebook: { paper: v } })}
