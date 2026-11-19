@@ -98,9 +98,11 @@ export default function StudySheet() {
   const semGpa = gpa(rows.filter((r) => r.pts != null).map((r) => ({ credits: r.c.data.credits, points: r.pts! })));
   const pastRows = (past ?? []).map((p) => ({ credits: p.data.credits, points: p.data.points }));
   const prior = !pastRows.length && settings.study.priorGpa && settings.study.priorCredits ? [{ credits: settings.study.priorCredits, points: settings.study.priorGpa }] : pastRows;
+  const priorGpa = gpa(prior);
+  const priorCredits = prior.reduce((a, r) => a + r.credits, 0);
   const cum = gpa([...prior, ...rows.filter((r) => r.pts != null).map((r) => ({ credits: r.c.data.credits, points: r.pts! }))]);
   const credits = current.reduce((a, c) => a + (c.data.credits || 0), 0);
-  const letters = scale.slice(0, 6).map((x) => x.letter);
+  const letters = scale.map((x) => x.letter);
 
   const weekNo = sem?.data.start ? Math.max(1, Math.floor(daysBetween(sem.data.start, today) / 7) + 1) : null;
   const weeks = sem?.data.start && sem.data.end ? Math.ceil((daysBetween(sem.data.start, sem.data.end) + 1) / 7) : null;
@@ -246,18 +248,20 @@ export default function StudySheet() {
                   })}
                 </ul>
               )}
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <div className="rounded-sm bg-[color-mix(in_oklab,var(--study)_30%,var(--surface))] p-3"><p className="text-[12px] text-fg-2">{L('معدل الفصل', 'Semester')}</p><p className="num text-[28px] font-black leading-none">{semGpa != null ? semGpa.toFixed(2) : '—'}</p></div>
-                <div className="rounded-sm bg-[color-mix(in_oklab,var(--reward)_32%,var(--surface))] p-3"><p className="text-[12px] text-fg-2">{L('التراكمي بعده', 'Cumulative after')}</p><p className="num text-[28px] font-black leading-none">{cum != null ? cum.toFixed(2) : '—'}</p></div>
+              <PriorGpa fromPast={pastRows.length > 0} gpaValue={priorGpa} credits={priorCredits} scaleMax={settings.study.gpaScale}
+                savedGpa={settings.study.priorGpa ?? null} savedCredits={settings.study.priorCredits ?? null} />
+              <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+                <div className="rounded-sm bg-[color-mix(in_oklab,var(--study)_30%,var(--surface))] p-3">
+                  <p className="text-[12px] text-fg-2">{L('معدل هذا الفصل', 'This term')}</p>
+                  <p className="num text-[28px] font-black leading-none">{semGpa != null ? semGpa.toFixed(2) : '—'}</p>
+                  <p className="num mt-1 text-[11.5px] text-fg-2">{L(`${credits} ساعة`, `${credits} credits`)}</p>
+                </div>
+                <div className="rounded-sm bg-[color-mix(in_oklab,var(--reward)_32%,var(--surface))] p-3">
+                  <p className="text-[12px] text-fg-2">{L('التراكمي الجديد', 'New cumulative')}</p>
+                  <p className="num text-[28px] font-black leading-none">{cum != null ? cum.toFixed(2) : '—'}</p>
+                  <p className="num mt-1 text-[11.5px] text-fg-2">{priorCredits ? L(`${priorCredits + credits} ساعة`, `${priorCredits + credits} credits`) : L('أضف معدلك السابق فوق', 'add your previous GPA above')}</p>
+                </div>
               </div>
-              {!pastRows.length && (
-                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[12.5px] text-fg-2">{L('معدلك قبل هالفصل:', 'GPA before this term:')}
-                  <input type="number" step="0.01" min={0} max={settings.study.gpaScale} defaultValue={settings.study.priorGpa ?? ''} onBlur={(e) => void updateSettings({ study: { priorGpa: e.target.value ? Number(e.target.value) : null } })} className="nb-write num !w-16 text-center" aria-label={L('المعدل السابق', 'Prior GPA')} />
-                  {L('على', 'over')}
-                  <input type="number" min={0} defaultValue={settings.study.priorCredits ?? ''} onBlur={(e) => void updateSettings({ study: { priorCredits: e.target.value ? Number(e.target.value) : null } })} className="nb-write num !w-14 text-center" aria-label={L('الساعات السابقة', 'Prior credits')} />
-                  {L('ساعة', 'credits')}
-                </p>
-              )}
               <p className="mt-1 text-[11.5px] text-fg-3">{L(`مقياس ${settings.study.gpaScale}. الدرجة النهائية (لو مسجلة) تغلب المتوقعة.`, `${settings.study.gpaScale}-point scale. A recorded final grade wins over the expected one.`)}</p>
             </Box>
           </section>
@@ -335,6 +339,46 @@ function AddDue({ courses }: { courses: Course[] }) {
       </div>
       <div className="flex gap-2"><button type="submit" className="h-9 rounded-full bg-fg px-4 text-[13px] font-bold text-bg">{L('أضف', 'Add')}</button><button type="button" onClick={() => setOpen(false)} className="h-9 rounded-full border border-line px-3 text-[13px] font-bold">{L('إلغاء', 'Cancel')}</button></div>
     </form>
+  );
+}
+
+/**
+ * Your cumulative GPA before this term (typed in, or worked out from past grades if you entered them).
+ * It is combined with this term's courses, weighted by credit hours, into the new cumulative.
+ */
+function PriorGpa({ fromPast, gpaValue, credits, scaleMax, savedGpa, savedCredits }: { fromPast: boolean; gpaValue: number | null; credits: number; scaleMax: number; savedGpa: number | null; savedCredits: number | null }) {
+  const { L } = useI18n();
+  const [g, setG] = useState(savedGpa != null ? String(savedGpa) : '');
+  const [h, setH] = useState(savedCredits != null ? String(savedCredits) : '');
+  if (fromPast) {
+    return (
+      <div className="mt-3 rounded-sm border border-dashed border-line-strong p-3 text-[13px]">
+        <span className="text-fg-2">{L('التراكمي السابق (من درجاتك المسجلة):', 'Previous cumulative (from your recorded grades):')}</span>{' '}
+        <b className="num">{gpaValue != null ? gpaValue.toFixed(2) : '—'}</b> <span className="num text-fg-2">{L(`· ${credits} ساعة`, `· ${credits} credits`)}</span>
+      </div>
+    );
+  }
+  const save = (gv: string, hv: string) => {
+    const gn = Number(gv), hn = Number(hv);
+    void updateSettings({ study: { priorGpa: gv.trim() && gn > 0 && gn <= scaleMax ? gn : null, priorCredits: hv.trim() && hn > 0 ? Math.round(hn) : null } });
+  };
+  const bad = g.trim() !== '' && (Number(g) <= 0 || Number(g) > scaleMax);
+  return (
+    <div className="mt-3 rounded-sm border border-dashed border-line-strong p-3">
+      <p className="mb-2 text-[12.5px] font-bold">{L('معدلك التراكمي السابق (قبل هذا الفصل)', 'Your cumulative GPA before this term')}</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-[12px] text-fg-2">{L('المعدل', 'GPA')}
+          <input type="number" inputMode="decimal" step="0.01" min={0} max={scaleMax} value={g} placeholder={L(`من ${scaleMax}`, `of ${scaleMax}`)}
+            onChange={(e) => { setG(e.target.value); save(e.target.value, h); }} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('المعدل التراكمي السابق', 'Previous cumulative GPA')} />
+        </label>
+        <label className="flex flex-col gap-1 text-[12px] text-fg-2">{L('الساعات المجتازة', 'Credits completed')}
+          <input type="number" inputMode="numeric" min={0} value={h} placeholder="0"
+            onChange={(e) => { setH(e.target.value); save(g, e.target.value); }} className="nb-write num !w-20 text-center text-[16px]" aria-label={L('الساعات السابقة', 'Previous credits')} />
+        </label>
+      </div>
+      {bad && <p className="mt-1.5 text-[12px] text-danger">{L(`المعدل لازم بين 0 و ${scaleMax}`, `GPA must be between 0 and ${scaleMax}`)}</p>}
+      {!bad && g.trim() !== '' && !(Number(h) > 0) && <p className="mt-1.5 text-[12px] text-warning">{L('اكتب عدد الساعات عشان أجمعه مع هذا الفصل', 'Add the credit hours so it can be combined with this term')}</p>}
+    </div>
   );
 }
 
