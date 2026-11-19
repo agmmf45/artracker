@@ -60,6 +60,8 @@ export default function Week() {
   const nextList = (tasks ?? []).filter((x) => x.data.plan_week === nextWs && !taskDay(x.data) && !isDone(x)).length;
   const h12 = settings.timeFormat === '12';
   const short = (d: string) => fmtDate(d, locale, { weekday: 'short' });
+  // one letter per day (ح ن ث ر خ ج س) — the Arabic "short" name is the full word and overflows a phone
+  const letter = (d: string) => fmtDate(d, locale, { weekday: 'narrow' });
   const label = `${fmtDate(ws, locale, { day: 'numeric', month: 'short' })} – ${fmtDate(we, locale, { day: 'numeric', month: 'short' })}`;
 
   return (
@@ -85,7 +87,7 @@ export default function Week() {
           <WriteLine value={page?.theme ?? ''} label={L('محور الأسبوع', 'Week theme')} placeholder={L('كلمة أو جملة للأسبوع', 'A word or line for the week')} onSave={(v) => void patchWeekPage(ws, { theme: v })} className="text-[16px]" />
         </label>
 
-        <div className="mb-4 grid gap-4 lg:grid-cols-2">
+        <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Box title={L('أهم 3 هالأسبوع', 'This week’s top 3')} extra={L('تنزل منها «أهم 3» لكل يوم', 'They feed each day’s top 3')}>
             <ol className="flex flex-col gap-2">
               {big3.map((b, i) => (
@@ -145,16 +147,16 @@ export default function Week() {
           })}
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <Box title={L('سلسلة العادات', 'Habit streaks')}>
             {!activeHabits.length ? <p className="text-[13.5px] text-fg-2"><Link to="/life/habits" className="font-bold text-accent-ink">{L('أضف عادة', 'Add a habit')}</Link></p> : (
               <div className="overflow-x-auto scroll-thin">
-                <table className="w-full text-[13px]">
-                  <thead><tr><th className="text-start font-normal" />{days.map((d) => <th key={d} className="px-1 pb-1 text-center text-[11.5px] font-bold text-fg-2">{short(d)}</th>)}</tr></thead>
+                <table className="w-full table-fixed text-[13px]">
+                  <thead><tr><th className="w-[38%] text-start font-normal" />{days.map((d) => <th key={d} title={short(d)} className={clsx('pb-1 text-center text-[11.5px] font-bold', d === today ? 'text-reward-ink' : 'text-fg-2')}>{letter(d)}</th>)}</tr></thead>
                   <tbody>
                     {activeHabits.map((h) => (
                       <tr key={h.id}>
-                        <td className="max-w-40 truncate py-1 pe-2">{h.data.icon} {h.data.name}</td>
+                        <td className="truncate py-1 pe-2">{h.data.icon} {h.data.name}</td>
                         {days.map((d) => {
                           const sched = isScheduled(h.data, d);
                           const done = logDone(h.data, logIdx.get(h.id)?.get(d));
@@ -169,16 +171,16 @@ export default function Week() {
           </Box>
           <Box title={L('فلوس الأسبوع', 'Week’s money')}>
             <p className="num text-[26px] font-black leading-none">{weekSpent.toLocaleString(locale)} <span className="text-[13px] font-medium text-fg-2">{L('ر.س', 'SAR')}</span></p>
-            <div className="mt-2.5 flex gap-1">
+            <div className="mt-2.5 flex flex-wrap gap-1">
               {days.map((d) => (
-                <span key={d} className={clsx('grid size-7 place-items-center rounded-full text-[11px] font-bold', d > today ? 'text-fg-3' : spentOn(d) ? 'bg-surface-2 text-fg-2' : 'bg-[color-mix(in_oklab,var(--success)_25%,var(--surface))] text-success')}>{d <= today && !spentOn(d) ? '✓' : short(d).slice(0, 1)}</span>
+                <span key={d} className={clsx('grid size-7 place-items-center rounded-full text-[11px] font-bold', d > today ? 'text-fg-3' : spentOn(d) ? 'bg-surface-2 text-fg-2' : 'bg-[color-mix(in_oklab,var(--success)_25%,var(--surface))] text-success')}>{d <= today && !spentOn(d) ? '✓' : letter(d)}</span>
               ))}
             </div>
             <p className="mt-1.5 text-[12.5px] text-fg-2">{L(`${noSpend} ${noSpend === 1 ? 'يوم' : 'أيام'} بدون صرف`, `${noSpend} no-spend day${noSpend === 1 ? '' : 's'}`)}</p>
           </Box>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
           <Box title={L('خطة العشاء', 'Dinner plan')}>
             <ul className="flex flex-col gap-1">
               {days.map((d, i) => (
@@ -189,7 +191,7 @@ export default function Week() {
             </ul>
           </Box>
           <Box title={L('مراجعة الأسبوع', 'Weekly review')} extra={L('الجمعة · 15 دقيقة · تنحفظ في المراجعات', 'Friday · 15 min · saved to Reviews')} className="!bg-[color-mix(in_oklab,var(--health)_18%,var(--surface))]">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {([['wins', '✓ وش مشى زين؟', '✓ What went well?'], ['hard', '✗ وش علّق؟', '✗ What got stuck?'], ['rest', '☕ كيف برتاح الأسبوع الجاي؟', '☕ How will I recharge?']] as const).map(([k, ar, en]) => (
                 <label key={k} className="text-[13px] font-bold">{L(ar, en)}
                   <WriteLine value={answers[k] ?? ''} label={L(ar, en)} onSave={(v) => setAnswer(k, v)} className="mt-1 text-[15px] font-normal" />

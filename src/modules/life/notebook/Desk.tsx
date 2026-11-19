@@ -87,7 +87,7 @@ export function Desk({ lines, unlocked, paper = 'plain' }: { lines: DeskLine[]; 
   };
 
   return (
-    <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
       <section className={`nb-paper paper-${paper} relative rounded-lg px-5 pb-5 pt-6 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-7`} aria-label={L('اكتب', 'Write')}>
         <span className="nb-washi -top-3 end-16 rotate-3" style={{ ['--washi' as string]: 'var(--reward)' }} aria-hidden="true" />
         <p className="mb-1 text-[13px] font-bold text-fg-2">{fmtDate(today, locale, { weekday: 'long', day: 'numeric', month: 'long' })}</p>

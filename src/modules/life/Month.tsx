@@ -182,7 +182,7 @@ export default function Month() {
               )}
             </Box>
 
-            <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <Box title={L('فلوس الشهر', 'Month’s money')} extra={<Link to="/life/finance" className="font-bold text-accent-ink">{L('المال', 'Money')}</Link>}>
                 <p className="num text-[24px] font-black leading-none">{spent.toLocaleString(locale)} {budget ? <span className="text-[12.5px] font-medium text-fg-2">/ {budget.toLocaleString(locale)}</span> : null}</p>
                 {budget ? <div className="my-2 h-1.5 overflow-hidden rounded-full bg-surface-2"><div className={clsx('h-full rounded-full', spent > budget ? 'bg-danger' : 'bg-reward-ink')} style={{ width: `${Math.min(100, (spent / budget) * 100)}%` }} /></div> : <div className="h-2" />}
@@ -228,7 +228,7 @@ export default function Month() {
           </table>
         </div>
         <Box title={L('تأمّل الشهر', 'Month reflection')} extra={L('آخر يوم · تنحفظ في المراجعات', 'Last day · saved to Reviews')} className="mt-4 !bg-[color-mix(in_oklab,var(--health)_18%,var(--surface))]">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {([['proud', 'وش أكثر شي فخور فيه؟', 'Most proud of?'], ['goals', 'كيف تقدمت أهدافي؟', 'How did goals go?'], ['habits', 'أي عادة ثبتت، وأيها طاحت؟', 'Which habits held?'], ['change', 'وش أغيّر الشهر الجاي؟', 'What changes next month?']] as const).map(([k, ar, en]) => (
               <label key={k} className="text-[13px] font-bold">{L(ar, en)}
                 <WriteLine value={answers[k] ?? ''} label={L(ar, en)} onSave={(v) => setAnswer(k, v)} className="mt-1 text-[15px] font-normal" />
