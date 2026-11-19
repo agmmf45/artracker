@@ -6,7 +6,7 @@ import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useRecord, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
 import { bulk, revertTo } from '@/core/repo';
-import { dateKey, fmtDate, hijri, relativeDay, shiftKey, todayKey, dayWord } from '@/core/dates';
+import { dateKey, relativeDay, shiftKey, todayKey, dayWord } from '@/core/dates';
 import { undoToast } from '@/core/toast';
 import type { Settings } from '@/core/settings';
 import { Segmented } from '@/design/ui';
@@ -15,6 +15,7 @@ import { TaskEditor } from './tasks/TaskEditor';
 import { createTask, isDone, saveTask, taskDay, type Task, type TaskData } from './tasks/model';
 import { useCalendarItems } from './calendar/sources';
 import { RapidLog } from './today/RapidLog';
+import { DayStrip } from './today/DayStrip';
 import { TimeBlocks } from './today/TimeBlocks';
 import { Trackers, Box, WriteLine } from './today/Trackers';
 import { dayPageId, patchDayPage, type DayPageData } from './today/dayPage';
@@ -85,19 +86,11 @@ export default function Today() {
     { ok: !!page?.prompts?.win, ar: 'كتبت فوز اليوم', en: 'Wrote today’s win', act: null },
   ];
 
-  const dayNum = fmtDate(day, locale, { day: 'numeric' });
-  const rest = fmtDate(day, locale, { month: 'long' });
-  const weekday = fmtDate(day, locale, { weekday: 'long' });
   const w = dayWord(day, lang, locale);
 
   return (
     <div className="mx-auto max-w-[1360px]">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div>
-          <p className="text-[13px] font-bold text-fg-2">{day === today ? L('اليوم', 'Today') : relativeDay(day, lang, locale)}</p>
-          <h1 className="nb-title text-[34px] leading-tight md:text-[40px]">{weekday}، <span className="nb-hl">{dayNum} {rest}</span></h1>
-          <p className="mt-0.5 text-[13.5px] text-fg-2">{hijri(day, lang)}</p>
-        </div>
+      <header className="mb-3 flex flex-wrap items-center justify-end gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-full border border-line bg-surface">
             <button onClick={() => setDay(shiftKey(day, -1))} aria-label={L('اليوم السابق', 'Previous day')} className="grid size-10 place-items-center rounded-full hover:bg-surface-2"><ChevronRight size={18} className="ltr:rotate-180" /></button>
@@ -109,6 +102,7 @@ export default function Today() {
           <Link to="/life/week" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:bg-surface-2"><CalendarClock size={16} />{L('الأسبوع', 'Week')}</Link>
         </div>
       </header>
+      <DayStrip day={day} />
 
       <div className="@container/nb">
       <div className="grid grid-cols-1 gap-4 @[1060px]/nb:grid-cols-2 @[1060px]/nb:gap-0">
