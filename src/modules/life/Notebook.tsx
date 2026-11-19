@@ -2,7 +2,9 @@ import { lazy, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
-import { useRecords, useSettings } from '@/core/hooks';
+import { updateSettings, useRecords, useSettings } from '@/core/hooks';
+import { Segmented } from '@/design/ui';
+import type { Settings } from '@/core/settings';
 import { isIdOn } from '@/app/registry';
 import { dateKey, fmtDate, relativeDay, todayKey } from '@/core/dates';
 import type { JournalData, NoteData } from '@/modules/shared/domain';
@@ -46,6 +48,7 @@ function NotebookDays() {
   const notes = useRecords<NoteData>('note');
   const journal = useRecords<DayPageData | JournalData>('journal');
   const [filter, setFilter] = useState<'all' | Kind>('all');
+  const paper: NonNullable<Settings['notebook']['writePaper']> = settings.notebook?.writePaper ?? 'plain';
   const [shown, setShown] = useState(21);
   const [unlocked, setUnlocked] = useState(!settings.privacy.lockJournal);
   useEffect(() => { setUnlocked(!settings.privacy.lockJournal); }, [settings.privacy.lockJournal]);
@@ -88,9 +91,11 @@ function NotebookDays() {
           <p className="text-[13px] font-bold text-fg-2">{L('مساحتك تكتب فيها اللي في بالك — خاصة فيك', 'Your space to write what’s on your mind — private')}</p>
           <h1 className="nb-title text-[34px] leading-tight md:text-[40px]">{L('الدفتر', 'Notebook')}</h1>
         </div>
+        <Segmented size="sm" value={paper} onChange={(v) => void updateSettings({ notebook: { writePaper: v } })}
+          options={[{ value: 'plain', label: L('سادة', 'Plain') }, { value: 'lines', label: L('سطور', 'Lines') }, { value: 'grid', label: L('مربعات', 'Grid') }, { value: 'dots', label: L('نقاط', 'Dots') }]} />
       </header>
 
-      <Desk lines={lines} unlocked={unlocked} />
+      <Desk lines={lines} unlocked={unlocked} paper={paper} />
 
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <h2 className="nb-title text-2xl text-life-ink">{L('يوم بيوم', 'Day by day')}</h2>
@@ -103,7 +108,7 @@ function NotebookDays() {
         ))}
       </div>
       </div>
-      <section className="nb-paper paper-lines relative rounded-lg px-4 pb-6 pt-7 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-8">
+      <section className={`nb-paper paper-${paper} relative rounded-lg px-4 pb-6 pt-7 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-8`}>
         <span className="nb-washi -top-3 end-20 rotate-3" style={{ ['--washi' as string]: 'var(--health)' }} aria-hidden="true" />
         {!unlocked && (
           <p className="mb-3 rounded-sm bg-surface-2 p-2.5 text-[13px]">{L('اليوميات والامتنان مقفلة.', 'Journal and gratitude are locked.')} <button onClick={() => setUnlocked(true)} className="font-bold text-accent-ink">{L('افتحها هنا', 'Show them')}</button></p>

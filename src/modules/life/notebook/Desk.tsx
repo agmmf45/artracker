@@ -56,7 +56,7 @@ function streakOf(days: Set<string>, today: string): { now: number; best: number
  * what kind of line it is, a mood, and the small things that make you come back — the streak,
  * the last 30 days, and something you wrote on this day before.
  */
-export function Desk({ lines, unlocked }: { lines: DeskLine[]; unlocked: boolean }) {
+export function Desk({ lines, unlocked, paper = 'plain' }: { lines: DeskLine[]; unlocked: boolean; paper?: string }) {
   const { L, locale } = useI18n();
   const today = todayKey();
   const dayNo = Math.floor(Date.parse(`${today}T00:00:00Z`) / 864e5);
@@ -109,7 +109,7 @@ export function Desk({ lines, unlocked }: { lines: DeskLine[]; unlocked: boolean
 
   return (
     <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <section className="nb-paper paper-lines relative rounded-lg px-5 pb-5 pt-6 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-7" aria-label={L('اكتب', 'Write')}>
+      <section className={`nb-paper paper-${paper} relative rounded-lg px-5 pb-5 pt-6 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-7`} aria-label={L('اكتب', 'Write')}>
         <span className="nb-washi -top-3 end-16 rotate-3" style={{ ['--washi' as string]: 'var(--reward)' }} aria-hidden="true" />
         <div className="mb-1 flex flex-wrap items-baseline gap-x-3">
           <span className="text-[13px] font-bold text-fg-2">{fmtDate(today, locale, { weekday: 'long', day: 'numeric', month: 'long' })} · {L('سؤال اليوم', 'Today’s question')}</span>

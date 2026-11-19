@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { DndContext, PointerSensor, TouchSensor, useDraggable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { ChevronLeft, ChevronRight, Plus, Upload, Download, AlertTriangle, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Upload, Download, AlertTriangle, MapPin, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
 import { useMedia, useNow, useRecord, useSettings } from '@/core/hooks';
 import { fmtDate, fmtTime, fromKey, hijri, hm, monthGrid, rangeKeys, shiftKey, specialDay, todayKey, weekStartKey, fromMinutes, dateKey } from '@/core/dates';
-import { update, create } from '@/core/repo';
-import { toast } from '@/core/toast';
+import { update, create, remove, revertTo } from '@/core/repo';
+import { toast, undoToast } from '@/core/toast';
 import { parseIcs, toIcs } from '@/core/ics';
 import { download } from '@/core/portability';
 import { prayerTimes, PRAYER_NAMES, type PrayerTimes } from '@/core/prayer';
 import { db } from '@/core/db';
 import { Button, Chip, EmptyState, IconButton, PageHeader, Segmented } from '@/design/ui';
+import { confirm, Menu } from '@/design/overlay';
+import type { CourseData } from '@/modules/study/model';
+import { QuickEdit } from './calendar/QuickEdit';
 import type { EventData } from '@/modules/shared/domain';
 import { EventEditor } from './calendar/EventEditor';
 import { TaskEditor } from './tasks/TaskEditor';
@@ -32,6 +35,7 @@ export default function CalendarPage() {
   const [cursor, setCursor] = useState(todayKey());
   const [editEvent, setEditEvent] = useState<{ rec: Rec<EventData> | null; defaults?: Partial<EventData>; occ?: string } | null>(null);
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [quick, setQuick] = useState<{ item: CalItem; rec: Rec } | null>(null);
   const editTask = useRecord<TaskData>(editTaskId);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -62,14 +66,39 @@ export default function CalendarPage() {
     else { const d = fromKey(cursor); setCursor(dateKey(new Date(d.getFullYear(), d.getMonth() + dir, 1))); }
   };
 
+  // tap = edit right here: events and tasks open their editors; exams, due work and classes open a quick date/time editor
   const openItem = async (it: CalItem) => {
-    if (it.kind === 'event') { const r = await db().records.get(it.recId); if (r) setEditEvent({ rec: r as unknown as Rec<EventData>, occ: it.date }); }
-    else if (it.kind === 'task' || it.kind === 'deadline') setEditTaskId(it.recId);
-    else if (it.kind === 'exam') nav(`/study/exams?open=${it.recId}`);
-    else if (it.kind === 'assignment') nav(`/study/assignments?open=${it.recId}`);
-    else if (it.kind === 'class') nav(`/study/courses?open=${it.recId}`);
-    else if (it.kind === 'workout') nav('/health/workouts?tab=log');
-    else if (it.kind === 'medication') nav('/health/medication');
+    if (it.kind === 'task' || it.kind === 'deadline') { setEditTaskId(it.recId); return; }
+    if (it.kind === 'workout') { nav('/health/workouts?tab=log'); return; }
+    if (it.kind === 'medication') { nav('/health/medication'); return; }
+    const r = await db().records.get(it.recId);
+    if (!r) return;
+    if (r.type === 'event') setEditEvent({ rec: r as unknown as Rec<EventData>, occ: it.date });
+    else setQuick({ item: it, rec: r });
+  };
+
+  /** Clear the calendar: appointments, the class timetable and/or exams & due work — all undoable. */
+  const clearAll = async (what: Array<'events' | 'classes' | 'due'>) => {
+    const all = (await db().records.toArray()).filter((r) => !r.deleted_at);
+    const events = what.includes('events') ? all.filter((r) => r.type === 'event') : [];
+    const due = what.includes('due') ? all.filter((r) => r.type === 'exam' || r.type === 'assignment') : [];
+    const courses = what.includes('classes') ? all.filter((r) => r.type === 'course' && ((r.data as unknown as CourseData).schedule?.length ?? 0) > 0) : [];
+    const slots = courses.reduce((n, c) => n + (c.data as unknown as CourseData).schedule.length, 0);
+    if (!events.length && !due.length && !slots) { toast(L('ما فيه شيء تمسحه', 'Nothing to clear')); return; }
+    const parts = [
+      events.length ? L(`${events.length} موعد`, `${events.length} events`) : '',
+      slots ? L(`${slots} محاضرة من الجدول الأسبوعي`, `${slots} weekly classes`) : '',
+      due.length ? L(`${due.length} اختبار وتسليم`, `${due.length} exams & due work`) : '',
+    ].filter(Boolean).join(L('، و', ', '));
+    const ok = await confirm(L('مسح من التقويم؟', 'Clear from the calendar?'), {
+      message: L(`بينمسح: ${parts}. المقررات نفسها تبقى، والمواعيد تروح لسلة المحذوفات، وتقدر تتراجع بعدها مباشرة.`, `This clears ${parts}. Courses themselves stay; deleted items go to the trash and you can undo right after.`),
+      okText: L('امسح', 'Clear'), danger: true,
+    });
+    if (!ok) return;
+    const prev: Rec[] = [];
+    for (const r of [...events, ...due]) { const p = await remove(r.id); if (p) prev.push(p); }
+    for (const c of courses) { const p = await update<CourseData>(c.id, { data: { schedule: [] } }); if (p) prev.push(p as unknown as Rec); }
+    undoToast(L('انمسح من التقويم', 'Cleared from the calendar'), async () => { for (const p of prev) await revertTo(p); });
   };
 
   const importIcs = async (f?: File) => {
@@ -105,6 +134,13 @@ export default function CalendarPage() {
         actions={<>
           <IconButton label={L('استيراد ICS', 'Import ICS')} onClick={() => fileRef.current?.click()}><Upload size={18} /></IconButton>
           <IconButton label={L('تصدير ICS', 'Export ICS')} onClick={exportIcs}><Download size={18} /></IconButton>
+          <Menu trigger={<IconButton label={L('مسح التقويم', 'Clear calendar')}><Trash2 size={18} /></IconButton>} items={[
+            { label: L('امسح كل مواعيدي', 'Clear all my events'), onSelect: () => void clearAll(['events']) },
+            { label: L('امسح جدول المحاضرات الأسبوعي', 'Clear the weekly class timetable'), onSelect: () => void clearAll(['classes']) },
+            { label: L('امسح الاختبارات والتسليمات', 'Clear exams & due work'), onSelect: () => void clearAll(['due']) },
+            'sep',
+            { label: L('امسح التقويم بالكامل', 'Clear the whole calendar'), danger: true, onSelect: () => void clearAll(['events', 'classes', 'due']) },
+          ]} />
           <Button variant="primary" icon={<Plus size={17} />} onClick={() => setEditEvent({ rec: null, defaults: { start: cursor, end: cursor } })}>{L('موعد', 'Event')}</Button>
         </>}
       />
@@ -144,6 +180,7 @@ export default function CalendarPage() {
       </div>
 
       <EventEditor open={!!editEvent} onOpenChange={(v) => !v && setEditEvent(null)} rec={editEvent?.rec ?? null} defaults={editEvent?.defaults} occurrence={editEvent?.occ} />
+      <QuickEdit target={quick} onClose={() => setQuick(null)} />
       <TaskEditor open={!!editTaskId && !!editTask} onOpenChange={(v) => !v && setEditTaskId(null)} task={(editTask as Task | null) ?? null} />
     </div>
   );
