@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { useRecords, useRecordsInRange } from '@/core/hooks';
 import { create, remove } from '@/core/repo';
-import { fmtTime } from '@/core/dates';
+import { fmtTime, dayWord } from '@/core/dates';
 import { toast } from '@/core/toast';
 import type { Settings } from '@/core/settings';
 import { logWater, type JournalData, type WaterData } from '@/modules/shared/domain';
@@ -176,14 +176,15 @@ function Mood({ day, entries }: { day: string; entries: Array<import('@shared/re
 }
 
 function Habits({ day, settings }: { day: string; settings: Settings }) {
-  const { L } = useI18n();
+  const { L, lang, locale } = useI18n();
+  const w = dayWord(day, lang, locale);
   const habits = useRecords<HabitData>('habit');
   const logs = useRecordsInRange<HabitLogData>('habit_log', day, day);
   const idx = useMemo(() => indexLogs(logs), [logs]);
   const list = (habits ?? []).filter((h) => h.status !== 'archived' && isScheduled(h.data, day) && !isPaused(h.data, day)).sort((a, b) => a.data.order - b.data.order);
   const done = list.filter((h) => logDone(h.data, idx.get(h.id)?.get(day))).length;
   return (
-    <Box title={L('عادات اليوم', "Today's habits")} icon={<Repeat size={16} className="text-study-ink" />} extra={list.length ? <span className="num">{done}/{list.length}</span> : null}>
+    <Box title={L(`عادات ${w}`, `Habits — ${w}`)} icon={<Repeat size={16} className="text-study-ink" />} extra={list.length ? <span className="num">{done}/{list.length}</span> : null}>
       {list.length === 0 ? (
         <p className="text-[13.5px] text-fg-2">{L('ما عندك عادات لهاليوم.', 'No habits scheduled today.')} <Link to="/life/habits" className="font-bold text-accent-ink hover:underline">{L('أضف عادة', 'Add a habit')}</Link></p>
       ) : (
@@ -219,7 +220,8 @@ export function WriteLine({ value, onSave, label, placeholder, className }: { va
 }
 
 function Reflection({ day, page }: { day: string; page: DayPageData | undefined }) {
-  const { L } = useI18n();
+  const { L, lang, locale } = useI18n();
+  const w = dayWord(day, lang, locale);
   const grat = [0, 1, 2].map((k) => page?.gratitude?.[k] ?? '');
   return (
     <>
@@ -233,8 +235,8 @@ function Reflection({ day, page }: { day: string; page: DayPageData | undefined 
           ))}
         </ol>
       </Box>
-      <Box title={L('سطر اليوم', 'Line of the day')}>
-        <WriteLine value={page?.prompts?.line ?? ''} label={L('سطر اليوم', 'Line of the day')} placeholder={L('ذكرى اليوم بسطر واحد', 'Today in one line')}
+      <Box title={L(`سطر ${w}`, `Line — ${w}`)}>
+        <WriteLine value={page?.prompts?.line ?? ''} label={L(`سطر ${w}`, `Line — ${w}`)} placeholder={L(`${w} بسطر واحد`, `${w} in one line`)}
           onSave={(v) => void patchDayPage(day, { prompts: { ...(page?.prompts ?? {}), line: v } })} className="text-[15px]" />
         <p className="mt-2 text-[12px] text-fg-2">{L('يتحفظ في اليوميات — خاص فيك.', 'Saved to your journal — private.')}</p>
       </Box>

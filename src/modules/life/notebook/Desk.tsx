@@ -9,24 +9,6 @@ import { toast } from '@/core/toast';
 import { blankNote, type JournalData, type NoteData } from '@/modules/shared/domain';
 import { dayPageId, patchDayPage, type DayPageData } from '../today/dayPage';
 
-/** A question a day — the desk rotates through these so a blank page never stays blank. */
-const PROMPTS: Array<[string, string]> = [
-  ['وش أكثر شي ضحّكك اليوم؟', 'What made you laugh today?'],
-  ['لو تعيد اليوم، وش تغيّر؟', 'If you replayed today, what would you change?'],
-  ['مين الشخص اللي فرق معك اليوم، وليش؟', 'Who made a difference today, and why?'],
-  ['وش تعلّمت اليوم ولو كان صغير؟', 'What did you learn today, however small?'],
-  ['وش الشي اللي شاغل بالك الحين؟', 'What’s on your mind right now?'],
-  ['اكتب عن لحظة حلوة صارت اليوم.', 'Write about a good moment from today.'],
-  ['وش الخطوة الصغيرة اللي تقربك من هدفك بكرة؟', 'What small step gets you closer to your goal tomorrow?'],
-  ['وش ممتن له وما انتبهت له قبل؟', 'What are you grateful for that you usually miss?'],
-  ['وش أتعبك اليوم؟ وكيف تخففه بكرة؟', 'What drained you today? How do you lighten it tomorrow?'],
-  ['لو تكتب رسالة لنفسك بعد سنة، وش تقول؟', 'A note to yourself a year from now?'],
-  ['وش الفكرة اللي ودك تجربها؟', 'What idea do you want to try?'],
-  ['وش أفضل قرار اتخذته هالأسبوع؟', 'Best decision you made this week?'],
-  ['كيف كانت طاقتك اليوم، ووش أثّر فيها؟', 'How was your energy today, and what moved it?'],
-  ['وش الشي اللي أجلته، وليش؟', 'What did you put off, and why?'],
-];
-
 type Mode = 'journal' | 'idea' | 'grat' | 'win';
 const MODES: Array<{ id: Mode; sym: string; ar: string; en: string; arPh: string; enPh: string }> = [
   { id: 'journal', sym: '✎', ar: 'يوميات', en: 'Journal', arPh: 'اكتب براحتك… ولا أحد يشوفه غيرك.', enPh: 'Write freely… only you can see it.' },
@@ -52,16 +34,13 @@ function streakOf(days: Set<string>, today: string): { now: number; best: number
 }
 
 /**
- * The writing desk at the top of the Notebook: a prompt of the day, one big page to write on,
+ * The writing desk at the top of the Notebook: one big page to write about your day,
  * what kind of line it is, a mood, and the small things that make you come back — the streak,
  * the last 30 days, and something you wrote on this day before.
  */
 export function Desk({ lines, unlocked, paper = 'plain' }: { lines: DeskLine[]; unlocked: boolean; paper?: string }) {
   const { L, locale } = useI18n();
   const today = todayKey();
-  const dayNo = Math.floor(Date.parse(`${today}T00:00:00Z`) / 864e5);
-  const [shift, setShift] = useState(0);
-  const prompt = PROMPTS[(dayNo + shift) % PROMPTS.length];
   const [mode, setMode] = useState<Mode>('journal');
   const [text, setText] = useState('');
   const [mood, setMood] = useState<number | null>(null);
@@ -85,7 +64,7 @@ export function Desk({ lines, unlocked, paper = 'plain' }: { lines: DeskLine[]; 
       const at = new Date();
       const time = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
       if (mode === 'journal') {
-        await create<JournalData>('journal', { body: t, time, mood, energy: null, prompts: { q: L(prompt[0], prompt[1]) } }, { date: today });
+        await create<JournalData>('journal', { body: t, time, mood, energy: null, prompts: {} }, { date: today });
       } else if (mode === 'idea') {
         await create<NoteData>('note', blankNote({ title: t, body: '', note_type: 'idea' }));
       } else {
@@ -111,11 +90,8 @@ export function Desk({ lines, unlocked, paper = 'plain' }: { lines: DeskLine[]; 
     <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
       <section className={`nb-paper paper-${paper} relative rounded-lg px-5 pb-5 pt-6 shadow-[0_18px_40px_-26px_rgba(47,41,38,.45)] sm:px-7`} aria-label={L('اكتب', 'Write')}>
         <span className="nb-washi -top-3 end-16 rotate-3" style={{ ['--washi' as string]: 'var(--reward)' }} aria-hidden="true" />
-        <div className="mb-1 flex flex-wrap items-baseline gap-x-3">
-          <span className="text-[13px] font-bold text-fg-2">{fmtDate(today, locale, { weekday: 'long', day: 'numeric', month: 'long' })} · {L('سؤال اليوم', 'Today’s question')}</span>
-          <button onClick={() => setShift((s) => s + 1)} className="text-[12.5px] font-bold text-accent-ink hover:underline" title={L('سؤال ثاني', 'Another question')}>🎲 {L('غيّره', 'Another')}</button>
-        </div>
-        <h2 className="nb-title mb-3 text-[24px] leading-snug md:text-[28px]">{L(prompt[0], prompt[1])}</h2>
+        <p className="mb-1 text-[13px] font-bold text-fg-2">{fmtDate(today, locale, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+        <h2 className="nb-title mb-3 text-[24px] leading-snug md:text-[28px]">{L('اكتب عن يومك', 'Write about your day')}</h2>
 
         <div className="mb-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label={L('وش تكتب؟', 'What are you writing?')}>
           {MODES.map((x) => (

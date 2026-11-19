@@ -117,6 +117,16 @@ export function relativeDay(key: string, lang: 'ar' | 'en', locale: string): str
   return fmtDate(key, locale, { day: 'numeric', month: 'short' });
 }
 
+/** The day as a word inside a label: «اليوم» / «بكرة» / «أمس», else «يوم 22 نوفمبر» (e.g. «تركيز بكرة»). */
+export function dayWord(key: string, lang: 'ar' | 'en', locale: string): string {
+  const diff = daysBetween(todayKey(), key);
+  if (diff === 0) return lang === 'ar' ? 'اليوم' : 'today';
+  if (diff === 1) return lang === 'ar' ? 'بكرة' : 'tomorrow';
+  if (diff === -1) return lang === 'ar' ? 'أمس' : 'yesterday';
+  const d = fmtDate(key, locale, { day: 'numeric', month: 'long' });
+  return lang === 'ar' ? `يوم ${d}` : d;
+}
+
 export function greeting(lang: 'ar' | 'en', hour = new Date().getHours()): string {
   if (hour < 5) return lang === 'ar' ? 'ليلة هادئة' : 'Good night';
   if (hour < 12) return lang === 'ar' ? 'صباح الخير' : 'Good morning';

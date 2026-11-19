@@ -6,7 +6,7 @@ import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
 import { updateSettings, useRecord, useRecords, useRecordsInRange, useSettings } from '@/core/hooks';
 import { bulk, revertTo } from '@/core/repo';
-import { dateKey, fmtDate, hijri, relativeDay, shiftKey, todayKey } from '@/core/dates';
+import { dateKey, fmtDate, hijri, relativeDay, shiftKey, todayKey, dayWord } from '@/core/dates';
 import { undoToast } from '@/core/toast';
 import type { Settings } from '@/core/settings';
 import { Segmented } from '@/design/ui';
@@ -88,6 +88,7 @@ export default function Today() {
   const dayNum = fmtDate(day, locale, { day: 'numeric' });
   const rest = fmtDate(day, locale, { month: 'long' });
   const weekday = fmtDate(day, locale, { weekday: 'long' });
+  const w = dayWord(day, lang, locale);
 
   return (
     <div className="mx-auto max-w-[1360px]">
@@ -117,8 +118,8 @@ export default function Today() {
           <div className="grid grid-cols-1 gap-7 @[720px]/pa:grid-cols-[minmax(0,1fr)_210px]">
             <div className="min-w-0">
               <label data-tour="focus" className="mb-5 flex items-center gap-2.5">
-                <span className="shrink-0 text-[13.5px] font-bold">{L('تركيز اليوم:', 'Today’s focus:')}</span>
-                <WriteLine value={prompts.focus ?? ''} label={L('تركيز اليوم', 'Today’s focus')} placeholder={L('جملة وحدة: وش أهم شي اليوم؟', 'One line: what matters most today?')} onSave={(v) => setPrompt('focus', v)} className="text-[16px]" />
+                <span className="shrink-0 text-[13.5px] font-bold">{L(`تركيز ${w}:`, `Focus — ${w}:`)}</span>
+                <WriteLine value={prompts.focus ?? ''} label={L(`تركيز ${w}`, `Focus — ${w}`)} placeholder={L(`جملة وحدة: وش أهم شي ${w}؟`, `One line: what matters most ${w}?`)} onSave={(v) => setPrompt('focus', v)} className="text-[16px]" />
               </label>
               <h2 className="nb-title mb-2 text-2xl text-life-ink">{L('أهم 3', 'Top 3')}</h2>
               <ol data-tour="top3" className="mb-6 flex flex-col gap-1.5">
@@ -182,11 +183,11 @@ export default function Today() {
         </section>
 
         {/* ── page two: trackers ── */}
-        <section data-tour="trackers" className={clsx('nb-paper nb-page nb-b px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L('متتبعات اليوم', 'Day trackers')}>
+        <section data-tour="trackers" className={clsx('nb-paper nb-page nb-b px-4 pb-6 pt-8 sm:px-7', `paper-${paper}`)} aria-label={L(`متتبعات ${w}`, `Trackers — ${w}`)}>
           <span className="nb-washi -top-2.5 start-16 -rotate-6" style={{ ['--washi' as string]: 'var(--study)' }} aria-hidden="true" />
-          <h2 className="nb-title mb-4 text-2xl text-life-ink">{L('متتبّعات اليوم', 'Day trackers')}</h2>
+          <h2 className="nb-title mb-4 text-2xl text-life-ink">{L(`متتبّعات ${w}`, `Trackers — ${w}`)}</h2>
           <Trackers day={day} settings={settings} />
-          <Box title={L('صرفت اليوم', 'Spent today')} extra={<Link to="/life/finance" className="font-bold text-accent-ink">{L('المال', 'Money')}</Link>} className="mt-3.5 !py-2.5">
+          <Box title={L(`مصروف ${w}`, `Spent — ${w}`)} extra={<Link to="/life/finance" className="font-bold text-accent-ink">{L('المال', 'Money')}</Link>} className="mt-3.5 !py-2.5">
             <p className="text-[14px]"><b className="num">{spent.toLocaleString(locale)} {L('ر.س', 'SAR')}</b>{' '}
               <span className="text-[13px] text-fg-2">{txns.filter((x) => x.data.kind === 'expense').map((x) => `${x.data.description} ${x.data.amount}`).join(' · ') || L('ولا ريال — دوّن «قهوة 15» لو صرفت', 'Nothing — write “coffee 15” if you spend')}</span></p>
           </Box>
