@@ -8,6 +8,7 @@ import { useSyncStatus, syncNow } from '@/core/sync';
 import { LIFE_MAIN, PAGES, SECTIONS, isPageOn, type SectionId } from './registry';
 import { Brand } from './Splash';
 import { Tour } from './Tour';
+import { PageAbout } from './PageAbout';
 import { QuickCapture } from './QuickCapture';
 import { CommandPalette } from './CommandPalette';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -203,6 +204,7 @@ export function Shell() {
       )}
 
       <main data-section={section} className="mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+92px)] pt-5 md:px-7 md:pb-16 md:pt-7 xl:px-10 xl:pt-9">
+        <PageAbout />
         <Outlet />
       </main>
 
