@@ -39,6 +39,28 @@ export function openDb(userId: string): DaqeeqDB {
   return current;
 }
 
+/**
+ * Opens this account's local database, giving up after `ms` — on phones IndexedDB can hang
+ * (e.g. after the tab was killed mid-write) and the app must never wait on it forever.
+ */
+export async function openDbWithin(userId: string, ms: number): Promise<boolean> {
+  const d = openDb(userId);
+  if (d.isOpen()) return true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const ok = await Promise.race([
+    d.open().then(() => true, () => false),
+    new Promise<boolean>((res) => { timer = setTimeout(() => res(false), ms); }),
+  ]);
+  clearTimeout(timer);
+  return ok;
+}
+
+/** Closes the open database (so it can be deleted) without deleting it. */
+export function closeDb(): void {
+  current?.close();
+  current = null;
+}
+
 export function db(): DaqeeqDB {
   if (!current) throw new Error('database not open');
   return current;

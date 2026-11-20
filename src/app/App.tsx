@@ -90,6 +90,7 @@ function Gate() {
   return (
     <I18nContext.Provider value={i18n}>
       {phase === 'loading' && <Splash />}
+      {phase === 'stuck' && <Splash stuck />}
       {phase === 'signed-out' && <AuthScreen />}
       {phase === 'migrating' && <MigrationScreen />}
       <ToastHost />

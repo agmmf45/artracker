@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from './api';
-import { closeAndDeleteDb, db, openDb } from './db';
+import { closeAndDeleteDb, db, openDbWithin } from './db';
 import { resetSyncStatus, setAuthLostHandler, startSyncLoop, syncNow } from './sync';
 
 export interface User {
@@ -13,10 +13,13 @@ export interface User {
   migrated?: boolean;
 }
 
-type Phase = 'loading' | 'signed-out' | 'migrating' | 'ready';
+type Phase = 'loading' | 'signed-out' | 'migrating' | 'ready' | 'stuck';
+/** what startup is waiting on — shown on the splash if it takes long */
+export type BootStep = 'account' | 'storage' | 'data';
 
 interface AuthCtx {
   phase: Phase;
+  step: BootStep;
   user: User | null;
   migration: { total: number; counts: Record<string, number>; skipped: string[] } | null;
   login: (email: string, password: string) => Promise<void>;
@@ -34,17 +37,7 @@ export const useAuth = () => {
 };
 
 const LAST_USER = 'dq_last_user';
-
-/** v4 kept a bearer token in localStorage; convert it to an HttpOnly cookie session once. */
-async function adoptLegacyToken() {
-  const t = localStorage.getItem('artrk_token');
-  if (!t) return;
-  try {
-    await api('/auth/adopt', {}, { headers: { Authorization: `Bearer ${t}` } });
-  } catch { /* expired or offline: user signs in again */ }
-  localStorage.removeItem('artrk_token');
-  // v4's cached copy of the data (artrk_data_v1_*) is intentionally left in place, never deleted.
-}
+const readLastUser = (): User | null => { try { const v = localStorage.getItem(LAST_USER); return v ? (JSON.parse(v) as User) : null; } catch { return null; } };
 
 /** An abort signal that fires after `ms` (AbortSignal.timeout isn't in every phone browser yet). */
 function timeoutSignal(ms: number): AbortSignal {
@@ -54,14 +47,27 @@ function timeoutSignal(ms: number): AbortSignal {
   return c.signal;
 }
 
+/** v4 kept a bearer token in localStorage; convert it to an HttpOnly cookie session once. */
+async function adoptLegacyToken() {
+  const t = localStorage.getItem('artrk_token');
+  if (!t) return;
+  try {
+    await api('/auth/adopt', {}, { headers: { Authorization: `Bearer ${t}` }, signal: timeoutSignal(8_000) });
+  } catch { /* expired or offline: user signs in again */ }
+  localStorage.removeItem('artrk_token');
+  // v4's cached copy of the data (artrk_data_v1_*) is intentionally left in place, never deleted.
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('loading');
+  const [step, setStep] = useState<BootStep>('account');
   const [user, setUser] = useState<User | null>(null);
   const [migration, setMigration] = useState<AuthCtx['migration']>(null);
   const booted = useRef(false);
 
   const enter = useCallback(async (u: User) => {
-    openDb(u.id);
+    setStep('storage');
+    if (!(await openDbWithin(u.id, 8_000))) { setPhase('stuck'); return; }
     localStorage.setItem(LAST_USER, JSON.stringify({ id: u.id, email: u.email, name: u.name }));
     setUser(u);
     if (u.migrated === false) {
@@ -74,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     const empty = (await db().records.count()) === 0;
+    setStep('data');
     if (empty) await syncNow(); // first load on this device: wait for data before showing the app
     else void syncNow();
     startSyncLoop();
@@ -94,22 +101,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthLostHandler(() => { void signOutLocal(); });
     (async () => {
       await adoptLegacyToken();
-      try {
-        const res = await api<{ user: User }>('/auth/session', undefined, { signal: timeoutSignal(10_000) });
-        await enter(res.user);
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 0) {
-          // offline boot: use the last account's local database
-          const last = localStorage.getItem(LAST_USER);
-          if (last) {
-            const u = JSON.parse(last) as User;
-            openDb(u.id);
-            setUser(u);
-            startSyncLoop();
-            setPhase('ready');
-            return;
-          }
+      const last = readLastUser();
+      if (last) {
+        // local-first: open this device's copy right away; the sign-in check runs in the background
+        setStep('storage');
+        if (!(await openDbWithin(last.id, 8_000))) { setPhase('stuck'); return; }
+        setUser(last);
+        startSyncLoop();
+        setPhase('ready');
+        try {
+          const res = await api<{ user: User }>('/auth/session', undefined, { signal: timeoutSignal(20_000) });
+          if (res.user.id !== last.id || res.user.migrated === false) await enter(res.user);
+          else { setUser(res.user); void syncNow(); }
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 401) await signOutLocal();
+          // offline or slow: keep working on this device's copy; sync catches up later
         }
+        return;
+      }
+      // first visit on this device: the server decides
+      try {
+        const res = await api<{ user: User }>('/auth/session', undefined, { signal: timeoutSignal(15_000) });
+        await enter(res.user);
+      } catch {
         setPhase('signed-out');
       }
     })();
@@ -146,5 +160,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(s.user);
   }, []);
 
-  return <Ctx.Provider value={{ phase, user, migration, login, signup, google, logout, refreshUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ phase, step, user, migration, login, signup, google, logout, refreshUser }}>{children}</Ctx.Provider>;
 }

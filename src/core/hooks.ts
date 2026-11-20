@@ -44,11 +44,18 @@ export function useSettings(): Settings {
   return deepMerge(DEFAULT_SETTINGS, rec?.data ?? {});
 }
 
-export function updateSettings(patch: Partial<Settings> | Record<string, unknown>) {
-  return db().records.get('settings').then((cur) => {
+let settingsQueue: Promise<unknown> = Promise.resolve();
+/**
+ * Deep-merges `patch` into settings. Writes run one after another, so two quick changes can't
+ * read the same old value and overwrite each other.
+ */
+export function updateSettings(patch: Partial<Settings> | Record<string, unknown>): Promise<void> {
+  const run = settingsQueue.then(() => db().records.get('settings').then((cur) => {
     const merged = deepMerge((cur?.data ?? {}) as Record<string, unknown>, patch);
     return upsert('settings', 'settings', merged);
-  });
+  }));
+  settingsQueue = run.catch(() => undefined);
+  return run;
 }
 
 /** Replaces one top-level settings key entirely (no deep merge), e.g. resetting `modules`. */
