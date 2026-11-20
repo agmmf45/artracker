@@ -189,6 +189,7 @@ export function Shell() {
             <span className="text-lg font-black">{L(sec.ar, sec.en)}</span>
             <span className="flex-1" />
             <SyncBadge compact />
+            <PageAbout />
             <button onClick={() => setPalette(true)} className="grid size-10 place-items-center rounded-full text-fg-2 hover:bg-surface-2" aria-label={L('بحث وأوامر', 'Search & commands')}><Search size={19} /></button>
             <NavLink to="/settings" aria-label={L('الملف الشخصي', 'Profile')}><Avatar profile={profile} size={32} /></NavLink>
           </div>
@@ -203,8 +204,9 @@ export function Shell() {
         </header>
       )}
 
-      <main data-section={section} className="mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+92px)] pt-5 md:px-7 md:pb-16 md:pt-7 xl:px-10 xl:pt-9">
-        <PageAbout />
+      <main data-section={section} className="relative mx-auto w-full max-w-[var(--content-max)] px-4 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+92px)] pt-5 md:px-7 md:pb-16 md:pt-7 xl:px-10 xl:pt-9">
+        {/* wider screens: a small ⓘ in the page's top corner (on phones it lives in the top bar) */}
+        <div className="absolute end-2 top-0.5 z-10 hidden md:block xl:end-3"><PageAbout small /></div>
         <Outlet />
       </main>
 

@@ -1,51 +1,47 @@
-import { useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
+import { Popover } from 'radix-ui';
 import { Info, X } from 'lucide-react';
+import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { PAGES } from './registry';
 import { PAGE_ABOUT } from './pageAboutText';
 
-const KEY = 'dq_about_hidden';
-const readHidden = (): string[] => { try { return JSON.parse(localStorage.getItem(KEY) ?? '[]') as string[]; } catch { return []; } };
-const writeHidden = (v: string[]) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { /* storage off: only this visit */ } };
-
-/**
- * "What is this page?" — one line at the top of every page (and every hub tab) saying what it's
- * for and what you can do there. Each line can be folded away; the fold is remembered per page.
- */
-export function PageAbout() {
-  const { L } = useI18n();
+/** The about line for the page on screen (a hub tab's own line wins over its page's). */
+function useAboutText(): [string, string] | null {
   const { pathname } = useLocation();
   const [params] = useSearchParams();
-  const [hidden, setHidden] = useState<string[]>(readHidden);
   const page = PAGES.find((p) => !p.redirect && p.path === pathname);
   if (!page) return null;
   const tab = params.get('tab');
-  const key = tab && PAGE_ABOUT[`${page.id}#${tab}`] ? `${page.id}#${tab}` : page.id;
-  const text = PAGE_ABOUT[key];
-  if (!text) return null;
-  const toggle = (hide: boolean) => {
-    const next = hide ? [...new Set([...hidden, key])] : hidden.filter((k) => k !== key);
-    setHidden(next);
-    writeHidden(next);
-  };
+  return (tab && PAGE_ABOUT[`${page.id}#${tab}`]) || PAGE_ABOUT[page.id] || null;
+}
 
-  if (hidden.includes(key)) {
-    return (
-      <div className="mb-2 flex justify-end">
-        <button onClick={() => toggle(false)} className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-bold text-fg-3 hover:bg-surface-2 hover:text-fg-2" aria-label={L('وش هالصفحة؟', 'What is this page?')}>
-          <Info size={14} aria-hidden="true" />{L('وش هالصفحة؟', 'About this page')}
-        </button>
-      </div>
-    );
-  }
+/**
+ * "What is this page?" — a small ⓘ that opens one line about what the page is for and what you
+ * do there. It takes no room on the page: in the phone's top bar, or the page's top corner on
+ * wider screens.
+ */
+export function PageAbout({ small = false }: { small?: boolean }) {
+  const { L, dir } = useI18n();
+  const text = useAboutText();
+  if (!text) return null;
   return (
-    <p className="mb-4 flex items-start gap-2 rounded-md border border-dashed border-line-strong bg-[color-mix(in_oklab,var(--surface)_70%,transparent)] py-2 pe-1.5 ps-3 text-[13px] leading-relaxed text-fg-2">
-      <Info size={15} className="mt-[3px] shrink-0 text-accent-ink" aria-hidden="true" />
-      <span className="flex-1">{L(text[0], text[1])}</span>
-      <button onClick={() => toggle(true)} className="grid size-7 shrink-0 place-items-center rounded-full text-fg-3 hover:bg-surface-2 hover:text-fg" aria-label={L('إخفاء الشرح', 'Hide this note')} title={L('إخفاء', 'Hide')}>
-        <X size={14} />
-      </button>
-    </p>
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button className={clsx('grid place-items-center rounded-full text-fg-3 hover:bg-surface-2 hover:text-fg-2 data-[state=open]:bg-surface-2 data-[state=open]:text-accent-ink', small ? 'size-8' : 'size-10')}
+          aria-label={L('وش هالصفحة؟', 'What is this page?')} title={L('وش هالصفحة؟', 'What is this page?')}>
+          <Info size={small ? 16 : 18} />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content dir={dir} side="bottom" align="end" sideOffset={6} collisionPadding={12}
+          className="anim-in z-[70] w-[min(20rem,calc(100vw-24px))] rounded-md border border-line bg-elevated p-3 pe-2 text-[13.5px] leading-relaxed text-fg shadow-3">
+          <div className="flex items-start gap-2">
+            <p className="flex-1">{L(text[0], text[1])}</p>
+            <Popover.Close className="grid size-7 shrink-0 place-items-center rounded-full text-fg-3 hover:bg-surface-2" aria-label={L('إغلاق', 'Close')}><X size={14} /></Popover.Close>
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
