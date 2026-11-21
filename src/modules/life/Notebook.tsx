@@ -11,6 +11,7 @@ import type { JournalData, NoteData } from '@/modules/shared/domain';
 import { dayPageId, type DayPageData } from './today/dayPage';
 import { Hub, type HubTab } from './plan/Hub';
 import { Desk } from './notebook/Desk';
+import { plainText } from '@/modules/shared/RichText';
 
 const Notes = lazy(() => import('./Notes'));
 const Journal = lazy(() => import('./Journal'));
@@ -59,7 +60,7 @@ function NotebookDays() {
       if (n.deleted_at) continue;
       const day = dateKey(new Date(n.created_at));
       const kind: Kind = n.data.note_type === 'idea' ? 'idea' : 'note';
-      out.push({ key: n.id, day, kind, text: n.data.title || n.data.body.slice(0, 160), to: `/life/notebook?tab=notes&open=${n.id}` });
+      out.push({ key: n.id, day, kind, text: n.data.title || plainText(n.data.body).slice(0, 160), to: `/life/notebook?tab=notes&open=${n.id}` });
     }
     for (const j of journal ?? []) {
       if (!j.date) continue;
@@ -68,7 +69,7 @@ function NotebookDays() {
         if (d.prompts?.line) out.push({ key: `${j.id}:line`, day: j.date, kind: 'journal', text: d.prompts.line });
         if (d.prompts?.win) out.push({ key: `${j.id}:win`, day: j.date, kind: 'journal', text: `🏆 ${d.prompts.win}` });
         (d.gratitude ?? []).filter(Boolean).forEach((g, i) => out.push({ key: `${j.id}:g${i}`, day: j.date!, kind: 'grat', text: g }));
-      } else if (d.body || d.title) out.push({ key: j.id, day: j.date, kind: 'journal', text: d.title ? `${d.title} — ${d.body}` : d.body, to: '/life/notebook?tab=journal' });
+      } else if (d.body || d.title) out.push({ key: j.id, day: j.date, kind: 'journal', text: d.title ? `${d.title} — ${plainText(d.body)}` : plainText(d.body), to: `/life/notebook?tab=journal&open=${j.id}` });
     }
     return out;
   }, [notes, journal]);

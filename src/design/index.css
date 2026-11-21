@@ -164,3 +164,23 @@
 .nb-write { background: transparent; border: 0; border-bottom: 1px dashed var(--border-strong); border-radius: 0; outline: none; width: 100%; padding: 4px 2px; color: var(--text); }
 .nb-write:focus { border-bottom-color: var(--accent-ink); }
 .nb-write::placeholder { color: var(--text-3); }
+
+/* ── rich text (TipTap) — notebook, journal and notes ── */
+.rich-doc { outline: none; min-height: 12rem; font-size: 16.5px; line-height: 1.9; color: var(--text); overflow-wrap: anywhere; }
+.rich-doc p { margin: 0 0 .5em; }
+.rich-doc h2 { font-size: 1.3em; font-weight: 800; line-height: 1.4; margin: .6em 0 .25em; }
+.rich-doc h3 { font-size: 1.12em; font-weight: 800; line-height: 1.4; margin: .5em 0 .2em; }
+.rich-doc ul, .rich-doc ol { margin: 0 0 .5em; padding-inline-start: 1.4em; }
+.rich-doc ul { list-style: disc; } .rich-doc ol { list-style: decimal; }
+.rich-doc blockquote { margin: .4em 0 .7em; padding: .1em .9em; border-inline-start: 3px solid var(--life); color: var(--text-2); }
+.rich-doc mark { background: color-mix(in oklab, var(--reward) 45%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.rich-doc a { color: var(--accent-ink); text-decoration: underline; }
+.rich-doc code { font-family: ui-monospace, monospace; font-size: .9em; background: var(--surface-2); border-radius: 4px; padding: 0 4px; }
+.rich-doc hr { border: 0; border-top: 1.5px dashed var(--border); margin: 1em 0; }
+.rich-doc ul[data-type='taskList'] { list-style: none; padding-inline-start: .2em; }
+.rich-doc ul[data-type='taskList'] > li { display: flex; align-items: flex-start; gap: .55em; }
+.rich-doc ul[data-type='taskList'] > li > label { flex: none; margin-top: .42em; }
+.rich-doc ul[data-type='taskList'] > li > label input { width: 1.05em; height: 1.05em; accent-color: var(--success); cursor: pointer; }
+.rich-doc ul[data-type='taskList'] > li > div { flex: 1; min-width: 0; }
+.rich-doc ul[data-type='taskList'] > li[data-checked='true'] > div { color: var(--text-3); text-decoration: line-through; }
+.rich-doc p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--text-3); float: inline-start; height: 0; pointer-events: none; }

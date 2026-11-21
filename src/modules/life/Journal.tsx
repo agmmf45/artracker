@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, Lock, BookHeart, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
+import { Plus, Lock, BookHeart, Trash2, X, Check } from 'lucide-react';
 import clsx from 'clsx';
 import type { Rec } from '@shared/records';
 import { useI18n } from '@/core/i18n';
@@ -7,9 +8,9 @@ import { useRecords, useSettings } from '@/core/hooks';
 import { create, remove, revertTo, update } from '@/core/repo';
 import { fmtDate, fromKey, monthGrid, rangeKeys, shiftKey, todayKey } from '@/core/dates';
 import { undoToast } from '@/core/toast';
-import { Button, Card, EmptyState, IconButton, Input, Label, PageHeader, Segmented, Textarea } from '@/design/ui';
+import { Button, Card, EmptyState, IconButton, PageHeader, Segmented } from '@/design/ui';
 import { Line } from '@/design/charts';
-import { Markdown } from '@/modules/shared/markdown';
+import { plainText, RichText } from '@/modules/shared/RichText';
 import type { JournalData } from '@/modules/shared/domain';
 import { JOURNAL_TEMPLATES } from '@/modules/shared/legacyContent';
 
@@ -27,7 +28,16 @@ export default function Journal() {
   const entries = useRecords<JournalData>('journal');
   const [unlocked, setUnlocked] = useState(!settings.privacy.lockJournal);
   const [view, setView] = useState<'list' | 'calendar'>('list');
-  const [open, setOpen] = useState<Rec<JournalData> | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const id = params.get('open');
+    if (!id) return;
+    setOpenId(id);
+    const next = new URLSearchParams(params); next.delete('open'); setParams(next, { replace: true });
+  }, [params, setParams]);
+  const setOpen = (r: Rec<JournalData> | null) => setOpenId(r?.id ?? null);
+  const open = (entries ?? []).find((e) => e.id === openId) ?? null;
   const [month, setMonth] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
   useEffect(() => { setUnlocked(!settings.privacy.lockJournal); }, [settings.privacy.lockJournal]);
 
@@ -76,7 +86,7 @@ export default function Journal() {
                 <span className="ms-auto text-lg">{e.data.mood ? MOODS[e.data.mood - 1] : ''}</span>
               </div>
               {e.data.title && <div className="mt-1 font-bold">{e.data.title}</div>}
-              {!settings.privacy.hideJournalPreviews && <p className="mt-1 line-clamp-3 text-sm text-fg-2">{e.data.body || Object.values(e.data.prompts ?? {}).join(' · ')}</p>}
+              {!settings.privacy.hideJournalPreviews && <p className="mt-1 line-clamp-3 text-sm text-fg-2">{plainText(e.data.body) || Object.values(e.data.prompts ?? {}).join(' · ')}</p>}
             </button>
           ))}
         </div>
@@ -105,46 +115,102 @@ export default function Journal() {
   );
 }
 
+const EXTRAS: Array<['prompts' | 'gratitude' | 'win' | 'energy', string, string]> = [
+  ['prompts', 'أسئلة تأمل', 'Reflection questions'], ['gratitude', 'امتنان', 'Gratitude'], ['win', 'إنجاز صغير', 'A small win'], ['energy', 'الطاقة', 'Energy'],
+];
+
+/**
+ * One journal entry: a title, your mood and a page to write on — saved as you type. Reflection
+ * questions, gratitude, a small win and energy stay folded behind "+" buttons and only show
+ * once you open them or they have something in them.
+ */
 function EntryEditor({ entry, onClose }: { entry: Rec<JournalData>; onClose: () => void }) {
   const { L, locale } = useI18n();
   const [d, setD] = useState<JournalData>({ gratitude: [], wins: [], ...entry.data, prompts: entry.data.prompts ?? {} });
-  const [preview, setPreview] = useState(!!entry.data.body);
-  const set = (p: Partial<JournalData>) => setD((x) => ({ ...x, ...p }));
-  const save = async () => { await update<JournalData>(entry.id, { data: d }); onClose(); };
+  const [saved, setSaved] = useState(true);
+  const [shown, setShown] = useState<Record<string, boolean>>(() => ({
+    prompts: Object.values(entry.data.prompts ?? {}).some((v) => v?.trim()),
+    gratitude: (entry.data.gratitude ?? []).some((v) => v?.trim()),
+    win: !!entry.data.wins?.[0]?.trim(),
+    energy: entry.data.energy != null,
+  }));
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latest = useRef(d);
+  latest.current = d;
+  const flush = async () => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    await update<JournalData>(entry.id, { data: latest.current });
+    setSaved(true);
+  };
+  const set = (p: Partial<JournalData>) => {
+    setD((x) => ({ ...x, ...p }));
+    setSaved(false);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => void flush(), 700);
+  };
+  useEffect(() => () => { if (timer.current) { clearTimeout(timer.current); void update<JournalData>(entry.id, { data: latest.current }); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const close = async () => { await flush(); onClose(); };
+  const field = 'w-full border-0 border-b-[1.5px] border-dashed border-line bg-transparent px-0.5 py-1.5 text-[15px] outline-none focus:border-solid focus:border-fg-3';
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-bg">
-      <div className="mx-auto max-w-2xl px-5 py-8">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="flex-1"><div className="eyebrow">{fmtDate(entry.date!, locale)}</div><input value={d.title ?? ''} onChange={(e) => set({ title: e.target.value })} placeholder={L('عنوان (اختياري)', 'Title (optional)')} className="w-full bg-transparent text-2xl font-black outline-none placeholder:text-fg-3" /></div>
-          <IconButton tone="danger" label={L('حذف', 'Delete')} onClick={async () => { const p = await remove(entry.id); onClose(); undoToast(L('حُذفت التدوينة', 'Entry deleted'), async () => { if (p) await revertTo(p); }); }}><Trash2 size={17} /></IconButton>
-          <Button variant="ghost" onClick={onClose}>{L('إغلاق', 'Close')}</Button>
-          <Button variant="primary" onClick={save}>{L('حفظ', 'Save')}</Button>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-bg" role="dialog" aria-modal="true" aria-label={L('تدوينة', 'Journal entry')}>
+      <div className="mx-auto max-w-2xl px-4 pb-16 pt-3 sm:px-6 sm:pt-6">
+        <div className="sticky top-0 z-20 -mx-4 mb-3 flex items-center gap-2 bg-bg/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6">
+          <IconButton label={L('إغلاق', 'Close')} onClick={() => void close()}><X size={19} /></IconButton>
+          <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-fg-2">{L('يوميات', 'Journal')} · {fmtDate(entry.date!, locale, { weekday: 'long', day: 'numeric', month: 'long' })}{d.time ? ` · ${d.time}` : ''}</span>
+          <span className={clsx('inline-flex items-center gap-1 text-[12.5px] font-bold', saved ? 'text-success' : 'text-fg-3')} aria-live="polite">{saved ? <><Check size={14} />{L('محفوظ', 'Saved')}</> : L('يحفظ…', 'Saving…')}</span>
+          <IconButton tone="danger" label={L('حذف', 'Delete')} onClick={async () => { if (timer.current) clearTimeout(timer.current); const p = await remove(entry.id); onClose(); undoToast(L('حُذفت التدوينة', 'Entry deleted'), async () => { if (p) await revertTo(p); }); }}><Trash2 size={17} /></IconButton>
         </div>
-        <div className="mb-5 grid grid-cols-2 gap-4">
-          <div>
-            <Label>{L('المزاج', 'Mood')}</Label>
-            <div className="flex gap-1">{MOODS.map((m, i) => <button key={m} aria-pressed={d.mood === i + 1} aria-label={`${i + 1}`} onClick={() => set({ mood: d.mood === i + 1 ? null : i + 1 })} className={clsx('size-10 rounded-full text-xl transition-transform', d.mood === i + 1 ? 'scale-110 bg-surface-2 ring-2 ring-life' : 'opacity-60 hover:opacity-100')}>{m}</button>)}</div>
-          </div>
-          <div>
-            <Label>{L('الطاقة', 'Energy')}</Label>
-            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((n) => <button key={n} aria-pressed={d.energy === n} onClick={() => set({ energy: d.energy === n ? null : n })} className={clsx('num size-10 rounded-full font-black', (d.energy ?? 0) >= n ? 'bg-health text-on-accent' : 'bg-surface-2 text-fg-3')}>{n}</button>)}</div>
-          </div>
+
+        <input value={d.title ?? ''} onChange={(e) => set({ title: e.target.value })} placeholder={L('عنوان (اختياري)', 'Title (optional)')} aria-label={L('العنوان', 'Title')}
+          className="mb-2 w-full bg-transparent text-[24px] font-black outline-none placeholder:text-fg-3" />
+
+        <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label={L('المزاج', 'Mood')}>
+          {MOODS.map((m, i) => (
+            <button key={m} type="button" aria-pressed={d.mood === i + 1} aria-label={`${L('المزاج', 'Mood')} ${i + 1}`} onClick={() => set({ mood: d.mood === i + 1 ? null : i + 1 })}
+              className={clsx('grid size-10 place-items-center rounded-full border-[1.5px] text-xl transition-colors', d.mood === i + 1 ? 'border-[color-mix(in_oklab,var(--reward)_60%,var(--fg))] bg-reward' : 'border-line bg-surface hover:bg-surface-2')}>{m}</button>
+          ))}
+          <span className="ms-1 text-[12.5px] text-fg-3">{d.mood ? '' : L('مزاجك؟ (اختياري)', 'Mood? (optional)')}</span>
         </div>
-        <div className="mb-2 flex items-center justify-end gap-2">
-          <select className="field h-8 min-h-0 w-auto py-0 text-[12px]" value="" aria-label={L('قالب', 'Template')} onChange={(e) => { const t = JOURNAL_TEMPLATES[e.target.value]; if (t) { set({ body: d.body ? `${d.body}\n\n${t.text}` : t.text }); setPreview(false); } }}>
-            <option value="">{L('قالب…', 'Template…')}</option>{Object.entries(JOURNAL_TEMPLATES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+
+        <RichText value={d.body} onChange={(body) => set({ body })} autoFocus={!entry.data.body} placeholder={L('اكتب بحرية… ولا أحد يشوفه غيرك.', 'Write freely… only you can see it.')} ariaLabel={L('النص', 'Text')} />
+
+        {shown.energy && (
+          <div className="mt-4 border-t-[1.5px] border-dashed border-line pt-3">
+            <p className="mb-2 text-[13px] font-bold text-fg-2">{L('الطاقة', 'Energy')}</p>
+            <div className="flex gap-1.5">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" aria-pressed={d.energy === n} onClick={() => set({ energy: d.energy === n ? null : n })} className={clsx('num size-10 rounded-full border-[1.5px] font-black', d.energy === n ? 'border-fg bg-fg text-bg' : 'border-line bg-surface')}>{n}</button>)}</div>
+          </div>
+        )}
+        {shown.prompts && (
+          <div className="mt-4 space-y-3 border-t-[1.5px] border-dashed border-line pt-3">
+            {PROMPTS.map(([k, ar, en]) => (
+              <label key={k} className="block"><span className="mb-0.5 block text-[13px] font-bold text-fg-2">{L(ar, en)}</span>
+                <input className={field} value={d.prompts?.[k] ?? ''} onChange={(e) => set({ prompts: { ...(d.prompts ?? {}), [k]: e.target.value } })} /></label>
+            ))}
+          </div>
+        )}
+        {shown.gratitude && (
+          <div className="mt-4 border-t-[1.5px] border-dashed border-line pt-3">
+            <p className="mb-1 text-[13px] font-bold text-fg-2">{L('ممتن لـ…', 'Grateful for…')}</p>
+            {[0, 1, 2].map((i) => <input key={i} className={field} value={d.gratitude?.[i] ?? ''} placeholder={i === 0 ? L('شي صغير يكفي…', 'Something small is enough…') : ''} aria-label={`${L('امتنان', 'Gratitude')} ${i + 1}`}
+              onChange={(e) => { const g = [...(d.gratitude ?? [])]; g[i] = e.target.value; set({ gratitude: g }); }} />)}
+          </div>
+        )}
+        {shown.win && (
+          <div className="mt-4 border-t-[1.5px] border-dashed border-line pt-3">
+            <label className="block"><span className="mb-0.5 block text-[13px] font-bold text-fg-2">{L('إنجاز صغير اليوم', 'A small win today')}</span>
+              <input className={field} value={d.wins?.[0] ?? ''} onChange={(e) => set({ wins: [e.target.value] })} /></label>
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-1.5">
+          {EXTRAS.filter(([k]) => !shown[k]).map(([k, ar, en]) => (
+            <button key={k} type="button" onClick={() => setShown((x) => ({ ...x, [k]: true }))} className="inline-flex min-h-9 items-center rounded-full border-[1.5px] border-dashed border-line-strong px-3 text-[13px] font-semibold text-fg-2 hover:border-solid hover:text-fg">+ {L(ar, en)}</button>
+          ))}
+          <select className="h-9 rounded-full border-[1.5px] border-dashed border-line-strong bg-transparent px-3 text-[13px] font-semibold text-fg-2" value="" aria-label={L('قالب', 'Template')}
+            onChange={(e) => { const t = JOURNAL_TEMPLATES[e.target.value]; if (t) set({ body: d.body ? `${d.body}\n\n${t.text}` : t.text }); }}>
+            <option value="">+ {L('قالب', 'Template')}</option>{Object.entries(JOURNAL_TEMPLATES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
           </select>
-          <Segmented size="sm" value={preview ? 'p' : 'e'} onChange={(v) => setPreview(v === 'p')} options={[{ value: 'e', label: L('كتابة', 'Write') }, { value: 'p', label: L('عرض', 'Read') }]} />
-        </div>
-        {preview ? <div className="min-h-40" onDoubleClick={() => setPreview(false)}><Markdown text={d.body || L('*لا شيء بعد*', '*Nothing yet*')} /></div>
-          : <textarea autoFocus value={d.body} onChange={(e) => set({ body: e.target.value })} placeholder={L('اكتب بحرية…', 'Write freely…')} className="min-h-56 w-full resize-y bg-transparent text-[17px] leading-[1.9] outline-none placeholder:text-fg-3" />}
-        <div className="mt-6 space-y-4 border-t border-line pt-5">
-          {PROMPTS.map(([k, ar, en]) => <Textarea key={k} label={L(ar, en)} className="[&_textarea]:min-h-16" value={d.prompts?.[k] ?? ''} onChange={(e) => set({ prompts: { ...(d.prompts ?? {}), [k]: e.target.value } })} />)}
-          <div>
-            <Label>{L('ممتن لـ (3 أشياء)', 'Grateful for (3 things)')}</Label>
-            {[0, 1, 2].map((i) => <Input key={i} className="mb-1.5" value={d.gratitude?.[i] ?? ''} onChange={(e) => { const g = [...(d.gratitude ?? [])]; g[i] = e.target.value; set({ gratitude: g }); }} aria-label={`${i + 1}`} />)}
-          </div>
-          <Input label={L('إنجاز صغير اليوم', 'A small win today')} value={d.wins?.[0] ?? ''} onChange={(e) => set({ wins: [e.target.value] })} />
         </div>
       </div>
     </div>

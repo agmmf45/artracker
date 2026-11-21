@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { Plus, Search, Folder, FolderPlus, Pin, Star, FileText, ArrowRight, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, Search, Folder, FolderPlus, Pin, Star, FileText, ArrowRight, ArrowLeft, Trash2, Pencil, FolderKanban } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { useMedia, useRecords } from '@/core/hooks';
@@ -9,7 +9,8 @@ import { relativeDay } from '@/core/dates';
 import { prompt, confirm } from '@/design/overlay';
 import { Button, Chip, EmptyState, IconButton } from '@/design/ui';
 import { blankNote, type Note, type NoteData } from '@/modules/shared/domain';
-import { NoteEditor, NOTE_TYPES } from './notes/NoteEditor';
+import { NoteEditor } from './notes/NoteEditor';
+import { plainText } from '@/modules/shared/RichText';
 
 export default function Notes() {
   const { L, lang, locale } = useI18n();
@@ -18,8 +19,8 @@ export default function Notes() {
   const [params, setParams] = useSearchParams();
   const [selected, setSelected] = useState<string | null>(null);
   const [q, setQ] = useState('');
-  const [folder, setFolder] = useState<string | 'all' | 'pinned' | 'fav'>('all');
-  const [type, setType] = useState('');
+  // 'projects' = notes written from a project page: they live with the project, not among your notes
+  const [folder, setFolder] = useState<string | 'all' | 'pinned' | 'fav' | 'projects'>('all');
   const [tag, setTag] = useState('');
   const desktop = useMedia('(min-width: 1024px)');
 
@@ -31,29 +32,31 @@ export default function Notes() {
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const newNote = async (title = '') => {
-    const r = await create<NoteData>('note', blankNote({ title, folder_id: folder !== 'all' && folder !== 'pinned' && folder !== 'fav' ? folder : null }));
+    const r = await create<NoteData>('note', blankNote({ title, folder_id: folder !== 'all' && folder !== 'pinned' && folder !== 'fav' && folder !== 'projects' ? folder : null }));
     setSelected(r.id);
   };
 
   const list = useMemo(() => {
     let xs = (notes ?? []) as Note[];
-    if (folder === 'pinned') xs = xs.filter((n) => n.data.pinned);
+    const fromProject = (n: Note) => !!n.data.project_id && !n.data.folder_id;
+    if (folder === 'projects') xs = xs.filter(fromProject);
+    else if (folder === 'pinned') xs = xs.filter((n) => n.data.pinned);
     else if (folder === 'fav') xs = xs.filter((n) => n.data.favorite);
     else if (folder !== 'all') xs = xs.filter((n) => n.data.folder_id === folder);
-    if (type) xs = xs.filter((n) => n.data.note_type === type);
+    else if (!q.trim()) xs = xs.filter((n) => !fromProject(n));
     if (tag) xs = xs.filter((n) => n.data.tags.includes(tag));
     if (q.trim()) {
       const s = q.trim().toLowerCase();
       xs = xs.filter((n) => `${n.data.title}\n${n.data.body}\n${n.data.tags.join(' ')}`.toLowerCase().includes(s));
     }
     return [...xs].sort((a, b) => Number(b.data.pinned) - Number(a.data.pinned) || b.updated_at.localeCompare(a.updated_at));
-  }, [notes, folder, type, tag, q]);
+  }, [notes, folder, tag, q]);
 
   const tags = useMemo(() => [...new Set((notes ?? []).flatMap((n) => n.data.tags))].sort(), [notes]);
   const current = (notes ?? []).find((n) => n.id === selected) as Note | undefined;
   const snippet = (n: Note) => {
     if (q.trim()) { const i = n.data.body.toLowerCase().indexOf(q.trim().toLowerCase()); if (i >= 0) return `…${n.data.body.slice(Math.max(0, i - 20), i + 70)}`; }
-    return n.data.body.replace(/[#*>`\-[\]]/g, '').slice(0, 90);
+    return plainText(n.data.body).slice(0, 90);
   };
   const children = (id: string) => (notes ?? []).filter((n) => n.parent_id === id);
 
@@ -70,18 +73,19 @@ export default function Notes() {
         <Chip active={folder === 'all'} onClick={() => setFolder('all')}>{L('الكل', 'All')}</Chip>
         <Chip active={folder === 'pinned'} onClick={() => setFolder('pinned')}><Pin size={12} />{L('مثبتة', 'Pinned')}</Chip>
         <Chip active={folder === 'fav'} onClick={() => setFolder('fav')}><Star size={12} />{L('مفضلة', 'Favorites')}</Chip>
+        {(notes ?? []).some((n) => n.data.project_id && !n.data.folder_id) && (
+          <Chip active={folder === 'projects'} onClick={() => setFolder('projects')}><FolderKanban size={12} />{L('المشاريع', 'Projects')}</Chip>
+        )}
         {(folders ?? []).map((f) => (
           <Chip key={f.id} active={folder === f.id} onClick={() => setFolder(f.id)}><Folder size={12} />{f.data.name}
+            {folder === f.id && <span role="button" tabIndex={0} aria-label={L('إعادة تسمية المجلد', 'Rename folder')} onClick={async (e) => { e.stopPropagation(); const n = await prompt(L('اسم المجلد', 'Folder name'), { value: f.data.name }); if (n?.trim()) await update(f.id, { data: { name: n.trim() } }); }}><Pencil size={11} /></span>}
             {folder === f.id && <span role="button" tabIndex={0} aria-label={L('حذف المجلد', 'Delete folder')} onClick={async (e) => { e.stopPropagation(); if (await confirm(L('حذف المجلد؟ الملاحظات تبقى بدون مجلد.', 'Delete folder? Notes stay, without a folder.'))) { for (const n of (notes ?? []).filter((x) => x.data.folder_id === f.id)) await update<NoteData>(n.id, { data: { folder_id: null } }); await remove(f.id); setFolder('all'); } }}><Trash2 size={11} /></span>}
           </Chip>
         ))}
         <IconButton size="sm" label={L('مجلد جديد', 'New folder')} onClick={async () => { const n = await prompt(L('اسم المجلد', 'Folder name')); if (n?.trim()) await create('folder', { name: n.trim() }); }}><FolderPlus size={16} /></IconButton>
       </div>
+      {folder === 'projects' && <p className="rounded-md bg-[color-mix(in_oklab,var(--health)_25%,var(--surface))] px-3 py-2 text-[12.5px] text-fg-2">{L('ملاحظات مشاريعك — تنكتب من صفحة المشروع، وتطلع هنا بس، ما تختلط مع ملاحظاتك.', 'Your project notes — written from each project page, kept here so they don’t mix with your notes.')}</p>}
       <div className="flex gap-1.5 overflow-x-auto pb-1 scroll-thin">
-        <select className="field h-8 min-h-0 w-auto py-0 text-[12px]" value={type} onChange={(e) => setType(e.target.value)} aria-label={L('النوع', 'Type')}>
-          <option value="">{L('كل الأنواع', 'All types')}</option>
-          {NOTE_TYPES.map(([v, ar, en]) => <option key={v} value={v}>{L(ar, en)}</option>)}
-        </select>
         {tags.slice(0, 12).map((t) => <Chip key={t} active={tag === t} onClick={() => setTag(tag === t ? '' : t)}>#{t}</Chip>)}
       </div>
       <div className="card min-h-0 flex-1 divide-y divide-line overflow-y-auto scroll-thin lg:max-h-[calc(100dvh-280px)]">
