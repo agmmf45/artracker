@@ -4,6 +4,7 @@ import type { AppEnv } from '../env';
 import { requireAuth } from '../lib/session';
 import { bad, HttpError, readJson } from '../lib/http';
 import { rateLimit } from '../lib/ratelimit';
+import { assistantTurn } from './assistant';
 
 /**
  * AI proxy with server-owned prompts.
@@ -223,6 +224,9 @@ export const ai = new Hono<AppEnv>();
 ai.use('*', requireAuth);
 
 ai.get('/status', (c) => c.json({ available: !!c.env.ANTHROPIC_API_KEY, tasks: Object.keys(TASKS) }));
+
+// the app-wide assistant (registered before /:task so it isn't taken as a task name)
+ai.post('/assistant', assistantTurn);
 
 ai.post('/:task', async (c) => {
   const user = c.get('user');

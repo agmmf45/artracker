@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
-import { Plus, Search, Cloud, CloudOff, RefreshCw, AlertTriangle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Plus, Search, Cloud, CloudOff, RefreshCw, AlertTriangle, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { useI18n } from '@/core/i18n';
 import { useMedia, useProfile, useSettings } from '@/core/hooks';
@@ -9,6 +9,7 @@ import { LIFE_MAIN, PAGES, SECTIONS, isPageOn, type SectionId } from './registry
 import { Brand } from './Splash';
 import { Tour } from './Tour';
 import { PageAbout } from './PageAbout';
+import { AssistantSheet } from './assistant/AssistantSheet';
 import { QuickCapture } from './QuickCapture';
 import { CommandPalette } from './CommandPalette';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -57,6 +58,7 @@ export function Shell() {
   const nav = useNavigate();
   const loc = useLocation();
   const [capture, setCapture] = useState(false);
+  const [assistant, setAssistant] = useState(false);
   const [palette, setPalette] = useState(false);
   const desktop = useMedia('(min-width: 1280px)');
   const tablet = useMedia('(min-width: 768px)') && !desktop;
@@ -76,6 +78,7 @@ export function Shell() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((v) => !v); return; }
       if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === 'n' || e.key === 'N' || e.key === 'ى') { e.preventDefault(); setCapture(true); }
+      if (e.key === 'j' || e.key === 'J' || e.key === 'ت') { e.preventDefault(); setAssistant(true); }
       if (e.key === '/') { e.preventDefault(); setPalette(true); }
       if (['1', '2', '3', '4'].includes(e.key)) nav(SECTIONS[Number(e.key) - 1].path);
     };
@@ -146,8 +149,11 @@ export function Shell() {
             })}
           </nav>
           <div className="border-t border-line p-3" data-section="life">
-            <button data-tour="quick-add" onClick={() => setCapture(true)} className="mb-2 flex w-full items-center justify-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--life)_70%,var(--life-ink))] bg-life py-2.5 text-sm font-bold text-on-accent hover:bg-[color-mix(in_oklab,var(--life)_85%,var(--life-ink))]">
-              <Plus size={17} /> {L('إضافة سريعة', 'Quick add')} {desktop && <kbd className="rounded-full bg-black/10 px-1.5 text-[11px]">N</kbd>}
+            <button data-tour="quick-add" onClick={() => setAssistant(true)} className="mb-1.5 flex w-full items-center justify-center gap-2 rounded-full bg-fg py-2.5 text-sm font-bold text-bg hover:opacity-90">
+              <Sparkles size={16} className="text-reward" /> {L('المساعد', 'Assistant')} {desktop && <kbd className="rounded-full bg-white/15 px-1.5 text-[11px]">J</kbd>}
+            </button>
+            <button onClick={() => setCapture(true)} className="mb-2 flex w-full items-center justify-center gap-2 rounded-full border border-line py-2 text-[13px] font-bold text-fg-2 hover:bg-surface-2">
+              <Plus size={15} /> {L('إضافة سريعة', 'Quick add')} {desktop && <kbd className="rounded-full bg-surface-2 px-1.5 text-[11px]">N</kbd>}
             </button>
             <div className="flex items-center gap-2">
               <NavLink to="/settings" className="flex min-w-0 flex-1 items-center gap-2 rounded-full p-1 hover:bg-surface-2">
@@ -175,7 +181,7 @@ export function Shell() {
           })}
           <span className="flex-1" />
           <button onClick={() => setPalette(true)} className="grid size-10 place-items-center rounded-full text-fg-2 hover:bg-surface-2" aria-label={L('بحث وأوامر', 'Search & commands')}><Search size={19} /></button>
-          <button data-tour="quick-add" data-section="life" onClick={() => setCapture(true)} className="my-1 grid size-12 place-items-center rounded-full bg-life text-on-accent shadow-2" aria-label={L('إضافة سريعة', 'Quick add')}><Plus size={22} /></button>
+          <button data-tour="quick-add" data-section="life" onClick={() => setAssistant(true)} className="my-1 grid size-12 place-items-center rounded-full bg-fg text-reward shadow-2" aria-label={L('المساعد', 'Assistant')}><Sparkles size={22} /></button>
           <SyncBadge compact />
           <NavLink to="/settings" aria-label={L('الملف الشخصي', 'Profile')} className="mt-1"><Avatar profile={profile} size={34} /></NavLink>
         </aside>
@@ -210,16 +216,16 @@ export function Shell() {
         <Outlet />
       </main>
 
-      {/* ── Phone: floating quick-add + bottom navigation ── */}
+      {/* ── Phone: the assistant (✦) + bottom navigation; quick add lives inside the assistant ── */}
       <button
         data-section="life"
         data-tour="quick-add"
-        onClick={() => setCapture(true)}
-        aria-label={L('إضافة سريعة', 'Quick add')}
-        className="fixed end-4 z-30 grid size-15 place-items-center rounded-full border border-[color-mix(in_oklab,var(--life)_60%,var(--life-ink))] bg-life text-on-accent shadow-3 transition-transform active:scale-95 md:hidden"
+        onClick={() => setAssistant(true)}
+        aria-label={L('المساعد', 'Assistant')}
+        className="fixed end-4 z-30 grid size-15 place-items-center rounded-full bg-fg text-reward shadow-3 transition-transform active:scale-95 md:hidden"
         style={{ bottom: 'calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 16px)' }}
       >
-        <Plus size={28} />
+        <Sparkles size={26} />
       </button>
       <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-[color-mix(in_oklab,var(--surface)_94%,transparent)] backdrop-blur-md md:hidden" aria-label={L('الأقسام', 'Sections')}>
         <div className="mx-auto grid h-[var(--bottom-nav-h)] max-w-lg grid-cols-4 px-2">
@@ -237,6 +243,7 @@ export function Shell() {
       </nav>
 
       <QuickCapture open={capture} onOpenChange={setCapture} />
+      <AssistantSheet open={assistant} onOpenChange={setAssistant} onQuickAdd={() => setCapture(true)} />
       <CommandPalette open={palette} onOpenChange={setPalette} onCapture={() => { setPalette(false); setCapture(true); }} />
       <UpdatePrompt />
       <ReminderEngine />

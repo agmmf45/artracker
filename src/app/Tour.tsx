@@ -16,7 +16,7 @@ const STEPS: Step[] = [
   { target: 'nav-life.week', ar: ['الأسبوع', 'أهم 3 للأسبوع، وقائمة باللي ما له يوم. اكتب «… هالأسبوع» وينحط هناك، وبعدين وزّعه على الأيام.'], en: ['Week', 'The week’s top 3 and a list of things with no day yet. Write “… this week”.'] },
   { target: 'nav-life.month', ar: ['الشهر', 'أهدافك (2–3)، تقويم التواريخ المهمة، ومتتبّع العادات والمزاج. «… هالشهر» ينحط هناك.'], en: ['Month', 'Your 2–3 goals, the dates calendar, habit and mood trackers.'] },
   { target: 'nav-life.notebook', ar: ['الدفتر', 'أفكارك ويومياتك وامتنانك، يوم بيوم — كل اللي تكتبه عشان تتذكره.'], en: ['Notebook', 'Ideas, journal and gratitude, day by day.'] },
-  { target: 'quick-add', ar: ['زر +', 'من أي صفحة: اضغطه واكتب أي شي، وأنا أحطه في مكانه. (أو اضغط حرف N)'], en: ['The + button', 'From any page: tap and write anything. (Or press N.)'] },
+  { target: 'quick-add', ar: ['المساعد ✦', 'من أي صفحة: اطلب أي شي — «ذكرني بكرة 5»، «خطّط يومي» — ويجهّزه لك وأنت توافق. والإضافة السريعة داخله.'], en: ['The assistant ✦', 'From any page: ask anything — “remind me tomorrow at 5”, “plan my day” — it prepares it and you approve. Quick add is inside.'] },
 ];
 
 const visible = (el: Element) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
